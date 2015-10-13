@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %logger [%-5level]:%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.apache">
+        <level value="error"/>
+    </logger>
+
+    <logger name="org.apache.http.wire">
+        <level value="debug"/>
+    </logger>
+
+    <logger name="org.springframework">
+        <level value="error"/>
+    </logger>
+
+    <root level="debug">
+        <appender-ref ref="console"/>
+    </root>
+</configuration>

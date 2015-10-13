@@ -1,0 +1,23 @@
+{
+  "url": [
+    "/404.",
+    "/login.",
+    "error.",
+    "sitemap.html",
+    "picture.shtml",
+    "picture.html"
+  ],
+  "suffix":[
+    "css","js","mng","pct","bmp","gif","jpe","jpeg","png","pst","psp","tif","tiff","ai","drw","dxf","eps","ps","svg","flv","ra","aac","mid",
+    "exe","jar","rpm","apk","ipa","zip","rar","docx","doc","xlsx","xls","pptx","ppt","pdf","mp3","wma","ogg","wav","7z","pkg","ts",
+    "au","aiff","3gp","asf","asx","avi","mov","mp4","mpg","qt","rm","swf","wmv","smil","gz","bin","rss","msi","mkv","txt"
+  ],
+  "prefix":[],
+  "host": [
+    "temp.163.com",
+    "twitter.com",
+    "photo.blog.sina.com.cn",
+    "facebook.com",
+    "google.com"
+  ]
+}
