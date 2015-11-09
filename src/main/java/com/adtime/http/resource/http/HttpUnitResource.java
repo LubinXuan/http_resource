@@ -20,8 +20,6 @@ import java.util.Map;
  */
 public class HttpUnitResource extends WebResource {
 
-    private CrawlConfig config;
-
     private static final CookieManager cookieManager = new CookieManager();
 
     public WebClient build(CrawlConfig config) {
@@ -138,9 +136,5 @@ public class HttpUnitResource extends WebResource {
         return e instanceof SocketException ||
                 e instanceof SocketTimeoutException ||
                 e instanceof UnknownHostException;
-    }
-
-    public void setConfig(CrawlConfig config) {
-        this.config = config;
     }
 }

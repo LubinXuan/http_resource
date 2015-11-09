@@ -16,14 +16,18 @@ public abstract class WebResource {
     public static final String UserAgent = "User-Agent";
     public static final String Referer = "Referer";
 
+    private static final boolean INDEX_DEFAULT_ACCESS = true;
+
     protected static Logger logger = LoggerFactory.getLogger(WebResource.class);
 
     private InvalidUrl invalidUrl;
 
     private FormatUrl formatUrl;
 
+    protected CrawlConfig config;
+
     static {
-        System.setProperty ("jsse.enableSNIExtension", "false");
+        System.setProperty("jsse.enableSNIExtension", "false");
     }
 
     public static void enableLite() {
@@ -31,15 +35,7 @@ public abstract class WebResource {
     }
 
     protected String buildGetParameterUrl(String url, Request request) throws UnsupportedEncodingException {
-        StringBuilder stringBuilder = new StringBuilder();
-        if (null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
-            for (Map.Entry<String, String> entry : request.getRequestParam().entrySet()) {
-                if (stringBuilder.length() > 0) {
-                    stringBuilder.append("&");
-                }
-                stringBuilder.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), "utf-8"));
-            }
-        }
+        StringBuilder stringBuilder = new StringBuilder(buildGetParameter(request));
         if (stringBuilder.length() > 0) {
             if (!url.contains("?")) {
                 stringBuilder.insert(0, "?");
@@ -95,7 +91,7 @@ public abstract class WebResource {
         long start = System.currentTimeMillis();
         Result result = request(request.getUrl(), request.getOrigUrl(), request);
         int redirect = 0;
-        while (result.isRedirect() && redirect < request.getMaxRedirect()) {
+        while (result.isRedirect() && redirect < request.getMaxRedirect() && null == result.getMoveToUrl()) {
             result = request(result.getMoveToUrl(), result.getMoveToUrl(), request);
             redirect++;
         }
@@ -113,11 +109,11 @@ public abstract class WebResource {
     }
 
     public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust) {
-        return fetchPage(url, charSet, headers, trust, false, 0);
+        return fetchPage(url, charSet, headers, trust, INDEX_DEFAULT_ACCESS, 0);
     }
 
     public Result fetchPage(String url, String charSet, Map<String, String> headers) {
-        return fetchPage(url, charSet, headers, false, 0);
+        return fetchPage(url, charSet, headers, INDEX_DEFAULT_ACCESS, 0);
     }
 
     public Result fetchPage(String url) {
@@ -125,11 +121,11 @@ public abstract class WebResource {
     }
 
     public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, int maxRedirect) {
-        return fetchPage(url, charSet, headers, trust, false, maxRedirect);
+        return fetchPage(url, charSet, headers, trust, INDEX_DEFAULT_ACCESS, maxRedirect);
     }
 
     public Result fetchPage(String url, String charSet, Map<String, String> headers, int maxRedirect) {
-        return fetchPage(url, charSet, headers, false, maxRedirect);
+        return fetchPage(url, charSet, headers, INDEX_DEFAULT_ACCESS, maxRedirect);
     }
 
     public Result fetchPage(String url, int maxRedirect) {
@@ -196,5 +192,9 @@ public abstract class WebResource {
 
     public void setInvalidUrl(InvalidUrl invalidUrl) {
         this.invalidUrl = invalidUrl;
+    }
+
+    public void setConfig(CrawlConfig config) {
+        this.config = config;
     }
 }

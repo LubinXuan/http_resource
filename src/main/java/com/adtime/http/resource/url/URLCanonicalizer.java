@@ -116,6 +116,9 @@ public class URLCanonicalizer {
     public static String mergePathUrl(String url, String newUrl) {
         if (!newUrl.startsWith("http://") && !newUrl.startsWith("https://")) {
             String domain = getDomain(url);
+            if (newUrl.length() < 1) {
+                return null;
+            }
             switch (newUrl.substring(0, 1)) {
                 case "/":
                     return domain + newUrl;

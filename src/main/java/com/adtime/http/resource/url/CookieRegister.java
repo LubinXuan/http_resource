@@ -21,7 +21,7 @@ public class CookieRegister {
     private String cookieConf;
 
     @PostConstruct
-    private void init() {
+    public void init() {
         try {
             String data = ConfigReader.readNOE(cookieConf);
             String[] lines = data.split("\n");

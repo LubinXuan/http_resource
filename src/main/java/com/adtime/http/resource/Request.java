@@ -33,6 +33,8 @@ public class Request implements Serializable {
     private boolean allowIndex;
 
 
+    private boolean checkBodySize;
+
     public Request() {
     }
 
@@ -135,6 +137,14 @@ public class Request implements Serializable {
 
     public boolean isRequestAsMobile() {
         return requestAsMobile;
+    }
+
+    public boolean isCheckBodySize() {
+        return checkBodySize;
+    }
+
+    public void setCheckBodySize(boolean checkBodySize) {
+        this.checkBodySize = checkBodySize;
     }
 
     public Result getResult() {

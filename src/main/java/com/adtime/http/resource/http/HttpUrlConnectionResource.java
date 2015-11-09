@@ -34,8 +34,6 @@ public class HttpUrlConnectionResource extends WebResource {
         CookieHandler.setDefault(manager);
     }
 
-    private CrawlConfig config;
-
     @Override
     protected boolean _handException(Throwable e, String url, String oUrl) {
         return e instanceof SocketException ||
@@ -56,7 +54,7 @@ public class HttpUrlConnectionResource extends WebResource {
     private Proxy authProxy = null;
 
     @PostConstruct
-    private void _init() {
+    public void _init() {
         if (config.getProxyHost() != null) {
             authProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(config.getProxyHost(), config.getProxyPort()));
             if (null != config.getProxyUsername()) {
@@ -134,7 +132,7 @@ public class HttpUrlConnectionResource extends WebResource {
                         return new Result(targetUrl, sts, "").withHeader(headerMap);
                     } else {
                         if (sts == HttpURLConnection.HTTP_OK) {
-                            return handleSuccess(con, request.getCharSet(), targetUrl).withHeader(headerMap);
+                            return handleSuccess(con, request.getCharSet(), targetUrl, request.isCheckBodySize()).withHeader(headerMap);
                         } else if (sts >= 400) {
                             return handleError(con, request.getCharSet(), targetUrl).withHeader(headerMap);
                         } else {
@@ -190,10 +188,10 @@ public class HttpUrlConnectionResource extends WebResource {
 
 
     private Result handleError(HttpURLConnection con, String charSet, String url) throws Exception {
-        return getResult(con, true, charSet, url);
+        return getResult(con, true, charSet, url, true);
     }
 
-    private Result getResult(HttpURLConnection con, boolean error, String charSet, String url) throws Exception {
+    private Result getResult(HttpURLConnection con, boolean error, String charSet, String url, boolean checkBodySize) throws Exception {
         String header_contentType = con.getContentType();
         if (null != header_contentType) {
             header_contentType = header_contentType.replaceAll("\\s", "");
@@ -214,7 +212,7 @@ public class HttpUrlConnectionResource extends WebResource {
             charSet = contentCharset;
         }
 
-        EntityReadUtils.Entity entity = EntityReadUtils.read(con, error, charSet);
+        EntityReadUtils.Entity entity = EntityReadUtils.read(con, error, charSet, checkBodySize);
         String content = entity.toString(url);
         Result tmp = new Result(url, content, false, con.getResponseCode())
                 .setContentType(contentType).setCharSet(entity.getFinalCharSet());
@@ -223,8 +221,8 @@ public class HttpUrlConnectionResource extends WebResource {
         return tmp;
     }
 
-    private Result handleSuccess(HttpURLConnection con, String charSet, String url) throws Exception {
-        Result tmp = getResult(con, false, charSet, url);
+    private Result handleSuccess(HttpURLConnection con, String charSet, String url, boolean checkBodySize) throws Exception {
+        Result tmp = getResult(con, false, charSet, url, checkBodySize);
         String refreshUrl = metaRefresh(tmp);
         if (refreshUrl.trim().length() > 0) {
             Result result = new Result(url, "", true, HttpURLConnection.HTTP_MOVED_PERM);
@@ -242,9 +240,5 @@ public class HttpUrlConnectionResource extends WebResource {
             result.setMoveToUrl(movedToUrl);
         }
         return result;
-    }
-
-    public void setConfig(CrawlConfig config) {
-        this.config = config;
     }
 }

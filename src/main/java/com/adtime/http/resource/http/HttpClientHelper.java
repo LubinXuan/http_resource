@@ -16,6 +16,12 @@ public abstract class HttpClientHelper {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpClientHelper.class);
 
+    protected CrawlConfig config;
+
+    public HttpClientHelper(CrawlConfig config) {
+        this.config = config;
+    }
+
     public abstract HttpClient basic();
 
     public abstract HttpClient newBasic();

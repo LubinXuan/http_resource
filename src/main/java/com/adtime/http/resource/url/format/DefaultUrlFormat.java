@@ -11,7 +11,9 @@ import java.util.regex.Pattern;
 /**
  * Created by Lubin.Xuan on 2015/1/4.
  */
-public class DefaultUrlFormat implements FormatUrl{
+public class DefaultUrlFormat implements FormatUrl {
+
+    public final static String DEFAULT_CONFIG = "http/config/urlFormat.json";
 
     /**
      * Created by Lubin.Xuan on 2015/1/4.
@@ -82,6 +84,10 @@ public class DefaultUrlFormat implements FormatUrl{
         String jsonObject = ConfigReader.readNOE(sourceFile);
         urlFormatList = JSON.parseObject(jsonObject, new TypeReference<List<UrlFormat>>() {
         });
+    }
+
+    public DefaultUrlFormat() {
+        this(DEFAULT_CONFIG);
     }
 
     public String format(String url) {

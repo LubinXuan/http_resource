@@ -35,6 +35,13 @@ public class HttpClientResource extends WebResource {
 
     private HttpClientHelper httpClientHelper;
 
+
+    private Class<? extends HttpClientHelper> helperClass;
+
+    public HttpClientResource(Class<? extends HttpClientHelper> helperClass) {
+        this.helperClass = helperClass;
+    }
+
     @Override
     protected boolean _handException(Throwable e, String url, String oUrl) {
         return e instanceof SocketException ||
@@ -105,9 +112,9 @@ public class HttpClientResource extends WebResource {
                     return new Result(url, sts, "").withHeader(headerMap);
                 } else {
                     if (sts == HttpURLConnection.HTTP_OK) {
-                        return handleSuccess(response, request.getCharSet(), url).withHeader(headerMap);
+                        return handleSuccess(response, request.getCharSet(), url, request.isCheckBodySize()).withHeader(headerMap);
                     } else if (sts >= 400) {
-                        return handleSuccess(response, request.getCharSet(), url).withHeader(headerMap);
+                        return handleSuccess(response, request.getCharSet(), url, request.isCheckBodySize()).withHeader(headerMap);
                     } else {
                         return new Result(url, "", false, sts).withHeader(headerMap);
                     }
@@ -142,10 +149,10 @@ public class HttpClientResource extends WebResource {
         }
     }
 
-    private Result handleSuccess(HttpResponse response, String charSet, String url) throws Exception {
+    private Result handleSuccess(HttpResponse response, String charSet, String url, boolean checkBodySize) throws Exception {
         HttpEntity httpEntity = response.getEntity();
         ContentType contentType = ContentType.get(httpEntity);
-        EntityReadUtils.Entity entity = EntityReadUtils.read(httpEntity, charSet);
+        EntityReadUtils.Entity entity = EntityReadUtils.read(httpEntity, charSet, checkBodySize);
         Result tmp = new Result(url, entity.toString(url), false, response.getStatusLine().getStatusCode());
         if (null != contentType) {
             tmp.setContentType(contentType.getMimeType());
@@ -176,5 +183,20 @@ public class HttpClientResource extends WebResource {
 
     public void setHttpClientHelper(HttpClientHelper httpClientHelper) {
         this.httpClientHelper = httpClientHelper;
+    }
+
+    @Override
+    public void setConfig(CrawlConfig config) {
+
+        super.setConfig(config);
+
+        if (null != httpClientHelper) {
+            return;
+        }
+        try {
+            this.httpClientHelper = helperClass.getConstructor(CrawlConfig.class).newInstance(config);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("httpclient 初始化失败");
+        }
     }
 }

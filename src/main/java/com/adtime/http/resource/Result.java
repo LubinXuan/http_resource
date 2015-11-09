@@ -1,7 +1,7 @@
 package com.adtime.http.resource;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +27,8 @@ public class Result {
     protected long length;
     protected long unCompressLength;
     protected long requestTime;
+
+    private boolean parsed;
 
     public Result(String url, String html, boolean redirect, int status) {
         this.url = url;
@@ -105,20 +107,29 @@ public class Result {
     }
 
     public Document getDocument(boolean removeStyle) {
-        if (null == document && null != html && html.length() > 0) {
+        return getDocument(removeStyle, false);
+    }
+
+    public Document getDocument(boolean removeStyle, boolean asXml) {
+        if (!parsed) {
             synchronized (this) {
-                if (null == document) {
+                if (!parsed) {
                     if (null != html && html.length() > 0) {
                         try {
-                            document = Jsoup.parse(html);
-                            if (removeStyle) {
-                                document.select("style").remove();
-                                document.select("link").remove();
+                            if (asXml) {
+                                document = Parser.xmlParser().parseInput(html, "");
+                            } else {
+                                document = Parser.htmlParser().parseInput(html, "");
+                                if (removeStyle) {
+                                    document.select("style").remove();
+                                    document.select("link").remove();
+                                }
                             }
                         } catch (Exception ignore) {
 
                         }
                     }
+                    parsed = true;
                 }
             }
         }

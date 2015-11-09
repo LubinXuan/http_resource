@@ -46,8 +46,6 @@ public class Clients435 extends HttpClientHelper {
 
     private HttpClient httpClient;
 
-    private CrawlConfig config;
-
     private static final Object lock = new Object();
 
     private RequestConfig.Builder requestConfigBuilder;
@@ -56,6 +54,12 @@ public class Clients435 extends HttpClientHelper {
     private HttpRequestRetryHandler retryHandler;
     private CredentialsProvider credentialsProvider = null;
     private CookieStore cookieStore = new BasicCookieStore();
+
+    private boolean init = false;
+
+    public Clients435(CrawlConfig config) {
+        super(config);
+    }
 
     @Override
     public HttpClient basic() {
@@ -71,6 +75,7 @@ public class Clients435 extends HttpClientHelper {
 
     @Override
     public HttpClient newBasic() {
+        init();
         HttpClientBuilder builder = HttpClients.custom()
                 .setDefaultRequestConfig(requestConfigBuilder.build())
                 .setUserAgent(config.getUserAgentString())
@@ -89,7 +94,11 @@ public class Clients435 extends HttpClientHelper {
     }
 
     @PostConstruct
-    private void init() {
+    public synchronized void init() {
+
+        if (init) {
+            return;
+        }
 
         logger.info("HttpClient Version 4.3.5");
 
@@ -172,6 +181,8 @@ public class Clients435 extends HttpClientHelper {
         //defaultHeaders.add(new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "gzip"));
 
         new IdleConnectionMonitor(connectionManager).start();
+
+        init = true;
     }
 
     private HttpClient _init() {
@@ -182,10 +193,6 @@ public class Clients435 extends HttpClientHelper {
 
     public CrawlConfig getConfig() {
         return config;
-    }
-
-    public void setConfig(CrawlConfig config) {
-        this.config = config;
     }
 
     class IdleConnectionMonitor extends Thread {

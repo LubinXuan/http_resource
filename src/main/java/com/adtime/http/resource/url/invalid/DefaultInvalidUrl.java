@@ -12,6 +12,8 @@ public class DefaultInvalidUrl implements InvalidUrl {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultInvalidUrl.class);
 
+    public final static String DEFAULT_CONFIG = "http/config/invalidUrl.json";
+
     private InvalidDef invalidDef;
 
     public DefaultInvalidUrl(String invalidUrlSource) {
@@ -22,6 +24,10 @@ public class DefaultInvalidUrl implements InvalidUrl {
             logger.error("非法url初始化出错", e);
         }
 
+    }
+
+    public DefaultInvalidUrl() {
+        this(DEFAULT_CONFIG);
     }
 
     public boolean valid(String url) {

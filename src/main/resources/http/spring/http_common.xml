@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd"
        default-lazy-init="true">
     <!-- HttpClient Config -->
-    <bean id="config" class="com.adtime.http.resource.CrawlConfig">
-        <property name="userAgentString" value="${http.user.agent}"/>
-        <property name="connectionTimeout" value="${http.connect.timeout}"/>
-        <property name="socketTimeout" value="${http.socket.timeout}"/>
-        <property name="followRedirects" value="${http.auto.redirect}"/>
-        <property name="includeHttpsPages" value="${http.https.enable}"/>
-        <property name="maxConnectionsPerHost" value="${http.maxConnectionsPerHost}"/>
-        <property name="maxTotalConnections" value="${http.maxTotalConnections}"/>
-        <property name="retryCount" value="3"/>
-    </bean>
+    <bean id="config" class="com.adtime.http.resource.CrawlConfig"
+          p:userAgentString="${http.user.agent:}"
+          p:connectionTimeout="${http.connect.timeout:20000}"
+          p:socketTimeout="${http.socket.timeout:20000}"
+          p:followRedirects="${http.auto.redirect:false}"
+          p:includeHttpsPages="${http.https.enable:true}"
+          p:maxConnectionsPerHost="${http.maxConnectionsPerHost:100}"
+          p:maxTotalConnections="${http.maxTotalConnections:100}"
+          p:retryCount="3"
+    />
 
     <bean id="invalidUrl" class="com.adtime.http.resource.url.invalid.DefaultInvalidUrl" lazy-init="false">
         <constructor-arg value="${invalid.url.config}"/>
@@ -22,6 +23,12 @@
     <bean id="formatUrl" class="com.adtime.http.resource.url.format.DefaultUrlFormat" lazy-init="false">
         <constructor-arg name="sourceFile" value="${format.url.config}"/>
     </bean>
+
+    <bean id="resourceParent" class="com.adtime.http.resource.WebResource" abstract="true"
+          p:config-ref="config"
+          p:formatUrl-ref="formatUrl"
+          p:invalidUrl-ref="invalidUrl"
+    />
 
     <!--    <bean class="com.adtime.http.resource.url.CookieRegister" lazy-init="false"
               p:cookieConf="crawler/config/cookies.conf">

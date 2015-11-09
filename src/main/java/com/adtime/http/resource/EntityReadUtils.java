@@ -30,16 +30,16 @@ public class EntityReadUtils {
         return null != conEncoding && conEncoding.equalsIgnoreCase("deflate");
     }
 
-    public static Entity read(final HttpEntity entity, final String charSet) throws IOException {
+    public static Entity read(final HttpEntity entity, final String charSet, boolean checkBodySize) throws IOException {
         if (entity == null) {
             throw new IllegalArgumentException("HttpEntity may not be null");
         }
         Header header = entity.getContentEncoding();
         String conEncoding = null != header ? header.getValue() : null;
-        return streamAsByte(entity.getContentLength(), charSet, entity.getContent(), isGzip(conEncoding), isDeflate(conEncoding));
+        return streamAsByte(entity.getContentLength(), charSet, entity.getContent(), isGzip(conEncoding), isDeflate(conEncoding),checkBodySize);
     }
 
-    public static Entity read(final HttpURLConnection con, final boolean error, final String charSet) throws IOException {
+    public static Entity read(final HttpURLConnection con, final boolean error, final String charSet, boolean checkBodySize) throws IOException {
         if (con == null) {
             throw new IllegalArgumentException("HttpURLConnection may not be null");
         }
@@ -58,7 +58,7 @@ public class EntityReadUtils {
             checkInflaterInputStream = true;
         }
 
-        return streamAsByte(con.getContentLengthLong(), charSet, is, unCompress, checkInflaterInputStream);
+        return streamAsByte(con.getContentLengthLong(), charSet, is, unCompress, checkInflaterInputStream,checkBodySize);
     }
 
     private static String contentLength(long pre, int cl) {
@@ -86,13 +86,13 @@ public class EntityReadUtils {
     }
 
     @SuppressWarnings("all")
-    private static Entity streamAsByte(long contentLength, String charSet, InputStream is, boolean uncompress, boolean checkInflaterInputStream) throws IOException {
+    private static Entity streamAsByte(long contentLength, String charSet, InputStream is, boolean uncompress, boolean checkInflaterInputStream, boolean checkBodySize) throws IOException {
 
         if (is == null) {
             return new Entity(false, "Http InputStream is null!!");
         }
 
-        if (contentLength > MAX_PAGE_SIZE) {
+        if (checkBodySize && contentLength > MAX_PAGE_SIZE) {
             return new Entity(false, "流大小:[" + contentLength(contentLength, 0) + "] max than [" + MAX_PAGE_SIZE + "] as a download Stream");
         }
 
@@ -111,12 +111,15 @@ public class EntityReadUtils {
                         if (!isPageSizeOut) {
                             outputStream.write(tmp, 0, l);
                         }
+
                         contentLengthCurrent += l;
-                        if (contentLengthCurrent > MAX_PAGE_SIZE && !isPageSizeOut) {
-                            isPageSizeOut = true;
-                        }
-                        if (contentLengthCurrent > MAX_DOWNLOAD_LIMIT) {
-                            return new Entity(false, "流大小:[" + contentLength(contentLength, contentLengthCurrent) + "] max than [" + MAX_DOWNLOAD_LIMIT + "] as a download Stream");
+                        if (checkBodySize) {
+                            if (contentLengthCurrent > MAX_PAGE_SIZE && !isPageSizeOut) {
+                                isPageSizeOut = true;
+                            }
+                            if (contentLengthCurrent > MAX_DOWNLOAD_LIMIT) {
+                                return new Entity(false, "流大小:[" + contentLength(contentLength, contentLengthCurrent) + "] max than [" + MAX_DOWNLOAD_LIMIT + "] as a download Stream");
+                            }
                         }
                     } else {
                         break;
