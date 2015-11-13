@@ -35,7 +35,6 @@ public class HttpClientResource extends WebResource {
 
     private HttpClientHelper httpClientHelper;
 
-
     private Class<? extends HttpClientHelper> helperClass;
 
     public HttpClientResource(Class<? extends HttpClientHelper> helperClass) {
@@ -80,6 +79,9 @@ public class HttpClientResource extends WebResource {
             }
             Map<String, String> _headers = request.getHeaderMap();
             _headers.forEach(requestBase::addHeader);
+
+            requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectTimeout(), request.getReadTimeout()));
+
             response = client.execute(requestBase);
 
             Map<String, List<String>> headerMap = null;

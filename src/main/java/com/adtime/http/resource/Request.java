@@ -35,6 +35,9 @@ public class Request implements Serializable {
 
     private boolean checkBodySize;
 
+    private Integer connectTimeout;
+    private Integer readTimeout;
+
     public Request() {
     }
 
@@ -149,5 +152,21 @@ public class Request implements Serializable {
 
     public Result getResult() {
         return result;
+    }
+
+    public Integer getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public void setConnectTimeout(Integer connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
+    public Integer getReadTimeout() {
+        return readTimeout;
+    }
+
+    public void setReadTimeout(Integer readTimeout) {
+        this.readTimeout = readTimeout;
     }
 }

@@ -2,6 +2,7 @@ package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.CrawlConfig;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.impl.cookie.BasicClientCookie;
@@ -27,6 +28,8 @@ public abstract class HttpClientHelper {
     public abstract HttpClient newBasic();
 
     public abstract CrawlConfig getConfig();
+
+    public abstract RequestConfig requestConfig(Integer connectTimeout,Integer readTimeout);
 
     public abstract void registerCookie(String domain, String name, String value);
 

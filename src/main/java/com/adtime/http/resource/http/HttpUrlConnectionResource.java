@@ -103,8 +103,16 @@ public class HttpUrlConnectionResource extends WebResource {
                 con.setDoInput(true);
                 con.setUseCaches(false);
                 con.setInstanceFollowRedirects(config.isFollowRedirects());
-                con.setConnectTimeout(config.getConnectionTimeout());
-                con.setReadTimeout(config.getSocketTimeout());
+                if (null != request.getConnectTimeout()) {
+                    con.setConnectTimeout(request.getConnectTimeout());
+                } else {
+                    con.setConnectTimeout(config.getConnectionTimeout());
+                }
+                if (null != request.getReadTimeout()) {
+                    con.setReadTimeout(request.getReadTimeout());
+                } else {
+                    con.setReadTimeout(config.getSocketTimeout());
+                }
                 Map<String, String> default_headers = request.getHeaderMap();
                 default_headers.forEach(con::setRequestProperty);
                 if (con instanceof HttpsURLConnection) {

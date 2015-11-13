@@ -35,7 +35,10 @@ import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
 import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 /**
  * Apache HttpClient 4.3.5
@@ -49,6 +52,7 @@ public class Clients435 extends HttpClientHelper {
     private static final Object lock = new Object();
 
     private RequestConfig.Builder requestConfigBuilder;
+    private RequestConfig defaultRequestConfig;
     private PoolingHttpClientConnectionManager connectionManager;
     private ArrayList<Header> defaultHeaders;
     private HttpRequestRetryHandler retryHandler;
@@ -77,7 +81,7 @@ public class Clients435 extends HttpClientHelper {
     public HttpClient newBasic() {
         init();
         HttpClientBuilder builder = HttpClients.custom()
-                .setDefaultRequestConfig(requestConfigBuilder.build())
+                .setDefaultRequestConfig(defaultRequestConfig)
                 .setUserAgent(config.getUserAgentString())
                 .setConnectionManager(connectionManager)
                 .setRetryHandler(retryHandler).setDefaultHeaders(defaultHeaders)
@@ -181,7 +185,7 @@ public class Clients435 extends HttpClientHelper {
         //defaultHeaders.add(new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "gzip"));
 
         new IdleConnectionMonitor(connectionManager).start();
-
+        defaultRequestConfig = requestConfigBuilder.build();
         init = true;
     }
 
@@ -193,6 +197,36 @@ public class Clients435 extends HttpClientHelper {
 
     public CrawlConfig getConfig() {
         return config;
+    }
+
+
+    private static final Map<String, RequestConfig> REQUEST_CONFIG_MAP = new ConcurrentHashMap<>();
+
+    @Override
+    public synchronized RequestConfig requestConfig(Integer connectTimeout, Integer readTimeout) {
+        if (null == connectTimeout && null == readTimeout) {
+            return null;
+        }
+
+        String key = connectTimeout + "&" + readTimeout;
+
+        return REQUEST_CONFIG_MAP.compute(key, (s, requestConfig) -> {
+
+            if (null != requestConfig) {
+                return requestConfig;
+            }
+
+            if (null != connectTimeout) {
+                requestConfigBuilder.setConnectTimeout(connectTimeout);
+            }
+
+            if (null != readTimeout) {
+                requestConfigBuilder.setSocketTimeout(readTimeout);
+            }
+
+
+            return requestConfigBuilder.build();
+        });
     }
 
     class IdleConnectionMonitor extends Thread {

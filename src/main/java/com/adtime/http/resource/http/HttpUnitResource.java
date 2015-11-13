@@ -22,9 +22,13 @@ public class HttpUnitResource extends WebResource {
 
     private static final CookieManager cookieManager = new CookieManager();
 
-    public WebClient build(CrawlConfig config) {
+    public WebClient build(CrawlConfig config, Request request) {
         WebClient webClient = new WebClient(BrowserVersion.CHROME);
-        webClient.getOptions().setTimeout(config.getConnectionTimeout());
+        if (null != request.getConnectTimeout()) {
+            webClient.getOptions().setTimeout(request.getConnectTimeout());
+        } else {
+            webClient.getOptions().setTimeout(config.getConnectionTimeout());
+        }
         webClient.getOptions().setJavaScriptEnabled(true);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
         webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
@@ -53,7 +57,7 @@ public class HttpUnitResource extends WebResource {
 
     @Override
     public Result request(String url, String oUrl, Request request) {
-        WebClient webClient = build(config);
+        WebClient webClient = build(config, request);
         try {
             Map<String, String> _headers = request.getHeaderMap();
             String domain = URLCanonicalizer.getHost(url);
