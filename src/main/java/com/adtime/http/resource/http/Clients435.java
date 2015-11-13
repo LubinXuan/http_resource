@@ -203,7 +203,7 @@ public class Clients435 extends HttpClientHelper {
     private static final Map<String, RequestConfig> REQUEST_CONFIG_MAP = new ConcurrentHashMap<>();
 
     @Override
-    public synchronized RequestConfig requestConfig(Integer connectTimeout, Integer readTimeout) {
+    public RequestConfig requestConfig(Integer connectTimeout, Integer readTimeout) {
         if (null == connectTimeout && null == readTimeout) {
             return null;
         }
