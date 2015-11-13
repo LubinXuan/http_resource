@@ -80,7 +80,7 @@ public class HttpClientResource extends WebResource {
             Map<String, String> _headers = request.getHeaderMap();
             _headers.forEach(requestBase::addHeader);
 
-            requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectTimeout(), request.getReadTimeout()));
+            requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
 
             response = client.execute(requestBase);
 

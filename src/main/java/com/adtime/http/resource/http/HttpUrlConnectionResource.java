@@ -103,8 +103,8 @@ public class HttpUrlConnectionResource extends WebResource {
                 con.setDoInput(true);
                 con.setUseCaches(false);
                 con.setInstanceFollowRedirects(config.isFollowRedirects());
-                if (null != request.getConnectTimeout()) {
-                    con.setConnectTimeout(request.getConnectTimeout());
+                if (null != request.getConnectionTimeout()) {
+                    con.setConnectTimeout(request.getConnectionTimeout());
                 } else {
                     con.setConnectTimeout(config.getConnectionTimeout());
                 }

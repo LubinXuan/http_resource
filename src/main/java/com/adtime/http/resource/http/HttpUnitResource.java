@@ -24,8 +24,8 @@ public class HttpUnitResource extends WebResource {
 
     public WebClient build(CrawlConfig config, Request request) {
         WebClient webClient = new WebClient(BrowserVersion.CHROME);
-        if (null != request.getConnectTimeout()) {
-            webClient.getOptions().setTimeout(request.getConnectTimeout());
+        if (null != request.getConnectionTimeout()) {
+            webClient.getOptions().setTimeout(request.getConnectionTimeout());
         } else {
             webClient.getOptions().setTimeout(config.getConnectionTimeout());
         }
