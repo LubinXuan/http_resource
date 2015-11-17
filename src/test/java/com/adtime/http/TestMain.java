@@ -69,11 +69,11 @@ public class TestMain extends BaseTest {
     static {
         header.put("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36 MicroMessenger/6.5.2.501 NetType/WIFI WindowsWechat");
         Map<String, String> cookies = new HashMap<>();
-        cookies.put("webwx_data_ticket", "AQZGhoeUul6nVH4eRPA0aqPd");
-        cookies.put("webwxuvid", "c5ea1e1c32eafe06fdaad29fc31b2e58930e59b08184963fec3ff76019a91f48e774024c2317f64cb97f50da688caee1");
-        cookies.put("wxloadtime", "1446621131_expired");
-        cookies.put("wxpluginkey", "1446599950");
-        cookies.put("wxsid", "CrvGdr+MMHVZiiVk");
+        cookies.put("webwx_data_ticket", "AQbhR4lDY3dGcHfEIExI+vt/");
+        //cookies.put("webwxuvid", "c5ea1e1c32eafe06fdaad29fc31b2e58930e59b08184963fec3ff76019a91f48e774024c2317f64cb97f50da688caee1");
+        //cookies.put("wxloadtime", "1447657715");
+        //cookies.put("wxpluginkey", "1446599950");
+        cookies.put("wxsid", "qGwuWuO4UmRawk5J");
         cookies.put("wxuin", "781277480");
        /* cookies.put("pgv_pvi", "6665428992");
         cookies.put("pgv_si", "s8713410560");*/

@@ -91,7 +91,7 @@ public abstract class WebResource {
         long start = System.currentTimeMillis();
         Result result = request(request.getUrl(), request.getOrigUrl(), request);
         int redirect = 0;
-        while (result.isRedirect() && redirect < request.getMaxRedirect() && null == result.getMoveToUrl()) {
+        while (result.isRedirect() && redirect < request.getMaxRedirect() && null != result.getMoveToUrl()) {
             result = request(result.getMoveToUrl(), result.getMoveToUrl(), request);
             redirect++;
         }
