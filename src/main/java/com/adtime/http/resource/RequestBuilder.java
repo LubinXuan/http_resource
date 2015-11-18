@@ -86,7 +86,7 @@ public class RequestBuilder {
         try {
             host = new URL(url).getHost();
         } catch (Throwable e) {
-            request.setCompleted(new Result(request.getUrl(), WebConst.LOCAL_HOST_ERROR, "获取host失败 " + url));
+            request.setCompleted(new Result(request.requestUrl(), WebConst.LOCAL_HOST_ERROR, "获取host失败 " + url));
             return request;
         }
         String[] part = host.split("\\.");
@@ -115,7 +115,7 @@ public class RequestBuilder {
                 logger.error("域名不可解析", e);
             }
             if (inetAddress == null) {
-                request.setCompleted(new Result(request.getUrl(), WebConst.LOCAL_HOST_ERROR, "域名不可解析 " + host));
+                request.setCompleted(new Result(request.requestUrl(), WebConst.LOCAL_HOST_ERROR, "域名不可解析 " + host));
                 return request;
             }
         }

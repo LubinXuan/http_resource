@@ -34,32 +34,6 @@ public abstract class WebResource {
         System.setProperty("icu.lite", "true");
     }
 
-    protected String buildGetParameterUrl(String url, Request request) throws UnsupportedEncodingException {
-        StringBuilder stringBuilder = new StringBuilder(buildGetParameter(request));
-        if (stringBuilder.length() > 0) {
-            if (!url.contains("?")) {
-                stringBuilder.insert(0, "?");
-            } else if (!url.endsWith("&")) {
-                stringBuilder.insert(0, "&");
-            }
-        }
-        stringBuilder.insert(0, url);
-        return stringBuilder.toString();
-    }
-
-    protected String buildGetParameter(Request request) throws UnsupportedEncodingException {
-        StringBuilder stringBuilder = new StringBuilder();
-        if (null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
-            for (Map.Entry<String, String> entry : request.getRequestParam().entrySet()) {
-                if (stringBuilder.length() > 0) {
-                    stringBuilder.append("&");
-                }
-                stringBuilder.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), "utf-8"));
-            }
-        }
-        return stringBuilder.toString();
-    }
-
     public Request buildRequest(String url, String charSet, Map<String, String> headers, boolean trust, boolean includeIndex, int maxRedirect) {
         return RequestBuilder.buildRequest(url, charSet, headers, trust, includeIndex, maxRedirect);
     }
@@ -77,7 +51,7 @@ public abstract class WebResource {
         }
 
         if (!request.isTrust()) {
-            String tmpUrl = validUrl(request.getUrl());
+            String tmpUrl = validUrl(request.requestUrl());
             if (null == tmpUrl || tmpUrl.trim().length() < 1) {
                 request.setCompleted(new Result(request.getOrigUrl(), WebConst.LOCAL_NOT_ACCEPTABLE, "链接406: " + request.getOrigUrl()));
                 return request.getResult();
@@ -89,7 +63,7 @@ public abstract class WebResource {
 
     private Result getResult(Request request) {
         long start = System.currentTimeMillis();
-        Result result = request(request.getUrl(), request.getOrigUrl(), request);
+        Result result = request(request.requestUrl(), request.getOrigUrl(), request);
         int redirect = 0;
         while (result.isRedirect() && redirect < request.getMaxRedirect() && null != result.getMoveToUrl()) {
             result = request(result.getMoveToUrl(), result.getMoveToUrl(), request);

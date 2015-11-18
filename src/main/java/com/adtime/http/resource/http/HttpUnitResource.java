@@ -79,7 +79,7 @@ public class HttpUnitResource extends WebResource {
             WebRequest webRequest;
             webClient.addRequestHeader("Connection", "close");
             if (Request.Method.GET.equals(request.getMethod()) || Request.Method.HEAD.equals(request.getMethod())) {
-                webRequest = new WebRequest(UrlUtils.toUrlUnsafe(buildGetParameterUrl(url, request)), HttpMethod.valueOf(request.getMethod().name()));
+                webRequest = new WebRequest(UrlUtils.toUrlUnsafe(url), HttpMethod.valueOf(request.getMethod().name()));
             } else {
                 webRequest = new WebRequest(UrlUtils.toUrlUnsafe(url), HttpMethod.valueOf(request.getMethod().name()));
                 if (null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {

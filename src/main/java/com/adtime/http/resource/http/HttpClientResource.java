@@ -67,9 +67,9 @@ public class HttpClientResource extends WebResource {
         HttpResponse response = null;
         try {
             if (Request.Method.GET.equals(request.getMethod())) {
-                requestBase = new HttpGet(buildGetParameterUrl(url, request));
+                requestBase = new HttpGet(url);
             } else if (Request.Method.HEAD.equals(request.getMethod())) {
-                requestBase = new HttpHead(buildGetParameterUrl(url, request));
+                requestBase = new HttpHead(url);
             } else {
                 requestBase = new HttpPost(url);
                 if (null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {

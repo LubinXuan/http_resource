@@ -1,6 +1,8 @@
 package com.adtime.http.resource;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +18,7 @@ public class Request implements Serializable {
 
     private String url;
     private String origUrl;
+    private String requestUrl;
     private Method method;
     private Map<String, String> headerMap = new HashMap<>();
     private Map<String, String> requestParam = new HashMap<>();
@@ -70,6 +73,35 @@ public class Request implements Serializable {
             this.maxRedirect = 0;
         } else {
             this.maxRedirect = maxRedirect;
+        }
+    }
+
+    protected String buildGetParameterUrl() {
+        StringBuilder stringBuilder = new StringBuilder(RequestUtil.buildGetParameter(this.getRequestParam()));
+        if (stringBuilder.length() > 0) {
+            if (!url.contains("?")) {
+                stringBuilder.insert(0, "?");
+            } else if (!url.endsWith("&")) {
+                stringBuilder.insert(0, "&");
+            }
+        }
+        stringBuilder.insert(0, url);
+        return stringBuilder.toString();
+    }
+
+    public String requestUrl() {
+        if (Method.POST.equals(method)) {
+            return url;
+        }
+        if (requestParam.isEmpty()) {
+            return url;
+        } else {
+            if (null == requestUrl) {
+                synchronized (this) {
+                    requestUrl = buildGetParameterUrl();
+                }
+            }
+            return requestUrl;
         }
     }
 

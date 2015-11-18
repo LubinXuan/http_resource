@@ -81,7 +81,7 @@ public class HttpUrlConnectionResource extends WebResource {
 
         try {
             if (Request.Method.GET.equals(request.getMethod()) || Request.Method.HEAD.equals(request.getMethod())) {
-                url = new URL(buildGetParameterUrl(targetUrl, request));
+                url = new URL(targetUrl);
             } else {
                 url = new URL(targetUrl);
             }
@@ -124,7 +124,7 @@ public class HttpUrlConnectionResource extends WebResource {
 
                 if (Request.Method.POST.equals(request.getMethod()) && null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
                     con.setDoOutput(true);
-                    con.getOutputStream().write(buildGetParameter(request).getBytes("utf-8"));
+                    con.getOutputStream().write(RequestUtil.buildGetParameter(request.getRequestParam()).getBytes("utf-8"));
                 } else {
                     con.setDoOutput(false);
                     con.connect();
