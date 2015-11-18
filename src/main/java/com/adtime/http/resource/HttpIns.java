@@ -24,6 +24,7 @@ public class HttpIns {
 
     static {
         CRAWL_CONFIG.setUserAgentString(WebConst.randomUA());
+        CRAWL_CONFIG.setIncludeHttpsPages(true);
     }
 
     private static final Map<String, WebResource> WEB_RESOURCE_MAP = new HashMap<>();
