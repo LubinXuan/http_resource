@@ -116,17 +116,13 @@ public class Result {
                 if (!parsed) {
                     if (null != html && html.length() > 0) {
                         try {
-                            if (asXml) {
-                                document = Parser.xmlParser().parseInput(html, "");
-                            } else {
+                            document = Parser.xmlParser().parseInput(html, "");
+                        } catch (Throwable e) {
+                            try {
                                 document = Parser.htmlParser().parseInput(html, "");
-                                if (removeStyle) {
-                                    document.select("style").remove();
-                                    document.select("link").remove();
-                                }
-                            }
-                        } catch (Exception ignore) {
+                            } catch (Exception ignore) {
 
+                            }
                         }
                     }
                     parsed = true;
