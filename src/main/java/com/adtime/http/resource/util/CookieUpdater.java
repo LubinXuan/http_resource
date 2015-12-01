@@ -22,11 +22,11 @@ public abstract class CookieUpdater {
             @Override
             public void run() {
                 try {
-                    List<String[]> valueList = loop();
+                    List<CookieInfo> valueList = loop();
                     if (null != valueList && valueList.isEmpty()) {
-                        for (String[] item : valueList) {
-                            if (item.length >= 3 && StringUtils.isNotBlank(item[0]) && StringUtils.isNotBlank(item[1]) && StringUtils.isNotBlank(item[2])) {
-                                cookieRegister.registerCookie(StringUtils.trim(item[0]), StringUtils.trim(item[1]), StringUtils.trim(item[2]));
+                        for (CookieInfo item : valueList) {
+                            if (StringUtils.isNotBlank(item.getCookieName()) && StringUtils.isNotBlank(item.getDomainName()) && StringUtils.isNotBlank(item.getValue())) {
+                                cookieRegister.registerCookie(StringUtils.trim(item.getDomainName()), StringUtils.trim(item.getCookieName()), StringUtils.trim(item.getValue()));
                             }
                         }
                     }
@@ -43,5 +43,5 @@ public abstract class CookieUpdater {
      *
      * @return
      */
-    public abstract List<String[]> loop();
+    public abstract List<CookieInfo> loop();
 }
