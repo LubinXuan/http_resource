@@ -28,6 +28,9 @@ public class TestMain extends BaseTest {
         url = "http://www.douban.com/group/10197/";
         url = "http://price.pcauto.com.cn/market/63083-10148245.html";
         url = "http://taizhou.19lou.com/forum-1426-thread-142421448587948805-1-1.html";
+        url = "http://www.pajssc.com/jscg/index.jhtml";
+        url = "http://d.news.163.com/articlesPage/shy";
+        url = "http://forum.anywlan.com/thread-380874-1-1.html";
         Result result = webResource.fetchPage(url, null, null, false, 10);
 
         Jsoup.parse(result.getHtml(), "", new Parser(new XmlTreeBuilder()));

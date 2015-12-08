@@ -201,4 +201,8 @@ public class Request implements Serializable {
     public void setReadTimeout(Integer readTimeout) {
         this.readTimeout = readTimeout;
     }
+
+    public void setHeader(String headerName, String headerValue) {
+        this.headerMap.put(headerName, headerValue);
+    }
 }
