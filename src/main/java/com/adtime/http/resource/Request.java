@@ -203,6 +203,10 @@ public class Request implements Serializable {
     }
 
     public void setHeader(String headerName, String headerValue) {
-        this.headerMap.put(headerName, headerValue);
+        this.headerMap.put(headerName, String.valueOf(headerValue));
+    }
+
+    public void addParam(String paramName, Object paramValue) {
+        this.requestParam.put(paramName, String.valueOf(paramValue));
     }
 }
