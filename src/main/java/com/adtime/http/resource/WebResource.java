@@ -18,7 +18,7 @@ public abstract class WebResource {
 
     private static final boolean INDEX_DEFAULT_ACCESS = true;
 
-    protected static Logger logger = LoggerFactory.getLogger(WebResource.class);
+    protected final static Logger logger = LoggerFactory.getLogger(WebResource.class);
 
     private InvalidUrl invalidUrl;
 
@@ -114,7 +114,7 @@ public abstract class WebResource {
     protected boolean handException(Throwable e, String url, String oUrl) {
         boolean isTimeOut = e instanceof SocketTimeoutException;
         if (!_handException(e, url, oUrl)) {
-            e.printStackTrace();
+            logger.error("", e);
         }
 
         logger.error("读取页面异常URL:" + url + " - " + oUrl, e);

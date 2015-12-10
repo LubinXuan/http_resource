@@ -1,8 +1,6 @@
 package com.adtime.http.resource;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +30,7 @@ public class Request implements Serializable {
     private boolean requestAsMobile = false;
 
     private boolean completed = false;
-    private Result result = null;
+    private Result result;
     private boolean allowIndex;
 
 

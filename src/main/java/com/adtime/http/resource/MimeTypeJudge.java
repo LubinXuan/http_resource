@@ -7,7 +7,7 @@ import java.util.List;
 
 public class MimeTypeJudge {
 
-    public static final List<String> validMimeType = new ArrayList<>();
+    static final List<String> validMimeType = new ArrayList<>();
 
     public static final String WAP_WML = "text/vnd.wap.wml";
     public static final String WAP2_WML = "application/vnd.wap.xhtml+xml";

@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 
 /**
  * Apache HttpClient 4.3.5
@@ -68,9 +67,12 @@ public class Clients435 extends HttpClientHelper {
     @Override
     public HttpClient basic() {
         if (null == httpClient) {
-            synchronized (this) {
-                if (null == httpClient) {
-                    httpClient = _init();
+            HttpClient _client;
+            synchronized (lock) {
+                _client = httpClient;
+                if (null == _client) {
+                    _client = _init();
+                    httpClient = _client;
                 }
             }
         }
@@ -121,7 +123,7 @@ public class Clients435 extends HttpClientHelper {
 
         if (config.isIncludeHttpsPages()) {
             try {
-                registryBuilder.register("https", new SSLConnectionSocketFactory(SSLSocketUtil.getSslcontext()));
+                registryBuilder.register("https", new SSLConnectionSocketFactory(SSLSocketUtil.getSSLContext()));
             } catch (Exception e) {
                 logger.error("Https Registry Fail : {}", e.toString());
             }
@@ -229,7 +231,7 @@ public class Clients435 extends HttpClientHelper {
         });
     }
 
-    class IdleConnectionMonitor extends Thread {
+    static class IdleConnectionMonitor extends Thread {
 
         private boolean shutDown = false;
 

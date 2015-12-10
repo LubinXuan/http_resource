@@ -3,13 +3,15 @@ package com.adtime.http.resource;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Created by Administrator on 2014/8/25.
  */
-public class Result {
+public class Result implements Serializable {
+    private static final long serialVersionUID = -5909338875662696209L;
     private String url;
     private String moveToUrl;
     private String html;
@@ -18,7 +20,7 @@ public class Result {
     private int status;
     private String contentType;
     private String charSet;
-    private Document document;
+    private transient Document document;
 
     private Map<String, List<String>> headersMap;
 
@@ -28,7 +30,7 @@ public class Result {
     protected long unCompressLength;
     protected long requestTime;
 
-    private boolean parsed;
+    private boolean parsed = false;
 
     public Result(String url, String html, boolean redirect, int status) {
         this.url = url;
@@ -110,24 +112,22 @@ public class Result {
         return getDocument(removeStyle, false);
     }
 
+    private final Object lock = new Object();
+
     public Document getDocument(boolean removeStyle, boolean asXml) {
         if (!parsed) {
-            synchronized (this) {
-                if (!parsed) {
-                    if (null != html && html.length() > 0) {
-                        try {
-                            document = Parser.xmlParser().parseInput(html, "");
-                        } catch (Throwable e) {
-                            try {
-                                document = Parser.htmlParser().parseInput(html, "");
-                            } catch (Exception ignore) {
+            if (null != html && html.length() > 0) {
+                try {
+                    document = Parser.xmlParser().parseInput(html, "");
+                } catch (Throwable e) {
+                    try {
+                        document = Parser.htmlParser().parseInput(html, "");
+                    } catch (Exception ignore) {
 
-                            }
-                        }
                     }
-                    parsed = true;
                 }
             }
+            parsed = true;
         }
         return document;
     }

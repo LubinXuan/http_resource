@@ -198,7 +198,7 @@ public class HttpClientResource extends WebResource {
         try {
             this.httpClientHelper = helperClass.getConstructor(CrawlConfig.class).newInstance(config);
         } catch (Exception e) {
-            throw new IllegalArgumentException("httpclient 初始化失败");
+            throw new IllegalArgumentException("httpclient 初始化失败", e);
         }
     }
 }

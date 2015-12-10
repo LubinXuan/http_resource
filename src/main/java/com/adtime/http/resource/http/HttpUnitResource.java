@@ -127,7 +127,10 @@ public class HttpUnitResource extends WebResource {
                 }
             }
             return result.withHeader(headerMap);
-        } catch (Exception e) {
+        } catch (RuntimeException e){
+            handException(e, url, oUrl);
+            return new Result(oUrl, WebConst.HTTP_ERROR, e.toString());
+        }catch (Exception e) {
             handException(e, url, oUrl);
             return new Result(oUrl, WebConst.HTTP_ERROR, e.toString());
         } finally {

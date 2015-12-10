@@ -1,6 +1,10 @@
 package com.adtime.http.resource;
 
-import com.adtime.http.resource.http.*;
+import com.adtime.http.resource.exception.InitlizeError;
+import com.adtime.http.resource.http.Clients435;
+import com.adtime.http.resource.http.HttpClientResource;
+import com.adtime.http.resource.http.HttpUnitResource;
+import com.adtime.http.resource.http.HttpUrlConnectionResource;
 import com.adtime.http.resource.url.format.DefaultUrlFormat;
 import com.adtime.http.resource.url.format.FormatUrl;
 import com.adtime.http.resource.url.invalid.DefaultInvalidUrl;
@@ -17,9 +21,9 @@ public class HttpIns {
     private static final FormatUrl FORMATURL = new DefaultUrlFormat();
     private static final InvalidUrl INVALIDURL = new DefaultInvalidUrl();
 
-    private static final String HTTP_CLIENT = "httpclient";
-    private static final String HTML_UNIT = "htmlunit";
-    private static final String HTTP_URL_CONNECTION = "httpurlconnection";
+    private static final Object HTTP_CLIENT = new Object();
+    private static final Object HTML_UNIT = new Object();
+    private static final Object HTTP_URL_CONNECTION = new Object();
     private static final CrawlConfig CRAWL_CONFIG = new CrawlConfig();
 
     static {
@@ -27,7 +31,7 @@ public class HttpIns {
         CRAWL_CONFIG.setIncludeHttpsPages(true);
     }
 
-    private static final Map<String, WebResource> WEB_RESOURCE_MAP = new HashMap<>();
+    private static final Map<Object, WebResource> WEB_RESOURCE_MAP = new HashMap<>();
 
     public static WebResource httpClient() {
         if (!WEB_RESOURCE_MAP.containsKey(HTTP_CLIENT)) {
@@ -93,20 +97,11 @@ public class HttpIns {
                 webResource = clazz.newInstance();
             }
         } catch (Exception e) {
-            throw new InstantiationError("http 组件初始化失败");
+            throw new InitlizeError("http 组件初始化失败", e);
         }
         webResource.setConfig(config);
         webResource.setFormatUrl(FORMATURL);
         webResource.setInvalidUrl(INVALIDURL);
         return webResource;
-    }
-
-
-    public static void main(String[] args) {
-        WebResource webResource = httpClient();
-        webResource = htmluint();
-        webResource = httpUrlConnection();
-
-        System.out.println();
     }
 }

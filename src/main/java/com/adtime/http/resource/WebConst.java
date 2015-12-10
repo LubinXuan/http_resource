@@ -18,23 +18,23 @@ public class WebConst {
 
     private static final Logger logger = LoggerFactory.getLogger(WebConst.class);
 
-    public static int SELF_CODE_START = 35000;
-    public static int SELF_CODE_END = 36000;
+    public final static int SELF_CODE_START = 35000;
+    public final static int SELF_CODE_END = 36000;
 
-    public static int DOWNLOAD_STREAM = 35999;
-    public static int HTTP_ERROR = 18000;
-    public static int LOCAL_HOST_ERROR = 35410;
-    public static int LOCAL_NOT_HTML = 35405;
-    public static int TITLE_NOT_FONUD = 35404;
-    public static int LOCAL_NOT_ACCEPTABLE = 35406;
-    public static int HTTP_NO_CONTENT = 35204;
-    public static int LOCAL_DEAL_ERROR = 35500;
-    public static int LOCAL_INDEX_DENY = 35407;
-    public static int NULL_URL = -999;
+    public final static int DOWNLOAD_STREAM = 35999;
+    public final static int HTTP_ERROR = 18000;
+    public final static int LOCAL_HOST_ERROR = 35410;
+    public final static int LOCAL_NOT_HTML = 35405;
+    public final static int TITLE_NOT_FONUD = 35404;
+    public final static int LOCAL_NOT_ACCEPTABLE = 35406;
+    public final static int HTTP_NO_CONTENT = 35204;
+    public final static int LOCAL_DEAL_ERROR = 35500;
+    public final static int LOCAL_INDEX_DENY = 35407;
+    public final static int NULL_URL = -999;
 
 
-    private static ArrayList<String> UA = new ArrayList<>();
-    private static ArrayList<String> MO_UA = new ArrayList<>();
+    private final static ArrayList<String> UA = new ArrayList<>();
+    private final static ArrayList<String> MO_UA = new ArrayList<>();
 
     private static int total_ua_count = 0;
     private static int total_mo_ua_count = 0;

@@ -108,7 +108,9 @@ public class URLCanonicalizer {
             } else {
                 return _url.getProtocol() + "://" + _url.getHost() + path;
             }
-        } catch (Exception e) {
+        } catch (RuntimeException ignore) {
+            return null;
+        } catch (Exception ignore) {
             return null;
         }
     }
@@ -241,6 +243,8 @@ public class URLCanonicalizer {
                     break;
                 case 2:
                     params.put(tokens[0], tokens[1]);
+                    break;
+                default:
                     break;
             }
         }

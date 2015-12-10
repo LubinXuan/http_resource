@@ -19,7 +19,7 @@ public class SSLSocketUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(SSLSocketUtil.class);
 
-    protected static SSLContext sslcontext;
+    protected final static SSLContext sslcontext;
 
     protected static final TrustManager myX509TrustManager = new X509TrustManager() {
 
@@ -41,16 +41,17 @@ public class SSLSocketUtil {
 
 
     static {
+        SSLContext _ssl = null;
         try {
-            sslcontext = SSLContext.getInstance("TLSv1");
-            sslcontext.init(null, new TrustManager[]{myX509TrustManager}, null);
+            _ssl = SSLContext.getInstance("TLSv1");
+            _ssl.init(null, new TrustManager[]{myX509TrustManager}, null);
         } catch (Exception e) {
-            logger.error("SSLContext 初始化失败!!!",e);
-            sslcontext = null;
+            logger.error("SSLContext 初始化失败!!!", e);
         }
+        sslcontext = _ssl;
     }
 
-    public static SSLContext getSslcontext() {
+    public static SSLContext getSSLContext() {
         return sslcontext;
     }
 }

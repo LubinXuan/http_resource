@@ -552,7 +552,7 @@ public class HttpWebConnection implements WebConnection {
                 .setCookieSpec(HACKED_COOKIE_POLICY)
                 .setRedirectsEnabled(false)
 
-                        // timeout
+                // timeout
                 .setConnectTimeout(timeout)
                 .setConnectionRequestTimeout(timeout)
                 .setSocketTimeout(timeout);
@@ -719,10 +719,16 @@ public class HttpWebConnection implements WebConnection {
                     // we have exceeded the max for memory, let's write everything to a temporary file
                     final File file = File.createTempFile("htmlunit", ".tmp");
                     file.deleteOnExit();
-                    final FileOutputStream fos = new FileOutputStream(file);
-                    bos.writeTo(fos); // what we have already read
-                    IOUtils.copyLarge(is, fos); // what remains from the server response
-                    fos.close();
+                    FileOutputStream fos = null;
+                    try {
+                        fos = new FileOutputStream(file);
+                        bos.writeTo(fos); // what we have already read
+                        IOUtils.copyLarge(is, fos); // what remains from the server response
+                    } finally {
+                        if (null != fos) {
+                            fos.close();
+                        }
+                    }
                     return new DownloadedContent.OnFile(file, true);
                 }
             }
@@ -847,8 +853,8 @@ public class HttpWebConnection implements WebConnection {
         @Override
         public void process(final HttpRequest request, final HttpContext context)
                 throws HttpException, IOException {
-            for (final String key : map_.keySet()) {
-                request.setHeader(key, map_.get(key));
+            for (Map.Entry<String, String> entry : map_.entrySet()) {
+                request.setHeader(entry.getKey(), entry.getValue());
             }
         }
     }

@@ -19,16 +19,12 @@ import java.util.Map;
  */
 public class HttpUrlConnectionResource extends WebResource {
 
-    protected static SSLSocketFactory sslSocketFactory;
+    protected final static SSLSocketFactory sslSocketFactory;
 
     private static final CookieManager manager;
 
     static {
-        try {
-            sslSocketFactory = SSLSocketUtil.getSslcontext().getSocketFactory();
-        } catch (Exception e) {
-            sslSocketFactory = null;
-        }
+        sslSocketFactory = SSLSocketUtil.getSSLContext().getSocketFactory();
         manager = new CookieManager();
         manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         CookieHandler.setDefault(manager);
@@ -80,11 +76,7 @@ public class HttpUrlConnectionResource extends WebResource {
         URL url;
 
         try {
-            if (Request.Method.GET.equals(request.getMethod()) || Request.Method.HEAD.equals(request.getMethod())) {
-                url = new URL(targetUrl);
-            } else {
-                url = new URL(targetUrl);
-            }
+            url = new URL(targetUrl);
         } catch (Exception e) {
             handException(e, targetUrl, oUrl);
             return new Result(targetUrl, WebConst.HTTP_ERROR, e.toString());

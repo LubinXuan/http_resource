@@ -97,7 +97,7 @@ public class RequestBuilder {
                     if (p.length() > 3) {
                         break;
                     } else {
-                        int n = Integer.valueOf(p);
+                        int n = Integer.parseInt(p);
                         if (n > -1 && n < 256) {
                             num++;
                         }

@@ -7,17 +7,23 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class Page implements Serializable {
+    private static final long serialVersionUID = -7643409416249819905L;
     private String url;
     private String html;
     private int redirectCount;
     private String moveToUrl;
 
-    private Date crawlerTime = Calendar.getInstance().getTime();
+    private Date crawlerTime;
 
-    private Document document;
+    private transient Document document;
 
+
+    public Page() {
+        this.crawlerTime = Calendar.getInstance().getTime();
+    }
 
     public Page(String url) {
+        this();
         this.url = url;
     }
 
