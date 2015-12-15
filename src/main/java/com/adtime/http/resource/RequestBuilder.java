@@ -1,6 +1,7 @@
 package com.adtime.http.resource;
 
 import com.adtime.http.resource.url.URLCanonicalizer;
+import com.adtime.http.resource.util.HttpHeaderUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -20,44 +21,14 @@ public class RequestBuilder {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestBuilder.class);
 
-    private final static HashMap<String, String> httpHeaderTemp = new HashMap<>();
-
     static {
-        httpHeaderTemp.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-        //httpHeaderTemp.put("Accept-Charset", "UTF-8,*;q=0.5");
-        httpHeaderTemp.put("Accept-Encoding", "gzip,deflate");
-        httpHeaderTemp.put("Accept-Language", "zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4,zh-TW;q=0.2,ja;q=0.2");
-        httpHeaderTemp.put("Cache-Control", "max-age=0");
-        //httpHeaderTemp.put("Connection", "close");
         java.security.Security.setProperty("networkaddress.cache.negative.ttl", "30");
         java.security.Security.setProperty("networkaddress.cache.ttl", "300");
         System.setProperty("https.protocols", "TLSv1,SSLv3");
     }
 
-    protected static String getReferer(String url) {
-        String referer = URLCanonicalizer.getReferer(url);
-        if (null != referer && !referer.equals(url) && !(referer + "/").equals(url)) {
-            return referer;
-        } else {
-            return null;
-        }
-    }
-
     private static void allHeaders(Map<String, String> _headers, String url, Request request) {
-        Map<String, String> headers = new HashMap<>(httpHeaderTemp);
-        if (null != _headers && !_headers.isEmpty()) {
-            headers.putAll(_headers);
-        }
-        if (!headers.containsKey(WebResource.UserAgent)) {
-            headers.put(WebResource.UserAgent, WebConst.randomUA(request.isRequestAsMobile()));
-        }
-        if (!headers.containsKey(WebResource.Referer)) {
-           /* String referer = getReferer(url);
-            if (null != referer) {
-                headers.put(WebResource.Referer, referer);
-            }*/
-            headers.put(WebResource.Referer, url);
-        }
+        Map<String, String> headers = HttpHeaderUtils.generateHeaderInfo(_headers,request.isRequestAsMobile(),url);
         request.setHeaderMap(headers);
     }
 

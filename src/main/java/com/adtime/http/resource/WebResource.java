@@ -13,8 +13,8 @@ import java.util.Map;
 
 public abstract class WebResource {
 
-    public static final String UserAgent = "User-Agent";
-    public static final String Referer = "Referer";
+    public static final String UserAgent = WebConst.UserAgent;
+    public static final String Referer = WebConst.Referer;
 
     private static final boolean INDEX_DEFAULT_ACCESS = true;
 
