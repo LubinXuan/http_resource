@@ -1,5 +1,6 @@
 package com.adtime.http.resource;
 
+import com.adtime.http.resource.util.StringCleanUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,31 +9,7 @@ public class UnicodeUtil {
     private static final Logger logger = LoggerFactory.getLogger(UnicodeUtil.class);
 
     public static String removeInvisible(String str) {
-        if (null != str) {
-            str = str.trim();
-            StringBuilder newString = new StringBuilder(str.length());
-            for (int offset = 0; offset < str.length(); ) {
-                int codePoint = str.codePointAt(offset);
-                offset += Character.charCount(codePoint);
-                switch (Character.getType(codePoint)) {
-                    case Character.CONTROL:     // \p{Cc}
-                    case Character.FORMAT:      // \p{Cf}
-                    case Character.PRIVATE_USE: // \p{Co}
-                    case Character.SURROGATE:   // \p{Cs}
-                    case Character.UNASSIGNED:  // \p{Cn}
-                    case Character.OTHER_SYMBOL:  // \OTHER_SYMBOL
-                    case Character.SPACE_SEPARATOR:  // \SPACE_SEPARATOR
-                        newString.append(' ');
-                        break;
-                    default:
-                        newString.append(Character.toChars(codePoint));
-                        break;
-                }
-            }
-            return newString.toString();
-        } else {
-            return "";
-        }
+        return StringCleanUtil.removeInvisible(str);
     }
 
     private static String[] lineCtrl = new String[]{"\\/", "\\\\"};
