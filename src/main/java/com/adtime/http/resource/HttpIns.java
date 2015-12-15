@@ -1,6 +1,6 @@
 package com.adtime.http.resource;
 
-import com.adtime.http.resource.exception.InitlizeError;
+import com.adtime.http.resource.exception.InitializeError;
 import com.adtime.http.resource.http.Clients435;
 import com.adtime.http.resource.http.HttpClientResource;
 import com.adtime.http.resource.http.HttpUnitResource;
@@ -97,7 +97,7 @@ public class HttpIns {
                 webResource = clazz.newInstance();
             }
         } catch (Exception e) {
-            throw new InitlizeError("http 组件初始化失败", e);
+            throw new InitializeError("http 组件初始化失败", e);
         }
         webResource.setConfig(config);
         webResource.setFormatUrl(FORMATURL);
