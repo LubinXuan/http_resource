@@ -26,11 +26,13 @@ public class HttpHeaderUtils {
     }
 
     public static Map<String, String> generateHeaderInfo(Map<String, String> _headers, boolean mobile, String url) {
-        Map<String, String> headers = new HashMap<>();
-        headers.putAll(httpHeaderTemp);
-        if (null != _headers && !_headers.isEmpty()) {
-            headers.putAll(_headers);
+        Map<String, String> headers;
+        if (null != _headers) {
+            headers = _headers;
+        } else {
+            headers = new HashMap<>();
         }
+        headers.putAll(httpHeaderTemp);
         if (!headers.containsKey(WebConst.UserAgent)) {
             headers.put(WebConst.UserAgent, WebConst.randomUA(mobile));
         }
