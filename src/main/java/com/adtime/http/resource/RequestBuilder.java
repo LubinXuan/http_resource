@@ -28,7 +28,7 @@ public class RequestBuilder {
     }
 
     private static void allHeaders(Map<String, String> _headers, String url, Request request) {
-        Map<String, String> headers = HttpHeaderUtils.generateHeaderInfo(_headers,request.isRequestAsMobile(),url);
+        Map<String, String> headers = HttpHeaderUtils.generateHeaderInfo(_headers, request.isRequestAsMobile(), url);
         request.setHeaderMap(headers);
     }
 
@@ -100,5 +100,9 @@ public class RequestBuilder {
         allHeaders(headers, url, request);
         request.setOrigUrl(origUrl);
         return request;
+    }
+
+    public static Request buildRequest(String url) {
+        return buildRequest(url, null, null, true, true, 0);
     }
 }

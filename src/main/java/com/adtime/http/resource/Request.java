@@ -50,28 +50,31 @@ public class Request implements Serializable {
         return origUrl;
     }
 
-    public void setOrigUrl(String origUrl) {
+    public Request setOrigUrl(String origUrl) {
         this.origUrl = origUrl;
+        return this;
     }
 
     public String getCharSet() {
         return charSet;
     }
 
-    public void setCharSet(String charSet) {
+    public Request setCharSet(String charSet) {
         this.charSet = charSet;
+        return this;
     }
 
     public int getMaxRedirect() {
         return maxRedirect;
     }
 
-    public void setMaxRedirect(int maxRedirect) {
+    public Request setMaxRedirect(int maxRedirect) {
         if (Method.HEAD.equals(this.method)) {
             this.maxRedirect = 0;
         } else {
             this.maxRedirect = maxRedirect;
         }
+        return this;
     }
 
     protected String buildGetParameterUrl() {
@@ -111,57 +114,64 @@ public class Request implements Serializable {
         return method;
     }
 
-    public void setMethod(Method method) {
+    public Request setMethod(Method method) {
         this.method = method;
         if (Method.HEAD.equals(this.method)) {
             this.maxRedirect = 0;
             this.returnHeader = true;
         }
+        return this;
     }
 
     public Map<String, String> getHeaderMap() {
         return null == headerMap ? Collections.emptyMap() : headerMap;
     }
 
-    public void setHeaderMap(Map<String, String> headerMap) {
+    public Request setHeaderMap(Map<String, String> headerMap) {
         this.headerMap = headerMap;
+        return this;
     }
 
     public Map<String, String> getRequestParam() {
         return requestParam;
     }
 
-    public void setRequestParam(Map<String, String> requestParam) {
+    public Request setRequestParam(Map<String, String> requestParam) {
         this.requestParam = requestParam;
+        return this;
     }
 
-    public void setUrl(String url) {
+    public Request setUrl(String url) {
         if (null != url && !url.startsWith("http://") && !url.startsWith("https://")) {
             this.url = "http://" + url;
         } else {
             this.url = url;
         }
+        return this;
     }
 
     public boolean isCompleted() {
         return completed;
     }
 
-    public void setCompleted(Result result) {
+    public Request setCompleted(Result result) {
         this.completed = true;
         this.result = result;
+        return this;
     }
 
     public boolean isReturnHeader() {
         return returnHeader;
     }
 
-    public void setReturnHeader(boolean returnHeader) {
+    public Request setReturnHeader(boolean returnHeader) {
         this.returnHeader = returnHeader;
+        return this;
     }
 
-    protected void setTrust(boolean trust) {
+    protected Request setTrust(boolean trust) {
         this.trust = trust;
+        return this;
     }
 
     public boolean isTrust() {
@@ -176,8 +186,9 @@ public class Request implements Serializable {
         return checkBodySize;
     }
 
-    public void setCheckBodySize(boolean checkBodySize) {
+    public Request setCheckBodySize(boolean checkBodySize) {
         this.checkBodySize = checkBodySize;
+        return this;
     }
 
     public Result getResult() {
@@ -188,23 +199,27 @@ public class Request implements Serializable {
         return connectionTimeout;
     }
 
-    public void setConnectionTimeout(Integer connectionTimeout) {
+    public Request setConnectionTimeout(Integer connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
+        return this;
     }
 
     public Integer getReadTimeout() {
         return readTimeout;
     }
 
-    public void setReadTimeout(Integer readTimeout) {
+    public Request setReadTimeout(Integer readTimeout) {
         this.readTimeout = readTimeout;
+        return this;
     }
 
-    public void setHeader(String headerName, String headerValue) {
+    public Request setHeader(String headerName, String headerValue) {
         this.headerMap.put(headerName, String.valueOf(headerValue));
+        return this;
     }
 
-    public void addParam(String paramName, Object paramValue) {
+    public Request addParam(String paramName, Object paramValue) {
         this.requestParam.put(paramName, String.valueOf(paramValue));
+        return this;
     }
 }
