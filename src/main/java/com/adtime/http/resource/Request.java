@@ -169,7 +169,7 @@ public class Request implements Serializable {
         return this;
     }
 
-    protected Request setTrust(boolean trust) {
+    public Request setTrust(boolean trust) {
         this.trust = trust;
         return this;
     }
