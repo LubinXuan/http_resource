@@ -82,6 +82,8 @@ public class HttpClientResource extends WebResource {
             for (Map.Entry<String, String> entry : _headers.entrySet()) {
                 if (WebConst.COOKIE.equals(entry.getKey())) {
                     requestBase.setHeader(entry.getKey(), entry.getValue());
+                } else {
+                    requestBase.addHeader(entry.getKey(), entry.getValue());
                 }
             }
 
