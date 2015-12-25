@@ -21,6 +21,7 @@ public class WebConst {
     public static final String UserAgent = "User-Agent";
     public static final String Referer = "Referer";
     public static final String X_FORWARDED_FOR = "X-Forwarded-for";
+    public static final String COOKIE = "Cookie";
 
     public final static int SELF_CODE_START = 35000;
     public final static int SELF_CODE_END = 36000;

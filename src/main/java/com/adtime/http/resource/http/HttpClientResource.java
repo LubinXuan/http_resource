@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -78,7 +79,11 @@ public class HttpClientResource extends WebResource {
                 }
             }
             Map<String, String> _headers = request.getHeaderMap();
-            _headers.forEach(requestBase::addHeader);
+            for (Map.Entry<String, String> entry : _headers.entrySet()) {
+                if (WebConst.COOKIE.equals(entry.getKey())) {
+                    requestBase.setHeader(entry.getKey(), entry.getValue());
+                }
+            }
 
             requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
 

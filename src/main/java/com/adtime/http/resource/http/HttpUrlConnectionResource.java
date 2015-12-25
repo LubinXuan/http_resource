@@ -106,7 +106,13 @@ public class HttpUrlConnectionResource extends WebResource {
                     con.setReadTimeout(config.getSocketTimeout());
                 }
                 Map<String, String> default_headers = request.getHeaderMap();
-                default_headers.forEach(con::setRequestProperty);
+                for (Map.Entry<String, String> entry : default_headers.entrySet()) {
+                    if (WebConst.COOKIE.equals(entry.getKey())) {
+                        con.setRequestProperty(entry.getKey(), entry.getValue());
+                    } else {
+                        con.addRequestProperty(entry.getKey(), entry.getValue());
+                    }
+                }
                 if (con instanceof HttpsURLConnection) {
                     if (null == sslSocketFactory) {
                         throw new SSLException("SSLSocketFactory 没有被初始化!!!");
