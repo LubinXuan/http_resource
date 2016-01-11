@@ -12,6 +12,9 @@ import java.util.Map;
  */
 public class Result implements Serializable {
     private static final long serialVersionUID = -5909338875662696209L;
+
+    private static final Document EMPTY = new Document("");
+
     private String url;
     private String moveToUrl;
     private String html;
@@ -20,7 +23,6 @@ public class Result implements Serializable {
     private int status;
     private String contentType;
     private String charSet;
-    private transient Document document;
 
     private Map<String, List<String>> headersMap;
 
@@ -112,24 +114,16 @@ public class Result implements Serializable {
         return getDocument(removeStyle, false);
     }
 
-    private final Object lock = new Object();
-
     public Document getDocument(boolean removeStyle, boolean asXml) {
-        if (!parsed) {
-            if (null != html && html.length() > 0) {
-                try {
-                    document = Parser.xmlParser().parseInput(html, "");
-                } catch (Throwable e) {
-                    try {
-                        document = Parser.htmlParser().parseInput(html, "");
-                    } catch (Exception ignore) {
-
-                    }
-                }
+        if (null != html && html.length() > 0) {
+            if (asXml) {
+                return Parser.xmlParser().parseInput(html, "");
+            } else {
+                return Parser.htmlParser().parseInput(html, "");
             }
-            parsed = true;
+        } else {
+            return EMPTY;
         }
-        return document;
     }
 
     public String getCharSet() {
