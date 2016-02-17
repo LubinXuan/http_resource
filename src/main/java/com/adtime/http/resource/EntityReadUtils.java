@@ -1,5 +1,6 @@
 package com.adtime.http.resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.slf4j.Logger;
@@ -36,7 +37,7 @@ public class EntityReadUtils {
         }
         Header header = entity.getContentEncoding();
         String conEncoding = null != header ? header.getValue() : null;
-        return streamAsByte(entity.getContentLength(), charSet, entity.getContent(), isGzip(conEncoding), isDeflate(conEncoding),checkBodySize);
+        return streamAsByte(entity.getContentLength(), charSet, entity.getContent(), isGzip(conEncoding), isDeflate(conEncoding), checkBodySize);
     }
 
     public static Entity read(final HttpURLConnection con, final boolean error, final String charSet, boolean checkBodySize) throws IOException {
@@ -58,7 +59,7 @@ public class EntityReadUtils {
             checkInflaterInputStream = true;
         }
 
-        return streamAsByte(con.getContentLengthLong(), charSet, is, unCompress, checkInflaterInputStream,checkBodySize);
+        return streamAsByte(con.getContentLengthLong(), charSet, is, unCompress, checkInflaterInputStream, checkBodySize);
     }
 
     private static String contentLength(long pre, int cl) {
@@ -293,21 +294,25 @@ public class EntityReadUtils {
             if (!hasParse) {
                 try {
                     if (valid) {
-                        CharsetDetector.CharsetInfo charsetInfo = CharsetDetector.getCharSet(bytes, this.charSet);
-                        String charSet = charsetInfo.getCharset();
-                        String[] proCharSet = charsetInfo.getPropCharset();
-                        String value = new String(bytes, charSet).trim();
-                        finalCharSet = charSet;
-                        if (charSet.toLowerCase().contains("ascii")) {
-                            value = UnicodeUtil.unicode2string(value);
-                        }
-                        this.content = value;
-                        if (logger.isInfoEnabled()) {
-                            if (null != warningMsg) {
-                                logger.info("数据解码可能的编码有{} UseCharSet: [{}] [{}] Url:{} ", proCharSet, charSet, warningMsg, url);
-                            } else {
-                                logger.info("数据解码可能的编码有{} UseCharSet: [{}] Url:{} ", proCharSet, charSet, url);
+                        if (StringUtils.isBlank(this.charSet)) {
+                            CharsetDetector.CharsetInfo charsetInfo = CharsetDetector.getCharSet(bytes, this.charSet);
+                            String charSet = charsetInfo.getCharset();
+                            String[] proCharSet = charsetInfo.getPropCharset();
+                            String value = new String(bytes, charSet).trim();
+                            finalCharSet = charSet;
+                            if (charSet.toLowerCase().contains("ascii")) {
+                                value = UnicodeUtil.unicode2string(value);
                             }
+                            this.content = value;
+                            if (logger.isInfoEnabled()) {
+                                if (null != warningMsg) {
+                                    logger.info("数据解码可能的编码有{} UseCharSet: [{}] [{}] Url:{} ", proCharSet, charSet, warningMsg, url);
+                                } else {
+                                    logger.info("数据解码可能的编码有{} UseCharSet: [{}] Url:{} ", proCharSet, charSet, url);
+                                }
+                            }
+                        } else {
+                            this.content = new String(bytes, charSet).trim();
                         }
                         return this.content;
                     } else {

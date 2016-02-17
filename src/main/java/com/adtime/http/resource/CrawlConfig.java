@@ -1,5 +1,10 @@
 package com.adtime.http.resource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+
 public class CrawlConfig {
     /**
      * The folder which will be used by http for storing the intermediate
@@ -403,4 +408,26 @@ public class CrawlConfig {
         sb.append("Proxy password: ").append(getProxyPassword()).append("\n");
         return sb.toString();
     }
+
+
+    @PostConstruct
+    private void readSystemProxy() {
+        String proxyHost = System.getProperty("http.proxyHost");
+        if (null != proxyHost && proxyHost.trim().length() > 0) {
+            this.proxyHost = proxyHost;
+            String proxyPort = System.getProperty("http.proxyPort");
+            try {
+                this.proxyPort = Integer.parseInt(proxyPort);
+            } catch (Exception e) {
+                this.proxyPort = 80;
+            }
+            this.proxyUsername = System.getProperty("http.proxyUser");
+            if (null != this.proxyUsername) {
+                this.proxyPassword = System.getProperty("http.proxyPassword");
+            }
+            logger.warn("代理配置信息 {} {} {} {}", this.proxyHost, this.proxyPort, this.proxyUsername, this.proxyPassword);
+        }
+    }
+
+    private static final Logger logger = LoggerFactory.getLogger(CrawlConfig.class);
 }
