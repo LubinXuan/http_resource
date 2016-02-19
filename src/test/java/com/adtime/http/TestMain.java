@@ -8,7 +8,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
-import org.jsoup.parser.XmlTreeBuilder;
 import org.jsoup.select.Elements;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -16,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 
 /**
  * Created by Lubin.Xuan on 2015/6/2.
@@ -34,8 +31,8 @@ import java.util.function.BiFunction;
 public class TestMain extends BaseTest {
 
     static {
-        System.setProperty("http.proxyHost", "1.193.162.91");
-        System.setProperty("http.proxyPort", "8000");
+        System.setProperty("http.proxyHost", "172.16.8.23");
+        System.setProperty("http.proxyPort", "3128");
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
@@ -127,7 +124,7 @@ public class TestMain extends BaseTest {
                             Result result = webResource.fetchPage(_url, null, null, false, 0);
                             if (200 != result.getStatus()) {
                                 if (503 == result.getStatus()) {
-                                    logger.warn("{} {} {} {}获取异常", j + 1, result.getStatus(), result.getMessage(), result.getHtml());
+                                    logger.warn("{} {} {} {}获取异常", j + 1, result.getStatus(), result.getMessage(), "!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
                                 } else {
                                     logger.warn("{} {} {} 获取异常", j + 1, result.getStatus(), result.getMessage());
                                 }
@@ -136,16 +133,16 @@ public class TestMain extends BaseTest {
                                 Document document = Jsoup.parse(result.getHtml(), "", Parser.htmlParser());
                                 String text = document.text();
                                 if (StringUtils.isBlank(text)) {
-                                    logger.warn("{} {} {}", j + 1, result.getStatus(), result.getHtml());
+                                    logger.warn("{} {} {}", j + 1, result.getStatus(), "~~~~~~~~");
                                 } else {
-                                    logger.warn("{} {} {}", j + 1, result.getStatus(), document.text());
+                                    logger.warn("{} {} {}", j + 1, result.getStatus(), "_______________");
                                 }
                                 log.incrementAndGet();
                             }
                         } catch (Throwable ignore) {
                             errorCount.compute(-11111 + ignore.getMessage(), (s, integer) -> null == integer ? 1 : (integer + 1));
                         }
-                        TimeUnit.SECONDS.sleep(1);
+                        TimeUnit.SECONDS.sleep(0);
                     }
                 } catch (InterruptedException ignored) {
 

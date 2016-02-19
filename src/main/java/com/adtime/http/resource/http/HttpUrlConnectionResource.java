@@ -50,10 +50,7 @@ public class HttpUrlConnectionResource extends WebResource {
 
     @PostConstruct
     public void _init() {
-        if (null != dynamicProxyProvider) {
-            ProxySelector.setDefault(new DynamicProxySelector(dynamicProxyProvider));
-        }
-
+        ProxySelector.setDefault(new DynamicProxySelector(dynamicProxyProvider));
         if (config.getProxyHost() != null) {
             System.setProperty("http.proxyHost", config.getProxyHost());
             System.setProperty("http.proxyPort", config.getProxyPort() + "");

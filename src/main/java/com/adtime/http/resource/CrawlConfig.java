@@ -1,5 +1,6 @@
 package com.adtime.http.resource;
 
+import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -426,6 +427,9 @@ public class CrawlConfig {
                 this.proxyPassword = System.getProperty("http.proxyPassword");
             }
             logger.warn("代理配置信息 {} {} {} {}", this.proxyHost, this.proxyPort, this.proxyUsername, this.proxyPassword);
+
+            DynamicProxyProvider.setDefaultProxy(this.proxyHost, this.proxyPort);
+
         }
     }
 

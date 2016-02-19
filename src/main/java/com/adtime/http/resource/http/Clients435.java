@@ -129,9 +129,7 @@ public class Clients435 extends HttpClientHelper {
             }
         }
 
-        if (null == routePlanner && config.getProxyHost() != null) {
-            HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
-            requestConfigBuilder.setProxy(proxy);
+        if (config.getProxyHost() != null) {
 
             if (null != config.getProxyUsername()) {
                 credentialsProvider = new BasicCredentialsProvider();

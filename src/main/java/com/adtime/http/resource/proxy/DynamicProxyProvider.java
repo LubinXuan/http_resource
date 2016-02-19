@@ -15,6 +15,8 @@ public class DynamicProxyProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(DynamicProxyProvider.class);
 
+    private static ProxyInfo _default = null;
+
     static class ProxyInfo {
         private String host;
         private Integer port;
@@ -39,15 +41,21 @@ public class DynamicProxyProvider {
         }
     }
 
+
+    public static void setDefaultProxy(String host, int port) {
+        _default = new ProxyInfo(host, port, false);
+    }
+
+
     private ProxyInfo[] httpProxyArr = new ProxyInfo[0];
     private ProxyInfo[] httpsProxyArr = new ProxyInfo[0];
-    private Map<String, ProxyCursor> domainProxyCusorMap = new ConcurrentHashMap<>();
+    private Map<String, ProxyCursor> domainProxyCursorMap = new ConcurrentHashMap<>();
 
 
     public void updateProxy(Set<String> httpProxySet, Set<String> httpsProxySet) {
         ProxyInfo[] _httpProxyArr = initProxy(httpProxySet);
         ProxyInfo[] _httpsProxyArr = initProxy(httpsProxySet);
-        domainProxyCusorMap.clear();
+        domainProxyCursorMap.clear();
         httpProxyArr = _httpProxyArr;
         httpsProxyArr = _httpsProxyArr;
         logger.info("代理信息更新 http:{}  https:{}", httpProxyArr.length, httpsProxyArr.length);
@@ -75,7 +83,7 @@ public class DynamicProxyProvider {
 
     public <T> T acquireProxy(String host, boolean secure, ProxyCreator<T> proxyCreator) {
 
-        ProxyCursor cursor = domainProxyCusorMap.compute(host, (s, cursor1) -> {
+        ProxyCursor cursor = domainProxyCursorMap.compute(host, (s, cursor1) -> {
             if (null == cursor1) {
                 cursor1 = new ProxyCursor();
             }
@@ -92,8 +100,14 @@ public class DynamicProxyProvider {
                 proxyInfo = cursor.getSecure();
             }
         }
+
+
         if (null == proxyInfo) {
-            return null;
+            if (null != _default) {
+                proxyInfo = _default;
+            } else {
+                return null;
+            }
         }
 
         logger.debug("代理信息  {}->[{}:{}]", host, proxyInfo.getHost(), proxyInfo.getPort());
