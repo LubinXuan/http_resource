@@ -6,7 +6,7 @@
        default-lazy-init="true">
 
     <!-- http client 版 -->
-    <bean id="webResourceHttpClient" class="com.adtime.http.resource.http.HttpClientResource"
+    <bean id="webResourceHttpClient" class="com.adtime.http.resource.http.HttpClientResource" init-method="init"
           c:helperClass="com.adtime.http.resource.http.Clients435" parent="resourceParent"/>
 
 </beans>

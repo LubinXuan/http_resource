@@ -1,5 +1,6 @@
 package com.adtime.http.resource;
 
+import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.url.format.FormatUrl;
 import com.adtime.http.resource.url.invalid.InvalidUrl;
@@ -25,6 +26,8 @@ public abstract class WebResource {
     private FormatUrl formatUrl;
 
     protected CrawlConfig config;
+
+    protected DynamicProxyProvider dynamicProxyProvider;
 
     static {
         System.setProperty("jsse.enableSNIExtension", "false");
@@ -170,5 +173,9 @@ public abstract class WebResource {
 
     public void setConfig(CrawlConfig config) {
         this.config = config;
+    }
+
+    public void setDynamicProxyProvider(DynamicProxyProvider dynamicProxyProvider) {
+        this.dynamicProxyProvider = dynamicProxyProvider;
     }
 }

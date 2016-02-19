@@ -3,6 +3,7 @@ package com.adtime.http.resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.TruncatedChunkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,11 +138,13 @@ public class EntityReadUtils {
                     logger.warn("页面流 EOF");
                 } else if (e instanceof SocketException) {
                     if (e.getMessage() != null && e.getMessage().contains("Software caused connection abort: recv failed")) {
-                        logger.warn("数据读取可能不完整！！！！");
+                        logger.warn("[connection abort recv failed]数据读取可能不完整！！！！");
                     } else {
                         e.printStackTrace();
                         return new Entity(false, e.toString());
                     }
+                } else if (e instanceof TruncatedChunkException) {
+                    logger.warn("[TruncatedChunkException]数据读取可能不完整！！！！");
                 } else {
                     e.printStackTrace();
                     return new Entity(false, e.toString());

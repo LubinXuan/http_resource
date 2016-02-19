@@ -1,6 +1,8 @@
 package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.CrawlConfig;
+import com.adtime.http.resource.extend.DynamicProxyHttpRoutePlanner;
+import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.util.SSLSocketUtil;
 import org.apache.http.*;
 import org.apache.http.auth.AuthScope;
@@ -17,6 +19,7 @@ import org.apache.http.config.MessageConstraints;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -24,6 +27,7 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.slf4j.Logger;
@@ -51,17 +55,22 @@ public class Clients435 extends HttpClientHelper {
     private static final Object lock = new Object();
 
     private RequestConfig.Builder requestConfigBuilder;
-    private RequestConfig defaultRequestConfig;
-    private PoolingHttpClientConnectionManager connectionManager;
-    private ArrayList<Header> defaultHeaders;
-    private HttpRequestRetryHandler retryHandler;
     private CredentialsProvider credentialsProvider = null;
     private CookieStore cookieStore = new BasicCookieStore();
 
+    HttpClientBuilder builder;
+
     private boolean init = false;
+
+    private HttpRoutePlanner routePlanner;
 
     public Clients435(CrawlConfig config) {
         super(config);
+    }
+
+    public Clients435(CrawlConfig config, DynamicProxyProvider dynamicProxyProvider) {
+        super(config);
+        this.routePlanner = new DynamicProxyHttpRoutePlanner(new DefaultSchemePortResolver(), dynamicProxyProvider);
     }
 
     @Override
@@ -82,15 +91,6 @@ public class Clients435 extends HttpClientHelper {
     @Override
     public HttpClient newBasic() {
         init();
-        HttpClientBuilder builder = HttpClients.custom()
-                .setDefaultRequestConfig(defaultRequestConfig)
-                .setUserAgent(config.getUserAgentString())
-                .setConnectionManager(connectionManager)
-                .setRetryHandler(retryHandler).setDefaultHeaders(defaultHeaders)
-                .setDefaultCookieStore(cookieStore).disableContentCompression();
-        if (null != credentialsProvider) {
-            builder.setDefaultCredentialsProvider(credentialsProvider);
-        }
         return builder.build();
     }
 
@@ -129,7 +129,7 @@ public class Clients435 extends HttpClientHelper {
             }
         }
 
-        if (config.getProxyHost() != null) {
+        if (null == routePlanner && config.getProxyHost() != null) {
             HttpHost proxy = new HttpHost(config.getProxyHost(), config.getProxyPort());
             requestConfigBuilder.setProxy(proxy);
 
@@ -154,12 +154,12 @@ public class Clients435 extends HttpClientHelper {
                 .setMessageConstraints(messageConstraints)
                 .build();
 
-        connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry, randomDns());
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry, randomDns());
         connectionManager.setDefaultConnectionConfig(connectionConfig);
         connectionManager.setMaxTotal(config.getMaxTotalConnections());
         connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
 
-        retryHandler = (exception, executionCount, context) -> {
+        HttpRequestRetryHandler retryHandler = (exception, executionCount, context) -> {
             if (executionCount >= 3) {
                 return false;
             }
@@ -181,14 +181,27 @@ public class Clients435 extends HttpClientHelper {
         };
 
 
-        defaultHeaders = new ArrayList<>();
+        ArrayList<Header> defaultHeaders = new ArrayList<>();
         defaultHeaders.add(new BasicHeader(HttpHeaders.CONNECTION, "close"));
         //不使用GZIP。。。部分网站响应GZIP 会导致不返回...
         //defaultHeaders.add(new BasicHeader(HttpHeaders.ACCEPT_ENCODING, "gzip"));
 
         new IdleConnectionMonitor(connectionManager).start();
-        defaultRequestConfig = requestConfigBuilder.build();
+        RequestConfig defaultRequestConfig = requestConfigBuilder.build();
         init = true;
+
+        builder = HttpClients.custom()
+                .setDefaultRequestConfig(defaultRequestConfig)
+                .setUserAgent(config.getUserAgentString())
+                .setConnectionManager(connectionManager)
+                .setRetryHandler(retryHandler).setDefaultHeaders(defaultHeaders)
+                .setDefaultCookieStore(cookieStore).disableContentCompression();
+        if (null != credentialsProvider) {
+            builder.setDefaultCredentialsProvider(credentialsProvider);
+        }
+        if (null != routePlanner) {
+            builder.setRoutePlanner(routePlanner);
+        }
     }
 
     private HttpClient _init() {

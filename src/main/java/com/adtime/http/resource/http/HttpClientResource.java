@@ -2,6 +2,7 @@ package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
 import com.adtime.http.resource.exception.DownloadStreamException;
+import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
@@ -42,6 +43,27 @@ public class HttpClientResource extends WebResource {
         this.helperClass = helperClass;
     }
 
+    private void init() {
+        if (null != httpClientHelper) {
+            return;
+        }
+
+        if (null != dynamicProxyProvider) {
+            try {
+                this.httpClientHelper = helperClass.getConstructor(CrawlConfig.class, DynamicProxyProvider.class).newInstance(config, dynamicProxyProvider);
+                return;
+            } catch (Exception e) {
+                throw new IllegalArgumentException("httpclient 初始化失败", e);
+            }
+        }
+
+        try {
+            this.httpClientHelper = helperClass.getConstructor(CrawlConfig.class).newInstance(config);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("httpclient 初始化失败", e);
+        }
+    }
+
     @Override
     protected boolean _handException(Throwable e, String url, String oUrl) {
         return e instanceof SocketException ||
@@ -51,7 +73,6 @@ public class HttpClientResource extends WebResource {
                 e instanceof UnknownHostException ||
                 e instanceof TruncatedChunkException;
     }
-
 
     @Override
     public void registerCookie(String domain, String name, String value) {
@@ -194,18 +215,4 @@ public class HttpClientResource extends WebResource {
         this.httpClientHelper = httpClientHelper;
     }
 
-    @Override
-    public void setConfig(CrawlConfig config) {
-
-        super.setConfig(config);
-
-        if (null != httpClientHelper) {
-            return;
-        }
-        try {
-            this.httpClientHelper = helperClass.getConstructor(CrawlConfig.class).newInstance(config);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("httpclient 初始化失败", e);
-        }
-    }
 }

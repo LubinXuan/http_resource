@@ -33,7 +33,7 @@ public class CookieRegister {
                 }
             }
         } catch (Exception e) {
-            logger.error("非法url初始化出错", e);
+            logger.error("默认Cookie初始化出错", e);
         }
     }
 
