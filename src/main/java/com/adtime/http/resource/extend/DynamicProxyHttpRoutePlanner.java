@@ -25,7 +25,7 @@ public class DynamicProxyHttpRoutePlanner extends DefaultRoutePlanner {
 
         @Override
         public HttpHost create(String host, Integer port, boolean secure) {
-            return hostMap.compute(host + port + secure, (s, httpHost) -> {
+            return hostMap.compute(host + ":" + port + ":" + secure, (s, httpHost) -> {
                 if (null == httpHost) {
                     httpHost = new HttpHost(host, port, secure ? "https" : "http");
                 }

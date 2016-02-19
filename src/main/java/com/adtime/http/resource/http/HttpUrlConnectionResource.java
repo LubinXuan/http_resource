@@ -52,8 +52,6 @@ public class HttpUrlConnectionResource extends WebResource {
     public void _init() {
         ProxySelector.setDefault(new DynamicProxySelector(dynamicProxyProvider));
         if (config.getProxyHost() != null) {
-            System.setProperty("http.proxyHost", config.getProxyHost());
-            System.setProperty("http.proxyPort", config.getProxyPort() + "");
             if (null != config.getProxyUsername()) {
                 Authenticator.setDefault(new Authenticator() {
                     @Override

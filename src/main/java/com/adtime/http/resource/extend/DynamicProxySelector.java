@@ -32,7 +32,7 @@ public class DynamicProxySelector extends ProxySelector {
                 return Proxy.NO_PROXY;
             }
 
-            return proxyMap.compute(host + port + secure, (s, httpHost) -> {
+            return proxyMap.compute(host +":"+ port +":"+ secure, (s, httpHost) -> {
                 if (null == httpHost) {
                     httpHost = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
                 }

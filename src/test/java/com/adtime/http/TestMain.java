@@ -102,7 +102,7 @@ public class TestMain extends BaseTest {
         //url = "http://forum.anywlan.com/thread-380874-1-1.html";
         //url = "https://www.baidu.com";
 
-        initProxy();
+        //initProxy();
 
         String _url = url;
 
