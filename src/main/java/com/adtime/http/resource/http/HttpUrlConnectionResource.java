@@ -2,6 +2,7 @@ package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
 import com.adtime.http.resource.exception.DownloadStreamException;
+import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.util.SSLSocketUtil;
 
@@ -47,12 +48,15 @@ public class HttpUrlConnectionResource extends WebResource {
     }
 
 
-    private Proxy authProxy = null;
-
     @PostConstruct
     public void _init() {
+        if (null != dynamicProxyProvider) {
+            ProxySelector.setDefault(new DynamicProxySelector(dynamicProxyProvider));
+        }
+
         if (config.getProxyHost() != null) {
-            authProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(config.getProxyHost(), config.getProxyPort()));
+            System.setProperty("http.proxyHost", config.getProxyHost());
+            System.setProperty("http.proxyPort", config.getProxyPort() + "");
             if (null != config.getProxyUsername()) {
                 Authenticator.setDefault(new Authenticator() {
                     @Override
@@ -86,11 +90,7 @@ public class HttpUrlConnectionResource extends WebResource {
             boolean isTimeOut = false;
             HttpURLConnection con = null;
             try {
-                if (null != authProxy) {
-                    con = (HttpURLConnection) url.openConnection(authProxy);
-                } else {
-                    con = (HttpURLConnection) url.openConnection();
-                }
+                con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod(request.getMethod().name());
                 con.setDoInput(true);
                 con.setUseCaches(false);

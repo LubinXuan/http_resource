@@ -40,7 +40,8 @@ public class TestMain extends BaseTest {
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
 
-    @Resource(name = "webResourceHttpClient")
+    //@Resource(name = "webResourceHttpClient")
+    @Resource(name = "webResourceUrlConnection")
     private WebResource webResource;
 
 
@@ -108,6 +109,10 @@ public class TestMain extends BaseTest {
 
         String _url = url;
 
+        Result result1 = webResource.fetchPage(_url, null, null, false, 0);
+
+        System.out.println();
+
         CountDownLatch latch = new CountDownLatch(50);
 
         AtomicInteger log = new AtomicInteger(0);
@@ -118,23 +123,27 @@ public class TestMain extends BaseTest {
             new Thread(() -> {
                 try {
                     for (int j = 0; j < 50; j++) {
-                        Result result = webResource.fetchPage(_url, null, null, false, 0);
-                        if (200 != result.getStatus()) {
-                            if (503 == result.getStatus()) {
-                                logger.warn("{} {} {} {}获取异常", j + 1, result.getStatus(), result.getMessage(), result.getHtml());
+                        try {
+                            Result result = webResource.fetchPage(_url, null, null, false, 0);
+                            if (200 != result.getStatus()) {
+                                if (503 == result.getStatus()) {
+                                    logger.warn("{} {} {} {}获取异常", j + 1, result.getStatus(), result.getMessage(), result.getHtml());
+                                } else {
+                                    logger.warn("{} {} {} 获取异常", j + 1, result.getStatus(), result.getMessage());
+                                }
+                                errorCount.compute(result.getStatus() + result.getMessage(), (s, integer) -> null == integer ? 1 : (integer + 1));
                             } else {
-                                logger.warn("{} {} {} 获取异常", j + 1, result.getStatus(), result.getMessage());
+                                Document document = Jsoup.parse(result.getHtml(), "", Parser.htmlParser());
+                                String text = document.text();
+                                if (StringUtils.isBlank(text)) {
+                                    logger.warn("{} {} {}", j + 1, result.getStatus(), result.getHtml());
+                                } else {
+                                    logger.warn("{} {} {}", j + 1, result.getStatus(), document.text());
+                                }
+                                log.incrementAndGet();
                             }
-                            errorCount.compute(result.getStatus() + result.getMessage(), (s, integer) -> null == integer ? 1 : (integer + 1));
-                        } else {
-                            Document document = Jsoup.parse(result.getHtml(), "", Parser.htmlParser());
-                            String text = document.text();
-                            if (StringUtils.isBlank(text)) {
-                                logger.warn("{} {} {}", j + 1, result.getStatus(), result.getHtml());
-                            } else {
-                                logger.warn("{} {} {}", j + 1, result.getStatus(), document.text());
-                            }
-                            log.incrementAndGet();
+                        } catch (Throwable ignore) {
+                            errorCount.compute(-11111 + ignore.getMessage(), (s, integer) -> null == integer ? 1 : (integer + 1));
                         }
                         TimeUnit.SECONDS.sleep(1);
                     }
@@ -149,7 +158,7 @@ public class TestMain extends BaseTest {
 
         logger.debug("成功访问   {}", log.get());
 
-        logger.debug("异常信息:{}",errorCount);
+        logger.debug("异常信息:{}", errorCount);
     }
 
 

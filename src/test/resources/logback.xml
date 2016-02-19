@@ -22,6 +22,9 @@
     <logger name="com.adtime.http.resource">
         <level value="error"/>
     </logger>
+    <logger name="com.adtime.http.resource.proxy.DynamicProxyProvider">
+        <level value="debug"/>
+    </logger>
 
     <root level="debug">
         <appender-ref ref="console"/>
