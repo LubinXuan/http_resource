@@ -38,7 +38,8 @@ public class TestMain extends BaseTest {
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
 
     //@Resource(name = "webResourceHttpClient")
-    @Resource(name = "webResourceUrlConnection")
+    //@Resource(name = "webResourceUrlConnection")
+    @Resource(name = "webResourceHtmlUnit")
     private WebResource webResource;
 
 
@@ -50,7 +51,7 @@ public class TestMain extends BaseTest {
         Set<String> hostSet = new HashSet<>();
         Set<String> httpsHostSet = new HashSet<>();
         Set<String> urlFilter = new HashSet<>();
-        String root = "http://www.youdaili.net/Daili/guonei/4196.html";
+        String root = "http://www.youdaili.net/Daili/guonei/4200.html";
         urlFilter.add(root);
         Document document = Jsoup.parse(new URL(root), 3000);
         extractProxyList(document, hostSet, httpsHostSet);
@@ -102,7 +103,7 @@ public class TestMain extends BaseTest {
         //url = "http://forum.anywlan.com/thread-380874-1-1.html";
         //url = "https://www.baidu.com";
 
-        //initProxy();
+        initProxy();
 
         String _url = url;
 

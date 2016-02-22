@@ -1,6 +1,7 @@
 package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
+import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.CookieManager;
@@ -8,6 +9,7 @@ import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gargoylesoftware.htmlunit.util.UrlUtils;
 
+import javax.annotation.PostConstruct;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +22,16 @@ import java.util.Map;
  */
 public class HttpUnitResource extends WebResource {
 
+    static {
+        System.setProperty("com.google.appengine.runtime.environment", "true");
+    }
+
     private static final CookieManager cookieManager = new CookieManager();
+
+    @PostConstruct
+    public void _init() {
+        ProxySelector.setDefault(new DynamicProxySelector(dynamicProxyProvider));
+    }
 
     public WebClient build(CrawlConfig config, Request request) {
         WebClient webClient = new WebClient(BrowserVersion.CHROME);
@@ -127,10 +138,10 @@ public class HttpUnitResource extends WebResource {
                 }
             }
             return result.withHeader(headerMap);
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             handException(e, url, oUrl);
             return new Result(oUrl, WebConst.HTTP_ERROR, e.toString());
-        }catch (Exception e) {
+        } catch (Exception e) {
             handException(e, url, oUrl);
             return new Result(oUrl, WebConst.HTTP_ERROR, e.toString());
         } finally {
