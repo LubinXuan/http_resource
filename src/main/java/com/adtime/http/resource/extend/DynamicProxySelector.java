@@ -50,6 +50,10 @@ public class DynamicProxySelector extends ProxySelector {
 
     @Override
     public List<Proxy> select(URI uri) {
+        //避免HttpClient重复连接代理
+        if ("socket".equalsIgnoreCase(uri.getScheme())) {
+            return Collections.emptyList();
+        }
         Proxy proxy = proxyProvider.acquireProxy(uri.getHost(), "https".equalsIgnoreCase(uri.getScheme()), PROXY_CREATOR);
         if (null != proxy) {
             return Collections.singletonList(proxy);
