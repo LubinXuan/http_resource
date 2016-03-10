@@ -31,15 +31,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestMain extends BaseTest {
 
     static {
-        System.setProperty("http.proxyHost", "172.16.8.23");
-        System.setProperty("http.proxyPort", "3128");
+       // System.setProperty("http.proxyHost", "172.16.8.23");
+       // System.setProperty("http.proxyPort", "3128");
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
 
-    //@Resource(name = "webResourceHttpClient")
+    @Resource(name = "webResourceHttpClient")
     //@Resource(name = "webResourceUrlConnection")
-    @Resource(name = "webResourceHtmlUnit")
+    //@Resource(name = "webResourceHtmlUnit")
     private WebResource webResource;
 
 
@@ -51,7 +51,7 @@ public class TestMain extends BaseTest {
         Set<String> hostSet = new HashSet<>();
         Set<String> httpsHostSet = new HashSet<>();
         Set<String> urlFilter = new HashSet<>();
-        String root = "http://www.youdaili.net/Daili/guonei/4200.html";
+        String root = "http://www.youdaili.net/Daili/guonei/4210.html";
         urlFilter.add(root);
         Document document = Jsoup.parse(new URL(root), 3000);
         extractProxyList(document, hostSet, httpsHostSet);
@@ -73,20 +73,31 @@ public class TestMain extends BaseTest {
         String proxyIp = document.select(".cont_font p").html().toLowerCase();
         String[] hosts = proxyIp.split("<br>");
         for (String h : hosts) {
-            if (h.contains("http")) {
-                int i = h.indexOf("#");
-                int j = h.indexOf(":");
-                int k = h.indexOf("@");
-                String host = h.substring(0, j).trim();
-                String port = h.substring(j + 1, k);
-                String scheme = h.substring(k + 1, i);
-                if ("https".equals(scheme)) {
-                    httpsHostSet.add(scheme + ":" + host + ":" + port);
-                } else {
-                    hostSet.add(scheme + ":" + host + ":" + port);
-                }
+            int i = h.indexOf("#");
+            int j = h.indexOf(":");
+            int k = h.indexOf("@");
+            if(j<0){
+                System.out.println(h);
+                continue;
+            }
+            String host = h.substring(0, j).trim();
+            String port = h.substring(j + 1, k);
+            String scheme = h.substring(k + 1, i);
+            String description = h.substring(i + 1);
+            String str = scheme + ":" + host + ":" + port + ":" + description;
+            if ("http".equals(scheme)) {
+                hostSet.add(str);
+            } else {
+                httpsHostSet.add(str);
             }
         }
+    }
+
+
+    @Test
+    public void testPage(){
+        Result result = webResource.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=S:custom|C:iflow_ncmt|K:true");
+        System.out.println();
     }
 
 
@@ -105,11 +116,9 @@ public class TestMain extends BaseTest {
 
         initProxy();
 
+        dynamicProxyProvider.filter(200);
+
         String _url = url;
-
-        Result result1 = webResource.fetchPage(_url, null, null, false, 0);
-
-        System.out.println();
 
         CountDownLatch latch = new CountDownLatch(50);
 
@@ -117,10 +126,10 @@ public class TestMain extends BaseTest {
 
         Map<String, Integer> errorCount = new ConcurrentHashMap<>();
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1; i++) {
             new Thread(() -> {
                 try {
-                    for (int j = 0; j < 50; j++) {
+                    for (int j = 0; j < 100; j++) {
                         try {
                             Result result = webResource.fetchPage(_url, null, null, false, 0);
                             if (200 != result.getStatus()) {
@@ -159,5 +168,31 @@ public class TestMain extends BaseTest {
         logger.debug("异常信息:{}", errorCount);
     }
 
+
+    @Test
+    public void countDownLatchTest(){
+        CountDownLatch latch = new CountDownLatch(1);
+        new Thread(()->{
+            try {
+                System.out.println("开始等待");
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }finally {
+                latch.countDown();
+            }
+        }).start();
+
+        try {
+            boolean done = latch.await(5,TimeUnit.SECONDS);
+            if(done) {
+                System.out.println("退出");
+            }else{
+                System.out.println("超时退出");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

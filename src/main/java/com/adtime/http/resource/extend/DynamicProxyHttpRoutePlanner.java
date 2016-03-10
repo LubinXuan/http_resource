@@ -24,10 +24,10 @@ public class DynamicProxyHttpRoutePlanner extends DefaultRoutePlanner {
         private Map<String, HttpHost> hostMap = new ConcurrentHashMap<>();
 
         @Override
-        public HttpHost create(String host, Integer port, boolean secure) {
-            return hostMap.compute(host + ":" + port + ":" + secure, (s, httpHost) -> {
+        public HttpHost create(DynamicProxyProvider.ProxyInfo proxyInfo) {
+            return hostMap.compute(proxyInfo.getHost() + ":" + proxyInfo.getPort() + ":" + proxyInfo.isSecure(), (s, httpHost) -> {
                 if (null == httpHost) {
-                    httpHost = new HttpHost(host, port, secure ? "https" : "http");
+                    httpHost = new HttpHost(proxyInfo.getHost(), proxyInfo.getPort(), proxyInfo.isSecure() ? "https" : "http");
                 }
                 return httpHost;
             });

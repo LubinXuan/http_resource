@@ -181,7 +181,12 @@ public class HttpClientResource extends WebResource {
 
     private Result handleSuccess(HttpResponse response, String charSet, String url, boolean checkBodySize) throws Exception {
         HttpEntity httpEntity = response.getEntity();
-        ContentType contentType = ContentType.get(httpEntity);
+        ContentType contentType = null;
+        try {
+            contentType = ContentType.get(httpEntity);
+        } catch (Throwable ignore) {
+
+        }
         EntityReadUtils.Entity entity = EntityReadUtils.read(httpEntity, charSet, checkBodySize);
         Result tmp = new Result(url, entity.toString(url), false, response.getStatusLine().getStatusCode());
         if (null != contentType) {

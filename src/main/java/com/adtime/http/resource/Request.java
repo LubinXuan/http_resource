@@ -147,6 +147,7 @@ public class Request implements Serializable {
         } else {
             this.url = url;
         }
+        this.url = safeUrl(this.url);
         return this;
     }
 
@@ -221,5 +222,31 @@ public class Request implements Serializable {
     public Request addParam(String paramName, Object paramValue) {
         this.requestParam.put(paramName, String.valueOf(paramValue));
         return this;
+    }
+
+    public static String safeUrl(String url) {
+        int idx = url.indexOf("?");
+        if (idx > -1) {
+            String baseUrl = url.substring(0, idx);
+            String query = url.substring(idx + 1);
+            String queryPairs[] = query.split("&");
+            StringBuilder q = new StringBuilder();
+            for (String queryPair1 : queryPairs) {
+                String queryPair[] = queryPair1.split("=");
+                if (queryPair.length == 2) {
+                    if (q.length() > 0) {
+                        q.append("&");
+                    }
+                    q.append(queryPair[0]).append("=").append(RequestUtil.urlEncode(queryPair[1]));
+                }
+            }
+            return baseUrl + "?" + q.toString();
+        } else {
+            return url;
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(safeUrl("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=S:custom|C:iflow_ncmt|K:true"));
     }
 }

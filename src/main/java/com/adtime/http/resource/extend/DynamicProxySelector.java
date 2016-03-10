@@ -26,15 +26,15 @@ public class DynamicProxySelector extends ProxySelector {
         private Map<String, Proxy> proxyMap = new ConcurrentHashMap<>();
 
         @Override
-        public Proxy create(String host, Integer port, boolean secure) {
+        public Proxy create(DynamicProxyProvider.ProxyInfo proxyInfo) {
 
-            if (secure) {
+            if (proxyInfo.isSecure() && !proxyInfo.isSocks()) {
                 return Proxy.NO_PROXY;
             }
 
-            return proxyMap.compute(host +":"+ port +":"+ secure, (s, httpHost) -> {
+            return proxyMap.compute(proxyInfo.getHost() + ":" + proxyInfo.getPort() + ":" + proxyInfo.isSecure(), (s, httpHost) -> {
                 if (null == httpHost) {
-                    httpHost = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+                    httpHost = new Proxy(proxyInfo.isSocks() ? Proxy.Type.SOCKS : Proxy.Type.HTTP, new InetSocketAddress(proxyInfo.getHost(), proxyInfo.getPort()));
                 }
                 return httpHost;
             });

@@ -28,4 +28,12 @@ public class RequestUtil {
         return stringBuilder.toString();
     }
 
+    public static String urlEncode(String value) {
+        try {
+            return URLEncoder.encode(value, "utf-8");
+        } catch (Exception ignore) {
+            return "";
+        }
+    }
+
 }
