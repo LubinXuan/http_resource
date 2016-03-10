@@ -4,10 +4,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -49,9 +46,23 @@ public class SSLSocketUtil {
             logger.error("SSLContext 初始化失败!!!", e);
         }
         sslcontext = _ssl;
+
+        // Create all-trusting host name verifier
+        HostnameVerifier allHostsValid = new HostnameVerifier() {
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
+        };
+
+        // Install the all-trusting host verifier
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
     }
 
     public static SSLContext getSSLContext() {
         return sslcontext;
+    }
+
+    public static HostnameVerifier defaultHostnameVerifier() {
+        return HttpsURLConnection.getDefaultHostnameVerifier();
     }
 }

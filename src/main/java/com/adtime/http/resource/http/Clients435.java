@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
 import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
@@ -123,7 +124,7 @@ public class Clients435 extends HttpClientHelper {
 
         if (config.isIncludeHttpsPages()) {
             try {
-                registryBuilder.register("https", new SSLConnectionSocketFactory(SSLSocketUtil.getSSLContext()));
+                registryBuilder.register("https", new SSLConnectionSocketFactory(SSLSocketUtil.getSSLContext(), SSLSocketUtil.defaultHostnameVerifier()));
             } catch (Exception e) {
                 logger.error("Https Registry Fail : {}", e.toString());
             }
