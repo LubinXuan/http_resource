@@ -85,6 +85,7 @@ public class HttpClientResource extends WebResource {
     }
 
     private Result doRequest(String url, String oUrl, HttpClient client, Request request) {
+        url = Request.toHttpclientSafeUrl(url);
         HttpRequestBase requestBase = null;
         HttpResponse response = null;
         try {

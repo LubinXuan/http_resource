@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestMain extends BaseTest {
 
     static {
-       // System.setProperty("http.proxyHost", "172.16.8.23");
-       // System.setProperty("http.proxyPort", "3128");
+        System.setProperty("http.proxyHost", "172.16.8.23");
+        System.setProperty("http.proxyPort", "3128");
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
@@ -96,7 +96,7 @@ public class TestMain extends BaseTest {
 
     @Test
     public void testPage(){
-        Result result = webResource.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=S:custom|C:iflow_ncmt|K:true");
+        Result result = webResource.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E");
         System.out.println();
     }
 
@@ -116,7 +116,7 @@ public class TestMain extends BaseTest {
 
         initProxy();
 
-        dynamicProxyProvider.filter(200);
+        //dynamicProxyProvider.filter(200);
 
         String _url = url;
 

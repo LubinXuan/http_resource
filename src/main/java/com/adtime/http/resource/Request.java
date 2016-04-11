@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Lubin.Xuan on 2015/7/13.
@@ -147,7 +149,6 @@ public class Request implements Serializable {
         } else {
             this.url = url;
         }
-        this.url = safeUrl(this.url);
         return this;
     }
 
@@ -224,7 +225,9 @@ public class Request implements Serializable {
         return this;
     }
 
-    public static String safeUrl(String url) {
+    private static final Pattern ENCODE_P = Pattern.compile("(%[a-z|0-9]{2})+");
+
+    public static String toHttpclientSafeUrl(String url) {
         int idx = url.indexOf("?");
         if (idx > -1) {
             String baseUrl = url.substring(0, idx);
@@ -237,7 +240,18 @@ public class Request implements Serializable {
                     if (q.length() > 0) {
                         q.append("&");
                     }
-                    q.append(queryPair[0]).append("=").append(RequestUtil.urlEncode(queryPair[1]));
+                    q.append(queryPair[0]).append("=");
+                    if (queryPair[1].startsWith("%")) {
+                        Matcher matcher = ENCODE_P.matcher(queryPair[1].toLowerCase());
+                        if (matcher.matches()) {
+                            q.append(queryPair[1]);
+                        } else {
+                            q.append(RequestUtil.urlEncode(queryPair[1]));
+                        }
+                    } else {
+                        q.append(RequestUtil.urlEncode(queryPair[1]));
+                    }
+
                 }
             }
             return baseUrl + "?" + q.toString();
@@ -247,6 +261,6 @@ public class Request implements Serializable {
     }
 
     public static void main(String[] args) {
-        System.out.println(safeUrl("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=S:custom|C:iflow_ncmt|K:true"));
+        System.out.println(toHttpclientSafeUrl("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E"));
     }
 }

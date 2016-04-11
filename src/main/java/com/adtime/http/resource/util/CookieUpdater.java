@@ -21,6 +21,9 @@ public abstract class CookieUpdater {
         new Timer("cookie-updater").schedule(new TimerTask() {
             @Override
             public void run() {
+                if (null == cookieRegister) {
+                    return;
+                }
                 try {
                     List<CookieInfo> valueList = loop();
                     if (null != valueList && valueList.isEmpty()) {
@@ -31,7 +34,7 @@ public abstract class CookieUpdater {
                         }
                     }
                 } catch (Throwable e) {
-                    logger.error("cookie 信息更新失败!!!!");
+                    logger.error("cookie 信息更新失败!!!!", e);
                 }
             }
         }, 10000, 10000);
