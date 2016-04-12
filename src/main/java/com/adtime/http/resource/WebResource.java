@@ -53,19 +53,25 @@ public abstract class WebResource {
     }
 
     public Result fetchPage(Request request, Consumer<Result> resultConsumer) {
+        Result result = null;
         if (request.isCompleted()) {
-            return request.getResult();
+            result = request.getResult();
         }
 
         if (!request.isTrust()) {
             String tmpUrl = validUrl(request.requestUrl());
             if (null == tmpUrl || tmpUrl.trim().length() < 1) {
                 request.setCompleted(new Result(request.getOrigUrl(), WebConst.LOCAL_NOT_ACCEPTABLE, "链接406: " + request.getOrigUrl()));
-                return request.getResult();
+                result = request.getResult();
             }
         }
 
-        return getResult(request, resultConsumer);
+        if (null != result && null != resultConsumer) {
+            resultConsumer.accept(result);
+            return result;
+        } else {
+            return getResult(request, resultConsumer);
+        }
     }
 
     private Result getResult(final Request request, Consumer<Result> resultConsumer) {
@@ -99,6 +105,9 @@ public abstract class WebResource {
                 result.setUrl(request.getOrigUrl());
             }
             result.setRequestTime(System.currentTimeMillis() - start);
+            if (null != resultConsumer) {
+                resultConsumer.accept(result);
+            }
             return result;
         }
     }
