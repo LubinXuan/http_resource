@@ -85,9 +85,12 @@ public abstract class WebResource {
             asyncHttpClient.async(request.requestUrl(), request.getOrigUrl(), 0, request, result -> {
                 if (result.isRedirect() && result.getRedirectCount() < request.getMaxRedirect() && null != result.getMoveToUrl()) {
                     asyncHttpClient.async(result.getMoveToUrl(), result.getMoveToUrl(), result.getRedirectCount(), request, resultConsumer);
-                } else {
+                } else if (result.isRedirect()) {
                     result.setMoveToUrl(result.getUrl());
                     result.setUrl(request.getOrigUrl());
+                    result.setRequestTime(System.currentTimeMillis() - start);
+                    resultConsumer.accept(result);
+                } else {
                     result.setRequestTime(System.currentTimeMillis() - start);
                     resultConsumer.accept(result);
                 }
