@@ -62,7 +62,7 @@ public class Result implements Serializable {
         return redirectCount;
     }
 
-    protected void setRedirectCount(int redirectCount) {
+    public void setRedirectCount(int redirectCount) {
         this.redirectCount = redirectCount;
     }
 

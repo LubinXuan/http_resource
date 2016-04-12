@@ -60,7 +60,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
     @Override
     public Result request(String url, String oUrl, Request request) {
         ConsumerSupplier consumerSupplier = new ConsumerSupplier();
-        async(url, oUrl, request, consumerSupplier);
+        async(url, oUrl, 0, request, consumerSupplier);
         return consumerSupplier.get();
     }
 
@@ -69,7 +69,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
 
     }
 
-    public void async(String url, String oUrl, Request request, Consumer<Result> resultConsumer) {
+    public void async(String url, String oUrl, int redirect, Request request, Consumer<Result> resultConsumer) {
         HttpRequestBase requestBase = create(url, request);
         httpAsyncClient.execute(requestBase, new FutureCallback<HttpResponse>() {
             @Override
@@ -82,6 +82,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
                 try {
                     if (sts == HttpURLConnection.HTTP_MOVED_PERM || sts == HttpURLConnection.HTTP_MOVED_TEMP) {
                         result = handleRedirect(response, url);
+                        result.setRedirectCount(redirect + 1);
                     } else {
                         if (Request.Method.HEAD.equals(request.getMethod())) {
                             result = new Result(url, sts, "").withHeader(headerMap);

@@ -1,5 +1,6 @@
 package com.adtime.http.resource;
 
+import com.adtime.http.resource.http.AsyncHttpClient;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.url.format.FormatUrl;
@@ -11,6 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.SocketTimeoutException;
 import java.net.URLEncoder;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public abstract class WebResource {
 
@@ -33,6 +35,8 @@ public abstract class WebResource {
         System.setProperty("jsse.enableSNIExtension", "false");
     }
 
+    boolean async = this instanceof AsyncHttpClient;
+
     public static void enableLite() {
         System.setProperty("icu.lite", "true");
     }
@@ -45,10 +49,10 @@ public abstract class WebResource {
 
         Request checkedRequest = RequestBuilder.buildRequest(url, charSet, headers, trust, includeIndex, maxRedirect);
 
-        return fetchPage(checkedRequest);
+        return fetchPage(checkedRequest, null);
     }
 
-    public Result fetchPage(Request request) {
+    public Result fetchPage(Request request, Consumer<Result> resultConsumer) {
         if (request.isCompleted()) {
             return request.getResult();
         }
@@ -61,28 +65,42 @@ public abstract class WebResource {
             }
         }
 
-        return getResult(request);
+        return getResult(request, resultConsumer);
     }
 
-    private Result getResult(Request request) {
+    private Result getResult(final Request request, Consumer<Result> resultConsumer) {
         long start = System.currentTimeMillis();
-        Result result = request(request.requestUrl(), request.getOrigUrl(), request);
-        int redirect = 0;
-        while (result.isRedirect() && redirect < request.getMaxRedirect() && null != result.getMoveToUrl()) {
-            result = request(result.getMoveToUrl(), result.getMoveToUrl(), request);
-            redirect++;
-        }
-
-        if (redirect > 0) {
-            result.setRedirectCount(redirect);
-            if (!result.isRedirect()) {
-                result.setMoveToUrl(result.getUrl());
+        if (null != resultConsumer && async) {
+            AsyncHttpClient asyncHttpClient = (AsyncHttpClient) this;
+            asyncHttpClient.async(request.requestUrl(), request.getOrigUrl(), 0, request, result -> {
+                if (result.isRedirect() && result.getRedirectCount() < request.getMaxRedirect() && null != result.getMoveToUrl()) {
+                    asyncHttpClient.async(result.getMoveToUrl(), result.getMoveToUrl(), result.getRedirectCount(), request, resultConsumer);
+                } else {
+                    result.setMoveToUrl(result.getUrl());
+                    result.setUrl(request.getOrigUrl());
+                    result.setRequestTime(System.currentTimeMillis() - start);
+                    resultConsumer.accept(result);
+                }
+            });
+            return null;
+        } else {
+            Result result = request(request.requestUrl(), request.getOrigUrl(), request);
+            int redirect = 0;
+            while (result.isRedirect() && redirect < request.getMaxRedirect() && null != result.getMoveToUrl()) {
+                result = request(result.getMoveToUrl(), result.getMoveToUrl(), request);
+                redirect++;
             }
-            result.setUrl(request.getOrigUrl());
+
+            if (redirect > 0) {
+                result.setRedirectCount(redirect);
+                if (!result.isRedirect()) {
+                    result.setMoveToUrl(result.getUrl());
+                }
+                result.setUrl(request.getOrigUrl());
+            }
+            result.setRequestTime(System.currentTimeMillis() - start);
+            return result;
         }
-        result.setRequestTime(System.currentTimeMillis() - start);
-        request = null;
-        return result;
     }
 
     public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust) {
