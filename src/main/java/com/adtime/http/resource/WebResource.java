@@ -52,6 +52,10 @@ public abstract class WebResource {
         return fetchPage(checkedRequest, null);
     }
 
+    public Result fetchPage(Request request) {
+        return fetchPage(request, null);
+    }
+
     public Result fetchPage(Request request, Consumer<Result> resultConsumer) {
         Result result = null;
         if (request.isCompleted()) {
