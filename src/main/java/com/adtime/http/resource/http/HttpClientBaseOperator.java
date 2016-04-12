@@ -4,17 +4,24 @@ import com.adtime.http.resource.*;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.ContentType;
+import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Lubin.Xuan on 2015/6/2.
@@ -30,6 +37,35 @@ public abstract class HttpClientBaseOperator extends WebResource {
                 e instanceof SocketTimeoutException ||
                 e instanceof UnknownHostException ||
                 e instanceof TruncatedChunkException;
+    }
+
+    protected HttpRequestBase create(String url, Request request) {
+        url = Request.toHttpclientSafeUrl(url);
+        HttpRequestBase requestBase;
+        if (Request.Method.GET.equals(request.getMethod())) {
+            requestBase = new HttpGet(url);
+        } else if (Request.Method.HEAD.equals(request.getMethod())) {
+            requestBase = new HttpHead(url);
+        } else {
+            requestBase = new HttpPost(url);
+            if (null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
+                List<NameValuePair> valuePairs = request.getRequestParam().entrySet().stream().map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+                try {
+                    ((HttpPost) requestBase).setEntity(new UrlEncodedFormEntity(valuePairs));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        Map<String, String> _headers = request.getHeaderMap();
+        for (Map.Entry<String, String> entry : _headers.entrySet()) {
+            if (WebConst.COOKIE.equals(entry.getKey())) {
+                requestBase.setHeader(entry.getKey(), entry.getValue());
+            } else {
+                requestBase.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+        return requestBase;
     }
 
     public void close(HttpResponse response, HttpRequestBase request) {

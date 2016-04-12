@@ -6,6 +6,7 @@ import com.adtime.http.resource.WebConst;
 import com.adtime.http.resource.exception.DownloadStreamException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
@@ -69,8 +70,8 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
     }
 
     public void async(String url, String oUrl, Request request, Consumer<Result> resultConsumer) {
-        HttpGet httpGet = new HttpGet();
-        httpAsyncClient.execute(httpGet, new FutureCallback<HttpResponse>() {
+        HttpRequestBase requestBase = create(url, request);
+        httpAsyncClient.execute(requestBase, new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse response) {
                 Map<String, List<String>> headerMap = readHeader(request, response);
@@ -97,6 +98,8 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
                     resultConsumer.accept(result);
                 } catch (Exception e) {
                     failed(e);
+                } finally {
+                    close(response, requestBase);
                 }
             }
 
@@ -110,6 +113,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
                     result = new Result(url, WebConst.HTTP_ERROR, e.toString());
                 }
                 resultConsumer.accept(result);
+                close(null, requestBase);
             }
 
             @Override

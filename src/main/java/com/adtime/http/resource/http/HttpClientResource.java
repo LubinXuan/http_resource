@@ -64,29 +64,9 @@ public class HttpClientResource extends HttpClientBaseOperator {
 
     private Result doRequest(String url, String oUrl, HttpClient client, Request request) {
         url = Request.toHttpclientSafeUrl(url);
-        HttpRequestBase requestBase = null;
+        HttpRequestBase requestBase = create(url, request);
         HttpResponse response = null;
         try {
-            if (Request.Method.GET.equals(request.getMethod())) {
-                requestBase = new HttpGet(url);
-            } else if (Request.Method.HEAD.equals(request.getMethod())) {
-                requestBase = new HttpHead(url);
-            } else {
-                requestBase = new HttpPost(url);
-                if (null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
-                    List<NameValuePair> valuePairs = request.getRequestParam().entrySet().stream().map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue())).collect(Collectors.toList());
-                    ((HttpPost) requestBase).setEntity(new UrlEncodedFormEntity(valuePairs));
-                }
-            }
-            Map<String, String> _headers = request.getHeaderMap();
-            for (Map.Entry<String, String> entry : _headers.entrySet()) {
-                if (WebConst.COOKIE.equals(entry.getKey())) {
-                    requestBase.setHeader(entry.getKey(), entry.getValue());
-                } else {
-                    requestBase.addHeader(entry.getKey(), entry.getValue());
-                }
-            }
-
             requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
 
             response = client.execute(requestBase);
