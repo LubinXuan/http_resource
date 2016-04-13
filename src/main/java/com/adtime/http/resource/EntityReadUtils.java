@@ -86,7 +86,6 @@ public class EntityReadUtils {
         }
     }
 
-    @SuppressWarnings("all")
     private static Entity streamAsByte(long contentLength, String charSet, InputStream is, boolean uncompress, boolean checkInflaterInputStream, boolean checkBodySize) throws IOException {
 
         if (is == null) {
@@ -138,19 +137,19 @@ public class EntityReadUtils {
 
             } catch (Exception e) {
                 if (e instanceof EOFException) {
-                    logger.warn("页面流 EOF");
+                    warningMsg = "页面流 EOF";
                 } else if (e instanceof SocketException) {
                     if (e.getMessage() != null && e.getMessage().contains("Software caused connection abort: recv failed")) {
-                        logger.warn("[connection abort recv failed]数据读取可能不完整！！！！");
+                        warningMsg = "[connection abort recv failed]数据读取可能不完整！！！！";
                     } else {
                         e.printStackTrace();
-                        return new Entity(false, e.toString());
+                        return new Entity(false, e.getMessage());
                     }
                 } else if (e instanceof TruncatedChunkException) {
-                    logger.warn("[TruncatedChunkException]数据读取可能不完整！！！！");
+                    warningMsg = "[TruncatedChunkException]数据读取可能不完整！！！！";
                 } else {
                     e.printStackTrace();
-                    return new Entity(false, e.toString());
+                    return new Entity(false, e.getMessage());
                 }
             }
 
@@ -159,6 +158,9 @@ public class EntityReadUtils {
                 bytes = tranInflaterInputStream(bytes);
             } else if (uncompress) {
                 bytes = uncompressGzip(bytes);
+            }
+            if (StringUtils.isNotBlank(warningMsg)) {
+                logger.warn(warningMsg);
             }
             return getEntity(charSet, contentLengthCurrent, bytes, warningMsg);
         } finally {
