@@ -1,22 +1,16 @@
 package com.adtime.http.resource.http;
 
-import com.adtime.http.resource.*;
+import com.adtime.http.resource.Request;
+import com.adtime.http.resource.Result;
+import com.adtime.http.resource.WebConst;
 import com.adtime.http.resource.exception.DownloadStreamException;
-import com.adtime.http.resource.proxy.DynamicProxyProvider;
-import org.apache.http.*;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by Lubin.Xuan on 2015/6/2.
