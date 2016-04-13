@@ -228,7 +228,7 @@ public class Clients435 extends HttpClientHelper {
         return asyncClientBuilder;
     }
 
-    private static final Map<String, RequestConfig> REQUEST_CONFIG_MAP = new ConcurrentHashMap<>();
+    private final Map<String, RequestConfig> requestConfigMap = new ConcurrentHashMap<>();
 
     @Override
     public RequestConfig requestConfig(Integer connectTimeout, Integer readTimeout) {
@@ -238,7 +238,7 @@ public class Clients435 extends HttpClientHelper {
 
         String key = connectTimeout + "&" + readTimeout;
 
-        return REQUEST_CONFIG_MAP.compute(key, (s, requestConfig) -> {
+        return requestConfigMap.compute(key, (s, requestConfig) -> {
 
             if (null != requestConfig) {
                 return requestConfig;
