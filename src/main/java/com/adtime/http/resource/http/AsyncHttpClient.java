@@ -70,6 +70,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
 
     public void async(String url, String oUrl, int redirect, Request request, Consumer<Result> resultConsumer) {
         HttpRequestBase requestBase = create(url, request);
+        requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
         httpAsyncClient.execute(requestBase, new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse response) {
