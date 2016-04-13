@@ -27,11 +27,6 @@ public class HttpClientResource extends HttpClientBaseOperator {
     }
 
     @Override
-    public void registerCookie(String domain, String name, String value) {
-        httpClientHelper.registerCookie(domain, name, value);
-    }
-
-    @Override
     public Result request(String url, String oUrl, Request request) {
         return doRequest(url, oUrl, httpClient, request);
     }

@@ -57,11 +57,6 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
         return consumerSupplier.get();
     }
 
-    @Override
-    public void registerCookie(String domain, String name, String value) {
-
-    }
-
     public void async(String url, String oUrl, int redirect, Request request, Consumer<Result> resultConsumer) {
         HttpRequestBase requestBase = create(url, request);
         requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));

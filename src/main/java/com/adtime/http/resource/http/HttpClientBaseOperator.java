@@ -37,6 +37,11 @@ public abstract class HttpClientBaseOperator extends WebResource {
     }
 
     @Override
+    public void registerCookie(String domain, String name, String value) {
+        httpClientHelper.registerCookie(domain, name, value);
+    }
+
+    @Override
     protected boolean _handException(Throwable e, String url, String oUrl) {
         return e instanceof SocketException ||
                 e instanceof ConnectTimeoutException ||
