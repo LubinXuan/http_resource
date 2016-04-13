@@ -29,6 +29,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.message.BasicHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,6 +197,14 @@ public class Clients435 extends HttpClientHelper {
                 .setConnectionManager(connectionManager)
                 .setRetryHandler(retryHandler).setDefaultHeaders(defaultHeaders)
                 .setDefaultCookieStore(cookieStore).disableContentCompression();
+
+        HttpAsyncClientBuilder asyncClientBuilder = HttpAsyncClients.custom();
+        asyncClientBuilder.setDefaultRequestConfig(defaultRequestConfig)
+                .setUserAgent(config.getUserAgentString())
+                .setDefaultCookieStore(cookieStore)
+                .setDefaultCredentialsProvider(credentialsProvider)
+                .setRoutePlanner(routePlanner);
+
         if (null != credentialsProvider) {
             builder.setDefaultCredentialsProvider(credentialsProvider);
         }

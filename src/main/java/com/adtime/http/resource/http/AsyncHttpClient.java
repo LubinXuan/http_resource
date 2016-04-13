@@ -95,6 +95,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
                                 result = new Result(url, "", false, sts).withHeader(headerMap);
                             }
                         }
+                        result.setRedirectCount(redirect);
                     }
                     resultConsumer.accept(result);
                 } catch (Exception e) {
@@ -113,13 +114,16 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
                 } else {
                     result = new Result(url, WebConst.HTTP_ERROR, e.toString());
                 }
+                result.setRedirectCount(redirect);
                 resultConsumer.accept(result);
                 close(null, requestBase);
             }
 
             @Override
             public void cancelled() {
-                resultConsumer.accept(new Result(url, -1, "请求取消"));
+                Result result = new Result(url, -1, "请求取消");
+                result.setRedirectCount(redirect);
+                resultConsumer.accept(result);
             }
         });
     }

@@ -1,10 +1,7 @@
 package com.adtime.http.resource;
 
 import com.adtime.http.resource.exception.InitializeError;
-import com.adtime.http.resource.http.Clients435;
-import com.adtime.http.resource.http.HttpClientResource;
-import com.adtime.http.resource.http.HttpUnitResource;
-import com.adtime.http.resource.http.HttpUrlConnectionResource;
+import com.adtime.http.resource.http.*;
 import com.adtime.http.resource.url.format.DefaultUrlFormat;
 import com.adtime.http.resource.url.format.FormatUrl;
 import com.adtime.http.resource.url.invalid.DefaultInvalidUrl;
@@ -13,6 +10,8 @@ import com.adtime.http.resource.url.invalid.InvalidUrl;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Created by Administrator on 2015/11/5.
@@ -21,9 +20,6 @@ public class HttpIns {
     private static final FormatUrl FORMATURL = new DefaultUrlFormat();
     private static final InvalidUrl INVALIDURL = new DefaultInvalidUrl();
 
-    private static final Object HTTP_CLIENT = new Object();
-    private static final Object HTML_UNIT = new Object();
-    private static final Object HTTP_URL_CONNECTION = new Object();
     private static final CrawlConfig CRAWL_CONFIG = new CrawlConfig();
 
     static {
@@ -31,18 +27,10 @@ public class HttpIns {
         CRAWL_CONFIG.setIncludeHttpsPages(true);
     }
 
-    private static final Map<Object, WebResource> WEB_RESOURCE_MAP = new HashMap<>();
+    private static final Map<Object, WebResource> WEB_RESOURCE_MAP = new ConcurrentHashMap<>();
 
     public static WebResource httpClient() {
-        if (!WEB_RESOURCE_MAP.containsKey(HTTP_CLIENT)) {
-            synchronized (HTTP_CLIENT) {
-                if (!WEB_RESOURCE_MAP.containsKey(HTTP_CLIENT)) {
-                    WebResource clientResource = httpClient(CRAWL_CONFIG);
-                    WEB_RESOURCE_MAP.put(HTTP_CLIENT, clientResource);
-                }
-            }
-        }
-        return WEB_RESOURCE_MAP.get(HTTP_CLIENT);
+        return WEB_RESOURCE_MAP.computeIfAbsent("httpClient", o -> httpClient(CRAWL_CONFIG));
     }
 
     public static WebResource httpClient(CrawlConfig config) {
@@ -50,16 +38,16 @@ public class HttpIns {
     }
 
 
+    public static WebResource asyncHttpClient() {
+        return WEB_RESOURCE_MAP.computeIfAbsent("asyncHttpClient", o -> httmluint(CRAWL_CONFIG));
+    }
+
+    public static WebResource asyncHttpClient(CrawlConfig config) {
+        return newInstance(config, AsyncHttpClient.class);
+    }
+
     public static WebResource htmluint() {
-        if (!WEB_RESOURCE_MAP.containsKey(HTML_UNIT)) {
-            synchronized (HTML_UNIT) {
-                if (!WEB_RESOURCE_MAP.containsKey(HTML_UNIT)) {
-                    WebResource clientResource = httmluint(CRAWL_CONFIG);
-                    WEB_RESOURCE_MAP.put(HTML_UNIT, clientResource);
-                }
-            }
-        }
-        return WEB_RESOURCE_MAP.get(HTML_UNIT);
+        return WEB_RESOURCE_MAP.computeIfAbsent("htmluint", o -> httmluint(CRAWL_CONFIG));
     }
 
     public static WebResource httmluint(CrawlConfig config) {
@@ -67,15 +55,7 @@ public class HttpIns {
     }
 
     public static WebResource httpUrlConnection() {
-        if (!WEB_RESOURCE_MAP.containsKey(HTTP_URL_CONNECTION)) {
-            synchronized (HTTP_URL_CONNECTION) {
-                if (!WEB_RESOURCE_MAP.containsKey(HTTP_URL_CONNECTION)) {
-                    WebResource clientResource = httpUrlConnection(CRAWL_CONFIG);
-                    WEB_RESOURCE_MAP.put(HTTP_URL_CONNECTION, clientResource);
-                }
-            }
-        }
-        return WEB_RESOURCE_MAP.get(HTTP_URL_CONNECTION);
+        return WEB_RESOURCE_MAP.computeIfAbsent("httpUrlConnection", o -> httpUrlConnection(CRAWL_CONFIG));
     }
 
     public static WebResource httpUrlConnection(CrawlConfig config) {

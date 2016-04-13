@@ -2,8 +2,10 @@ package com.adtime.http;
 
 import com.adtime.http.resource.Result;
 import com.adtime.http.resource.WebResource;
+import com.adtime.http.resource.http.AsyncHttpClient;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.nio.reactor.IOReactorException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -97,9 +99,16 @@ public class TestMain extends BaseTest {
     @Test
     public void testPage(){
         Result result = webResource.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E");
-        System.out.println();
+        System.out.println(result);
     }
 
+
+    @Test
+    public void testAsync() throws IOReactorException {
+        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        Result result = asyncHttpClient.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E");
+        System.out.println(result);
+    }
 
     @Test
     public void pageFetch() throws IOException, InterruptedException {
