@@ -29,7 +29,11 @@ import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.nio.reactor.ConnectingIOReactor;
+import org.apache.http.nio.reactor.IOReactorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +69,9 @@ public class Clients435 extends HttpClientHelper {
     private CookieStore cookieStore = new BasicCookieStore();
 
     private PoolingHttpClientConnectionManager connectionManager = null;
+    private PoolingNHttpClientConnectionManager nHttpClientConnectionManager = null;
+
+
     private Registry<ConnectionSocketFactory> socketFactoryRegistry = null;
     private ConnectionConfig connectionConfig = null;
     private HttpRequestRetryHandler retryHandler = null;
@@ -191,17 +198,26 @@ public class Clients435 extends HttpClientHelper {
     }
 
     @Override
-    public HttpAsyncClientBuilder createHttpAsyncClientBuilder() {
+    public HttpAsyncClientBuilder createHttpAsyncClientBuilder() throws IOReactorException {
+        if (null == nHttpClientConnectionManager) {
+            ConnectingIOReactor ioReactor = new DefaultConnectingIOReactor();
+            nHttpClientConnectionManager = new PoolingNHttpClientConnectionManager(ioReactor);
+            nHttpClientConnectionManager.setMaxTotal(512);
+        }
         HttpAsyncClientBuilder asyncClientBuilder = HttpAsyncClients.custom();
         asyncClientBuilder.setDefaultRequestConfig(defaultRequestConfig)
                 .setUserAgent(config.getUserAgentString())
                 .setDefaultCookieStore(cookieStore);
+
+        asyncClientBuilder.setConnectionManager(nHttpClientConnectionManager);
+
         if (null != credentialsProvider) {
             asyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
         }
         if (null != routePlanner) {
             asyncClientBuilder.setRoutePlanner(routePlanner);
         }
+
         return asyncClientBuilder;
     }
 

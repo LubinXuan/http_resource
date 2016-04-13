@@ -31,11 +31,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
 
     public AsyncHttpClient(HttpClientHelper httpClientHelper) throws IOReactorException {
         super(httpClientHelper);
-        ConnectingIOReactor ioReactor = new DefaultConnectingIOReactor();
-        PoolingNHttpClientConnectionManager cm = new PoolingNHttpClientConnectionManager(ioReactor);
-        cm.setMaxTotal(512);
-        HttpAsyncClientBuilder httpAsyncClientBuilder = httpClientHelper.createHttpAsyncClientBuilder();
-        httpAsyncClient = httpAsyncClientBuilder.setConnectionManager(cm).build();
+        httpAsyncClient = httpClientHelper.createHttpAsyncClientBuilder().build();
         httpAsyncClient.start();
     }
 

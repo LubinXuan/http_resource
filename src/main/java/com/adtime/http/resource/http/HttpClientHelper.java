@@ -8,6 +8,7 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.nio.reactor.IOReactorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,5 +82,5 @@ public abstract class HttpClientHelper {
 
     public abstract HttpClientBuilder createHttpClientBuilder();
 
-    public abstract HttpAsyncClientBuilder createHttpAsyncClientBuilder();
+    public abstract HttpAsyncClientBuilder createHttpAsyncClientBuilder() throws IOReactorException;
 }

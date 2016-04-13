@@ -40,7 +40,7 @@ public class TestMain extends BaseTest {
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
 
-    @Resource(name = "webResourceHttpClient")
+    @Resource(name = "asyncHttpClient")
     //@Resource(name = "webResourceUrlConnection")
     //@Resource(name = "webResourceHtmlUnit")
     private WebResource webResource;
