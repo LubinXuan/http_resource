@@ -156,9 +156,9 @@ public class EntityReadUtils {
 
             byte[] bytes = byteArrayBuffer.buffer();
             if (checkInflaterInputStream) {
-                bytes = tranInflaterInputStream(byteArrayBuffer.toByteArray());
+                bytes = tranInflaterInputStream(bytes);
             } else if (uncompress) {
-                bytes = uncompressGzip(byteArrayBuffer.toByteArray());
+                bytes = uncompressGzip(bytes);
             }
             return getEntity(charSet, contentLengthCurrent, bytes, warningMsg);
         } finally {
