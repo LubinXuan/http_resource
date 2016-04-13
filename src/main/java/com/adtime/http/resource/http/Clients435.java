@@ -32,6 +32,9 @@ import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.nio.conn.NoopIOSessionStrategy;
+import org.apache.http.nio.conn.SchemeIOSessionStrategy;
+import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.nio.reactor.IOReactorException;
 import org.slf4j.Logger;
@@ -72,7 +75,6 @@ public class Clients435 extends HttpClientHelper {
     private PoolingNHttpClientConnectionManager nHttpClientConnectionManager = null;
 
 
-    private Registry<ConnectionSocketFactory> socketFactoryRegistry = null;
     private ConnectionConfig connectionConfig = null;
     private HttpRequestRetryHandler retryHandler = null;
 
@@ -110,30 +112,6 @@ public class Clients435 extends HttpClientHelper {
                 .setExpectContinueEnabled(false)
                 .setCookieSpec(CookieSpecs.DEFAULT);
 
-        RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create();
-
-        registryBuilder.register("http", PlainConnectionSocketFactory.getSocketFactory());
-
-        if (config.isIncludeHttpsPages()) {
-            try {
-                registryBuilder.register("https", new SSLConnectionSocketFactory(SSLSocketUtil.getSSLContext(), SSLSocketUtil.defaultHostnameVerifier()));
-            } catch (Exception e) {
-                logger.error("Https Registry Fail : {}", e.toString());
-            }
-        }
-
-        if (config.getProxyHost() != null) {
-
-            if (null != config.getProxyUsername()) {
-                credentialsProvider = new BasicCredentialsProvider();
-                credentialsProvider.setCredentials(
-                        new AuthScope(config.getProxyHost(), config.getProxyPort()),
-                        new UsernamePasswordCredentials(config.getProxyUsername(), config.getProxyPassword()));
-            }
-        }
-
-        socketFactoryRegistry = registryBuilder.build();
-
         MessageConstraints messageConstraints = MessageConstraints.custom()
                 .setMaxHeaderCount(200)
                 .build();
@@ -145,6 +123,16 @@ public class Clients435 extends HttpClientHelper {
                 .setMessageConstraints(messageConstraints)
                 .build();
 
+
+        if (config.getProxyHost() != null) {
+
+            if (null != config.getProxyUsername()) {
+                credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(
+                        new AuthScope(config.getProxyHost(), config.getProxyPort()),
+                        new UsernamePasswordCredentials(config.getProxyUsername(), config.getProxyPassword()));
+            }
+        }
 
         retryHandler = (exception, executionCount, context) -> {
             if (executionCount >= 3) {
@@ -174,7 +162,16 @@ public class Clients435 extends HttpClientHelper {
     @Override
     public HttpClientBuilder createHttpClientBuilder() {
         if (null == connectionManager) {
-            connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry, randomDns());
+            RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.create();
+            registryBuilder.register("http", PlainConnectionSocketFactory.INSTANCE);
+            if (config.isIncludeHttpsPages()) {
+                try {
+                    registryBuilder.register("https", new SSLConnectionSocketFactory(SSLSocketUtil.getSSLContext(), SSLSocketUtil.defaultHostnameVerifier()));
+                } catch (Exception e) {
+                    logger.error("Https Registry Fail : {}", e.toString());
+                }
+            }
+            connectionManager = new PoolingHttpClientConnectionManager(registryBuilder.build(), randomDns());
             connectionManager.setDefaultConnectionConfig(connectionConfig);
             connectionManager.setMaxTotal(config.getMaxTotalConnections());
             connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
@@ -201,8 +198,19 @@ public class Clients435 extends HttpClientHelper {
     public HttpAsyncClientBuilder createHttpAsyncClientBuilder() throws IOReactorException {
         if (null == nHttpClientConnectionManager) {
             ConnectingIOReactor ioReactor = new DefaultConnectingIOReactor();
+            RegistryBuilder<SchemeIOSessionStrategy> registryBuilder = RegistryBuilder.create();
+            registryBuilder.register("http", NoopIOSessionStrategy.INSTANCE);
+            if (config.isIncludeHttpsPages()) {
+                try {
+                    registryBuilder.register("https", new SSLIOSessionStrategy(SSLSocketUtil.getSSLContext(), SSLSocketUtil.defaultHostnameVerifier()));
+                } catch (Exception e) {
+                    logger.error("Https Registry Fail : {}", e.toString());
+                }
+            }
             nHttpClientConnectionManager = new PoolingNHttpClientConnectionManager(ioReactor);
-            nHttpClientConnectionManager.setMaxTotal(512);
+            nHttpClientConnectionManager.setMaxTotal(config.getMaxTotalConnections());
+            nHttpClientConnectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
+            nHttpClientConnectionManager.setDefaultConnectionConfig(connectionConfig);
         }
         HttpAsyncClientBuilder asyncClientBuilder = HttpAsyncClients.custom();
         asyncClientBuilder.setDefaultRequestConfig(defaultRequestConfig)
