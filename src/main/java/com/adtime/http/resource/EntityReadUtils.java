@@ -4,14 +4,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.TruncatedChunkException;
+import org.apache.http.util.ByteArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
@@ -98,8 +97,7 @@ public class EntityReadUtils {
             return new Entity(false, "流大小:[" + contentLength(contentLength, 0) + "] max than [" + MAX_PAGE_SIZE + "] as a download Stream");
         }
 
-        ByteArrayOutputStream outputStream = null;
-        ByteArrayOutputStream uncompressStream = null;
+        ByteArrayBuffer byteArrayBuffer = null;
         int contentLengthCurrent = 0;
         String warningMsg = null;
         try {
@@ -107,11 +105,16 @@ public class EntityReadUtils {
                 byte[] tmp = new byte[4096];
                 int l;
                 boolean isPageSizeOut = false;
-                outputStream = new ByteArrayOutputStream();
+                int i = (int) contentLength;
+                if (i < 0) {
+                    i = 4096;
+                }
+                byteArrayBuffer = new ByteArrayBuffer(i);
+
                 while (true) {
                     if ((l = is.read(tmp)) != -1) {
                         if (!isPageSizeOut) {
-                            outputStream.write(tmp, 0, l);
+                            byteArrayBuffer.append(tmp, 0, l);
                         }
 
                         contentLengthCurrent += l;
@@ -151,17 +154,13 @@ public class EntityReadUtils {
                 }
             }
 
-            ByteArrayOutputStream target;
+            byte[] bytes = byteArrayBuffer.buffer();
             if (checkInflaterInputStream) {
-                uncompressStream = tranInflaterInputStream(outputStream.toByteArray());
-                target = uncompressStream;
+                bytes = tranInflaterInputStream(byteArrayBuffer.toByteArray());
             } else if (uncompress) {
-                uncompressStream = uncompressGzip(outputStream.toByteArray());
-                target = uncompressStream;
-            } else {
-                target = outputStream;
+                bytes = uncompressGzip(byteArrayBuffer.toByteArray());
             }
-            return getEntity(charSet, contentLengthCurrent, target, warningMsg);
+            return getEntity(charSet, contentLengthCurrent, bytes, warningMsg);
         } finally {
             try {
                 is.close();
@@ -169,14 +168,8 @@ public class EntityReadUtils {
             }
 
             try {
-                if (null != outputStream)
-                    outputStream.reset();
-            } catch (Exception ignore) {
-            }
-
-            try {
-                if (null != uncompressStream)
-                    uncompressStream.reset();
+                if (null != byteArrayBuffer)
+                    byteArrayBuffer.clear();
             } catch (Exception ignore) {
             }
         }
@@ -190,33 +183,33 @@ public class EntityReadUtils {
         return byte1 == 0x78 && (byte2 == 0x01 || byte2 == 0x9c || byte2 == 0xDA);
     }
 
-    private static ByteArrayOutputStream tranInflaterInputStream(byte[] encBytes) throws IOException {
+    private static byte[] tranInflaterInputStream(byte[] encBytes) throws IOException {
         Inflater inflator = new Inflater(true);
         boolean isZlibHeader = isZlibHeader(encBytes);
         inflator.setInput(encBytes, isZlibHeader ? 2 : 0, isZlibHeader ? encBytes.length - 2 : encBytes.length);
         byte[] buf = new byte[4096];
         int nbytes = 0;
-        ByteArrayOutputStream f = new ByteArrayOutputStream(isZlibHeader ? encBytes.length - 4 : encBytes.length);
+        ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(isZlibHeader ? encBytes.length - 4 : encBytes.length);
         do {
             try {
                 nbytes = inflator.inflate(buf);
                 if (nbytes > 0) {
-                    f.write(buf, 0, nbytes);
+                    byteArrayBuffer.append(buf, 0, nbytes);
                 }
             } catch (DataFormatException e) {
                 //handle error
             }
         } while (nbytes > 0);
         inflator.end();
-        return f;
+        return byteArrayBuffer.buffer();
     }
 
 
-    public static ByteArrayOutputStream uncompressGzip(byte[] b) {
+    public static byte[] uncompressGzip(byte[] b) {
         if (b == null || b.length == 0) {
             return null;
         }
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayBuffer byteArrayBuffer = new ByteArrayBuffer(b.length);
         ByteArrayInputStream in = new ByteArrayInputStream(b);
 
         try {
@@ -224,7 +217,7 @@ public class EntityReadUtils {
             byte[] buffer = new byte[256];
             int n;
             while ((n = gunzip.read(buffer)) >= 0) {
-                out.write(buffer, 0, n);
+                byteArrayBuffer.append(buffer, 0, n);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -237,11 +230,11 @@ public class EntityReadUtils {
         }
 
 
-        return out;
+        return byteArrayBuffer.buffer();
     }
 
-    private static Entity getEntity(String charSet, long contentLength, ByteArrayOutputStream outputStream, String warningMsg) {
-        Entity entity = new Entity(outputStream.toByteArray(), charSet);
+    private static Entity getEntity(String charSet, long contentLength, byte[] bytes, String warningMsg) {
+        Entity entity = new Entity(bytes, charSet);
         entity.length = contentLength;
         entity.warningMsg = warningMsg;
         return entity;
