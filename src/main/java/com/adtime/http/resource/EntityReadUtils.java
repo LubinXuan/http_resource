@@ -8,9 +8,13 @@ import org.apache.http.util.ByteArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
@@ -290,8 +294,18 @@ public class EntityReadUtils {
             if (!hasParse) {
                 try {
                     if (valid) {
-                        if (StringUtils.isBlank(this.charSet)) {
-                            CharsetDetector.CharsetInfo charsetInfo = CharsetDetector.getCharSet(bytes, this.charSet);
+                        Charset _charset = null;
+                        if (StringUtils.isNotBlank(this.charSet)) {
+                            try {
+                                _charset = Charset.forName(this.charSet);
+                            } catch (Throwable ignore) {
+                                _charset = null;
+                            }
+                        }
+
+
+                        if (null == _charset) {
+                            CharsetDetector.CharsetInfo charsetInfo = CharsetDetectorUtil.getCharSet(bytes, this.charSet);
                             String charSet = charsetInfo.getCharset();
                             String[] proCharSet = charsetInfo.getPropCharset();
                             String value = new String(bytes, charSet).trim();
@@ -308,7 +322,7 @@ public class EntityReadUtils {
                                 }
                             }
                         } else {
-                            this.content = new String(bytes, charSet).trim();
+                            this.content = new String(bytes, _charset).trim();
                         }
                         return this.content;
                     } else {

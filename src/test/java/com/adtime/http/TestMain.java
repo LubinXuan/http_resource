@@ -1,5 +1,6 @@
 package com.adtime.http;
 
+import com.adtime.http.resource.CharsetDetectorUtil;
 import com.adtime.http.resource.HttpIns;
 import com.adtime.http.resource.Result;
 import com.adtime.http.resource.WebResource;
@@ -79,7 +80,7 @@ public class TestMain extends BaseTest {
             int i = h.indexOf("#");
             int j = h.indexOf(":");
             int k = h.indexOf("@");
-            if(j<0){
+            if (j < 0) {
                 System.out.println(h);
                 continue;
             }
@@ -98,7 +99,7 @@ public class TestMain extends BaseTest {
 
 
     @Test
-    public void testPage(){
+    public void testPage() {
         Result result = webResource.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E");
         System.out.println(result);
     }
@@ -180,24 +181,24 @@ public class TestMain extends BaseTest {
 
 
     @Test
-    public void countDownLatchTest(){
+    public void countDownLatchTest() {
         CountDownLatch latch = new CountDownLatch(1);
-        new Thread(()->{
+        new Thread(() -> {
             try {
                 System.out.println("开始等待");
                 TimeUnit.SECONDS.sleep(2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }finally {
+            } finally {
                 latch.countDown();
             }
         }).start();
 
         try {
-            boolean done = latch.await(5,TimeUnit.SECONDS);
-            if(done) {
+            boolean done = latch.await(5, TimeUnit.SECONDS);
+            if (done) {
                 System.out.println("退出");
-            }else{
+            } else {
                 System.out.println("超时退出");
             }
         } catch (InterruptedException e) {
