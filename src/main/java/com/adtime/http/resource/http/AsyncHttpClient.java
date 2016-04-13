@@ -9,6 +9,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
@@ -28,11 +29,13 @@ import java.util.function.Supplier;
 public class AsyncHttpClient extends HttpClientBaseOperator {
     private CloseableHttpAsyncClient httpAsyncClient;
 
-    public AsyncHttpClient() throws IOReactorException {
+    public AsyncHttpClient(HttpClientHelper httpClientHelper) throws IOReactorException {
+        super(httpClientHelper);
         ConnectingIOReactor ioReactor = new DefaultConnectingIOReactor();
         PoolingNHttpClientConnectionManager cm = new PoolingNHttpClientConnectionManager(ioReactor);
         cm.setMaxTotal(512);
-        httpAsyncClient = HttpAsyncClients.custom().setConnectionManager(cm).build();
+        HttpAsyncClientBuilder httpAsyncClientBuilder = httpClientHelper.createHttpAsyncClientBuilder();
+        httpAsyncClient = httpAsyncClientBuilder.setConnectionManager(cm).build();
         httpAsyncClient.start();
     }
 

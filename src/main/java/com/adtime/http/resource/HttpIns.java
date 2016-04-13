@@ -22,9 +22,12 @@ public class HttpIns {
 
     private static final CrawlConfig CRAWL_CONFIG = new CrawlConfig();
 
+    private static final HttpClientHelper HTTP_CLIENT_HELPER = new Clients435();
+
     static {
         CRAWL_CONFIG.setUserAgentString(WebConst.randomUA());
         CRAWL_CONFIG.setIncludeHttpsPages(true);
+        HTTP_CLIENT_HELPER.setConfig(CRAWL_CONFIG);
     }
 
     private static final Map<Object, WebResource> WEB_RESOURCE_MAP = new ConcurrentHashMap<>();
@@ -34,16 +37,16 @@ public class HttpIns {
     }
 
     public static HttpClientResource httpClient(CrawlConfig config) {
-        return newInstance(config, HttpClientResource.class, Clients435.class);
+        return newInstance(config, HttpClientResource.class, HttpClientHelper.class, HTTP_CLIENT_HELPER);
     }
 
 
     public static AsyncHttpClient asyncHttpClient() {
-        return (AsyncHttpClient) WEB_RESOURCE_MAP.computeIfAbsent("asyncHttpClient", o -> httmluint(CRAWL_CONFIG));
+        return (AsyncHttpClient) WEB_RESOURCE_MAP.computeIfAbsent("asyncHttpClient", o -> asyncHttpClient(CRAWL_CONFIG));
     }
 
     public static AsyncHttpClient asyncHttpClient(CrawlConfig config) {
-        return newInstance(config, AsyncHttpClient.class);
+        return newInstance(config, AsyncHttpClient.class, HttpClientHelper.class, HTTP_CLIENT_HELPER);
     }
 
     public static HttpUnitResource htmluint() {
@@ -67,12 +70,14 @@ public class HttpIns {
         T webResource;
         try {
             if (params.length > 0) {
-                Class[] classes = new Class[params.length];
-                for (int i = 0; i < params.length; i++) {
-                    classes[i] = params[i].getClass();
+                Class[] classes = new Class[params.length / 2];
+                Object[] param = new Object[params.length / 2];
+                for (int i = 0; i < params.length; i += 2) {
+                    classes[i / 2] = (Class) params[i];
+                    param[i / 2] = params[i + 1];
                 }
                 Constructor<T> constructor = clazz.getConstructor(classes);
-                webResource = constructor.newInstance(params);
+                webResource = constructor.newInstance(param);
             } else {
                 webResource = clazz.newInstance();
             }

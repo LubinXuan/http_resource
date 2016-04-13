@@ -1,6 +1,7 @@
 package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
+import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
@@ -11,8 +12,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -28,6 +31,13 @@ import java.util.stream.Collectors;
  * ie.
  */
 public abstract class HttpClientBaseOperator extends WebResource {
+
+    protected HttpClientHelper httpClientHelper;
+
+    public HttpClientBaseOperator(HttpClientHelper httpClientHelper) {
+        this.httpClientHelper = httpClientHelper;
+        this.httpClientHelper.init();
+    }
 
     @Override
     protected boolean _handException(Throwable e, String url, String oUrl) {

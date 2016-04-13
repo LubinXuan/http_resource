@@ -5,9 +5,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.cookie.ClientCookie;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -19,17 +22,17 @@ public abstract class HttpClientHelper {
 
     protected CrawlConfig config;
 
-    public HttpClientHelper(CrawlConfig config) {
+    public CrawlConfig getConfig() {
+        return config;
+    }
+
+    public void setConfig(CrawlConfig config) {
         this.config = config;
     }
 
-    public abstract HttpClient basic();
+    public abstract void init();
 
-    public abstract HttpClient newBasic();
-
-    public abstract CrawlConfig getConfig();
-
-    public abstract RequestConfig requestConfig(Integer connectTimeout,Integer readTimeout);
+    public abstract RequestConfig requestConfig(Integer connectTimeout, Integer readTimeout);
 
     public abstract void registerCookie(String domain, String name, String value);
 
@@ -75,4 +78,8 @@ public abstract class HttpClientHelper {
     public static DnsResolver randomDns() {
         return RANDOM_DNS_RESOLVER;
     }
+
+    public abstract HttpClientBuilder createHttpClientBuilder();
+
+    public abstract HttpAsyncClientBuilder createHttpAsyncClientBuilder();
 }

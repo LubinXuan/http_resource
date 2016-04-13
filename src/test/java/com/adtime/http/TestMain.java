@@ -1,5 +1,6 @@
 package com.adtime.http;
 
+import com.adtime.http.resource.HttpIns;
 import com.adtime.http.resource.Result;
 import com.adtime.http.resource.WebResource;
 import com.adtime.http.resource.http.AsyncHttpClient;
@@ -105,7 +106,7 @@ public class TestMain extends BaseTest {
 
     @Test
     public void testAsync() throws IOReactorException {
-        AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
+        AsyncHttpClient asyncHttpClient = HttpIns.asyncHttpClient();
         Result result = asyncHttpClient.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E");
         System.out.println(result);
     }

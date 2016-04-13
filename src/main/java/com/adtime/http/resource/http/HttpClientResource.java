@@ -10,6 +10,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.net.HttpURLConnection;
@@ -23,33 +24,12 @@ import java.util.stream.Collectors;
  */
 public class HttpClientResource extends HttpClientBaseOperator {
 
-    private HttpClientHelper httpClientHelper;
 
-    private Class<? extends HttpClientHelper> helperClass;
+    private HttpClient httpClient;
 
-    public HttpClientResource(Class<? extends HttpClientHelper> helperClass) {
-        this.helperClass = helperClass;
-    }
-
-    private void init() {
-        if (null != httpClientHelper) {
-            return;
-        }
-
-        if (null != dynamicProxyProvider) {
-            try {
-                this.httpClientHelper = helperClass.getConstructor(CrawlConfig.class, DynamicProxyProvider.class).newInstance(config, dynamicProxyProvider);
-                return;
-            } catch (Exception e) {
-                throw new IllegalArgumentException("httpclient 初始化失败", e);
-            }
-        }
-
-        try {
-            this.httpClientHelper = helperClass.getConstructor(CrawlConfig.class).newInstance(config);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("httpclient 初始化失败", e);
-        }
+    public HttpClientResource(HttpClientHelper httpClientHelper) {
+        super(httpClientHelper);
+        httpClient = httpClientHelper.createHttpClientBuilder().build();
     }
 
     @Override
@@ -59,7 +39,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
 
     @Override
     public Result request(String url, String oUrl, Request request) {
-        return doRequest(url, oUrl, httpClientHelper.basic(), request);
+        return doRequest(url, oUrl, httpClient, request);
     }
 
     private Result doRequest(String url, String oUrl, HttpClient client, Request request) {
