@@ -142,13 +142,11 @@ public class EntityReadUtils {
                     if (e.getMessage() != null && e.getMessage().contains("Software caused connection abort: recv failed")) {
                         warningMsg = "[connection abort recv failed]数据读取可能不完整！！！！";
                     } else {
-                        e.printStackTrace();
                         return new Entity(false, e.getMessage());
                     }
                 } else if (e instanceof TruncatedChunkException) {
                     warningMsg = "[TruncatedChunkException]数据读取可能不完整！！！！";
                 } else {
-                    e.printStackTrace();
                     return new Entity(false, e.getMessage());
                 }
             }
