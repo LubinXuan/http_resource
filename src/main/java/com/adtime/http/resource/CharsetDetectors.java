@@ -17,7 +17,7 @@ import java.util.function.Function;
  * Created by Lubin.Xuan on 2015/8/6.
  * ie.
  */
-public abstract class CharsetDetectorUtil {
+public class CharsetDetectors {
 
     private static final List<CharsetDetector> DETECTOR_LIST = new ArrayList<>();
 
@@ -33,12 +33,6 @@ public abstract class CharsetDetectorUtil {
         DETECTOR_LIST.add(new CPDetector());
         DETECTOR_LIST.add(new HtmlEncodeDetector());
     }
-
-    public static boolean validCharset(String charSet) {
-        return !(null == charSet || "void".equalsIgnoreCase(charSet));
-    }
-
-    abstract public CharsetDetector.CharsetInfo detect(byte[] data, String defaultCharset);
 
     public static CharsetDetector.CharsetInfo getCharSet(byte[] data, String defaultCharset) {
         for (CharsetDetector detector : DETECTOR_LIST) {

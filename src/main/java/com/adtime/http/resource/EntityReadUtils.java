@@ -305,7 +305,7 @@ public class EntityReadUtils {
 
 
                         if (null == _charset) {
-                            CharsetDetector.CharsetInfo charsetInfo = CharsetDetectorUtil.getCharSet(bytes, this.charSet);
+                            CharsetDetector.CharsetInfo charsetInfo = CharsetDetectors.getCharSet(bytes, this.charSet);
                             String charSet = charsetInfo.getCharset();
                             String[] proCharSet = charsetInfo.getPropCharset();
                             String value = new String(bytes, charSet).trim();

@@ -1,6 +1,5 @@
 package com.adtime.http;
 
-import com.adtime.http.resource.CharsetDetectorUtil;
 import com.adtime.http.resource.HttpIns;
 import com.adtime.http.resource.Result;
 import com.adtime.http.resource.WebResource;
