@@ -23,9 +23,7 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -42,8 +40,8 @@ public class TestMain extends BaseTest {
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
 
-    @Resource(name = "asyncHttpClient")
-    //@Resource(name = "webResourceUrlConnection")
+    //@Resource(name = "asyncHttpClient")
+    @Resource(name = "webResourceUrlConnection")
     //@Resource(name = "webResourceHtmlUnit")
     private WebResource webResource;
 
@@ -107,11 +105,35 @@ public class TestMain extends BaseTest {
 
 
     @Test
-    public void testAsync() throws IOReactorException {
+    public void testAsync() throws IOReactorException, InterruptedException {
         AsyncHttpClient asyncHttpClient = HttpIns.asyncHttpClient();
+        CountDownLatch latch = new CountDownLatch(1000);
+        long start = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {
-            asyncHttpClient.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E", (ResultConsumer) System.out::println);
+            asyncHttpClient.fetchPage("http://news.ifeng.com/a/20160418/48500891_0.shtml", (ResultConsumer) var1 -> {
+                logger.debug("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
+                latch.countDown();
+            });
         }
+        latch.await();
+        logger.debug("耗时:{}", System.currentTimeMillis() - start);
+    }
+
+    @Test
+    public void testAsync2() throws IOReactorException, InterruptedException {
+        ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4);
+        CountDownLatch latch = new CountDownLatch(1000);
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 1000; i++) {
+            service.execute(() -> {
+                webResource.fetchPage("http://news.ifeng.com/a/20160418/48500891_0.shtml", (ResultConsumer) var1 -> {
+                    logger.debug("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
+                    latch.countDown();
+                });
+            });
+        }
+        latch.await();
+        logger.debug("耗时:{}", System.currentTimeMillis() - start);
     }
 
     @Test

@@ -30,6 +30,7 @@ import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.nio.conn.NoopIOSessionStrategy;
 import org.apache.http.nio.conn.SchemeIOSessionStrategy;
@@ -105,7 +106,6 @@ public class Clients435 extends HttpClientHelper {
         requestConfigBuilder = RequestConfig.custom()
                 .setSocketTimeout(config.getSocketTimeout())
                 .setConnectTimeout(config.getConnectionTimeout())
-                .setConnectionRequestTimeout(config.getConnectionTimeout())
                 .setRedirectsEnabled(config.isFollowRedirects())
                 .setCircularRedirectsAllowed(false)
                 .setExpectContinueEnabled(false)
@@ -196,7 +196,11 @@ public class Clients435 extends HttpClientHelper {
     @Override
     public HttpAsyncClientBuilder createHttpAsyncClientBuilder() throws IOReactorException {
         if (null == nHttpClientConnectionManager) {
-            ConnectingIOReactor ioReactor = new DefaultConnectingIOReactor();
+            IOReactorConfig reactorConfig = IOReactorConfig.custom()
+                    .setIoThreadCount(Runtime.getRuntime().availableProcessors() * 4)
+                    .setSoReuseAddress(true)
+                    .build();
+            ConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(reactorConfig);
             RegistryBuilder<SchemeIOSessionStrategy> registryBuilder = RegistryBuilder.create();
             registryBuilder.register("http", NoopIOSessionStrategy.INSTANCE);
             if (config.isIncludeHttpsPages()) {
