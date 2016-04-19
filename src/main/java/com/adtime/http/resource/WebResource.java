@@ -45,18 +45,14 @@ public abstract class WebResource {
         return RequestBuilder.buildRequest(url, charSet, headers, trust, includeIndex, maxRedirect);
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, boolean includeIndex, int maxRedirect) {
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, boolean includeIndex, int maxRedirect, Consumer<Result>... resultConsumer) {
 
         Request checkedRequest = RequestBuilder.buildRequest(url, charSet, headers, trust, includeIndex, maxRedirect);
 
-        return fetchPage(checkedRequest, null);
+        return fetchPage(checkedRequest, resultConsumer);
     }
 
-    public Result fetchPage(Request request) {
-        return fetchPage(request, null);
-    }
-
-    public Result fetchPage(Request request, Consumer<Result> resultConsumer) {
+    public Result fetchPage(Request request, Consumer<Result>... resultConsumers) {
         Result result = null;
         if (request.isCompleted()) {
             result = request.getResult();
@@ -69,6 +65,8 @@ public abstract class WebResource {
                 result = request.getResult();
             }
         }
+
+        Consumer<Result> resultConsumer = resultConsumers.length > 0 ? resultConsumers[0] : null;
 
         if (null != result && null != resultConsumer) {
             resultConsumer.accept(result);
@@ -119,28 +117,28 @@ public abstract class WebResource {
         }
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust) {
-        return fetchPage(url, charSet, headers, trust, INDEX_DEFAULT_ACCESS, 0);
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, Consumer<Result>... resultConsumer) {
+        return fetchPage(url, charSet, headers, trust, INDEX_DEFAULT_ACCESS, 0, resultConsumer);
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers) {
-        return fetchPage(url, charSet, headers, INDEX_DEFAULT_ACCESS, 0);
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, Consumer<Result>... resultConsumer) {
+        return fetchPage(url, charSet, headers, INDEX_DEFAULT_ACCESS, 0, resultConsumer);
     }
 
-    public Result fetchPage(String url) {
-        return fetchPage(url, 0);
+    public Result fetchPage(String url, Consumer<Result>... resultConsumer) {
+        return fetchPage(url, 0, resultConsumer);
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, int maxRedirect) {
-        return fetchPage(url, charSet, headers, trust, INDEX_DEFAULT_ACCESS, maxRedirect);
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, int maxRedirect, Consumer<Result>... resultConsumer) {
+        return fetchPage(url, charSet, headers, trust, INDEX_DEFAULT_ACCESS, maxRedirect, resultConsumer);
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers, int maxRedirect) {
-        return fetchPage(url, charSet, headers, INDEX_DEFAULT_ACCESS, maxRedirect);
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, int maxRedirect, Consumer<Result>... resultConsumer) {
+        return fetchPage(url, charSet, headers, INDEX_DEFAULT_ACCESS, maxRedirect, resultConsumer);
     }
 
-    public Result fetchPage(String url, int maxRedirect) {
-        return fetchPage(url, null, null, false, maxRedirect);
+    public Result fetchPage(String url, int maxRedirect, Consumer<Result>... resultConsumer) {
+        return fetchPage(url, null, null, false, maxRedirect, resultConsumer);
     }
 
 

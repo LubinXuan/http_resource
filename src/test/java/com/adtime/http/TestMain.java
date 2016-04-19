@@ -107,8 +107,10 @@ public class TestMain extends BaseTest {
     @Test
     public void testAsync() throws IOReactorException {
         AsyncHttpClient asyncHttpClient = HttpIns.asyncHttpClient();
-        Result result = asyncHttpClient.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E");
-        System.out.println(result);
+        for (int i = 0; i < 1000; i++) {
+            Result result = asyncHttpClient.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E");
+            System.out.println(result);
+        }
     }
 
     @Test
