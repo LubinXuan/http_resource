@@ -2,6 +2,7 @@ package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.Request;
 import com.adtime.http.resource.Result;
+import com.adtime.http.resource.ResultConsumer;
 import com.adtime.http.resource.WebConst;
 import com.adtime.http.resource.exception.DownloadStreamException;
 import org.apache.http.HttpResponse;
@@ -29,7 +30,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
         httpAsyncClient.start();
     }
 
-    private static class ConsumerSupplier implements Supplier<Result>, Consumer<Result> {
+    private static class ConsumerSupplier implements Supplier<Result>, ResultConsumer {
         Result result = null;
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -57,7 +58,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
         return consumerSupplier.get();
     }
 
-    public void async(String url, String oUrl, int redirect, Request request, Consumer<Result> resultConsumer) {
+    public void async(String url, String oUrl, int redirect, Request request, ResultConsumer resultConsumer) {
         HttpRequestBase requestBase = create(url, request);
         requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
         httpAsyncClient.execute(requestBase, new FutureCallback<HttpResponse>() {

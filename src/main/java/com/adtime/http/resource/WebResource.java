@@ -64,7 +64,7 @@ public abstract class WebResource {
             }
         }
 
-        Consumer<Result> resultConsumer = resultConsumers.length > 0 ? resultConsumers[0] : null;
+        ResultConsumer resultConsumer = resultConsumers.length > 0 ? resultConsumers[0] : null;
 
         if (null != result && null != resultConsumer) {
             resultConsumer.accept(result);
@@ -74,7 +74,7 @@ public abstract class WebResource {
         }
     }
 
-    private Result getResult(final Request request, Consumer<Result> resultConsumer) {
+    private Result getResult(final Request request, ResultConsumer resultConsumer) {
         long start = System.currentTimeMillis();
         if (null != resultConsumer && async) {
             AsyncHttpClient asyncHttpClient = (AsyncHttpClient) this;
