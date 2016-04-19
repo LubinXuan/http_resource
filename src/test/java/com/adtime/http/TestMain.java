@@ -2,6 +2,7 @@ package com.adtime.http;
 
 import com.adtime.http.resource.HttpIns;
 import com.adtime.http.resource.Result;
+import com.adtime.http.resource.ResultConsumer;
 import com.adtime.http.resource.WebResource;
 import com.adtime.http.resource.http.AsyncHttpClient;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
@@ -26,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * Created by Lubin.Xuan on 2015/6/2.
@@ -108,8 +110,7 @@ public class TestMain extends BaseTest {
     public void testAsync() throws IOReactorException {
         AsyncHttpClient asyncHttpClient = HttpIns.asyncHttpClient();
         for (int i = 0; i < 1000; i++) {
-            Result result = asyncHttpClient.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E");
-            System.out.println(result);
+            asyncHttpClient.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E", (ResultConsumer) System.out::println);
         }
     }
 

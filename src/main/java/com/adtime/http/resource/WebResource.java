@@ -8,9 +8,7 @@ import com.adtime.http.resource.url.invalid.InvalidUrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.net.SocketTimeoutException;
-import java.net.URLEncoder;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -35,7 +33,7 @@ public abstract class WebResource {
         System.setProperty("jsse.enableSNIExtension", "false");
     }
 
-    boolean async = this instanceof AsyncHttpClient;
+    private boolean async = this instanceof AsyncHttpClient;
 
     public static void enableLite() {
         System.setProperty("icu.lite", "true");
@@ -45,14 +43,14 @@ public abstract class WebResource {
         return RequestBuilder.buildRequest(url, charSet, headers, trust, includeIndex, maxRedirect);
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, boolean includeIndex, int maxRedirect, Consumer<Result>... resultConsumer) {
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, boolean includeIndex, int maxRedirect, ResultConsumer... resultConsumer) {
 
         Request checkedRequest = RequestBuilder.buildRequest(url, charSet, headers, trust, includeIndex, maxRedirect);
 
         return fetchPage(checkedRequest, resultConsumer);
     }
 
-    public Result fetchPage(Request request, Consumer<Result>... resultConsumers) {
+    public Result fetchPage(Request request, ResultConsumer... resultConsumers) {
         Result result = null;
         if (request.isCompleted()) {
             result = request.getResult();
@@ -117,27 +115,27 @@ public abstract class WebResource {
         }
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, Consumer<Result>... resultConsumer) {
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, ResultConsumer... resultConsumer) {
         return fetchPage(url, charSet, headers, trust, INDEX_DEFAULT_ACCESS, 0, resultConsumer);
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers, Consumer<Result>... resultConsumer) {
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, ResultConsumer... resultConsumer) {
         return fetchPage(url, charSet, headers, INDEX_DEFAULT_ACCESS, 0, resultConsumer);
     }
 
-    public Result fetchPage(String url, Consumer<Result>... resultConsumer) {
+    public Result fetchPage(String url, ResultConsumer... resultConsumer) {
         return fetchPage(url, 0, resultConsumer);
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, int maxRedirect, Consumer<Result>... resultConsumer) {
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, int maxRedirect, ResultConsumer... resultConsumer) {
         return fetchPage(url, charSet, headers, trust, INDEX_DEFAULT_ACCESS, maxRedirect, resultConsumer);
     }
 
-    public Result fetchPage(String url, String charSet, Map<String, String> headers, int maxRedirect, Consumer<Result>... resultConsumer) {
+    public Result fetchPage(String url, String charSet, Map<String, String> headers, int maxRedirect, ResultConsumer... resultConsumer) {
         return fetchPage(url, charSet, headers, INDEX_DEFAULT_ACCESS, maxRedirect, resultConsumer);
     }
 
-    public Result fetchPage(String url, int maxRedirect, Consumer<Result>... resultConsumer) {
+    public Result fetchPage(String url, int maxRedirect, ResultConsumer... resultConsumer) {
         return fetchPage(url, null, null, false, maxRedirect, resultConsumer);
     }
 
