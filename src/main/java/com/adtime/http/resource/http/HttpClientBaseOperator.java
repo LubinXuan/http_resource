@@ -52,7 +52,6 @@ public abstract class HttpClientBaseOperator extends WebResource {
     }
 
     protected HttpRequestBase create(String url, Request request) {
-        url = Request.toHttpclientSafeUrl(url);
         HttpRequestBase requestBase;
         if (Request.Method.GET.equals(request.getMethod())) {
             requestBase = new HttpGet(url);

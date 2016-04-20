@@ -34,15 +34,16 @@ import java.util.function.Consumer;
 public class TestMain extends BaseTest {
 
     static {
-        System.setProperty("http.proxyHost", "172.16.8.23");
-        System.setProperty("http.proxyPort", "3128");
+        //System.setProperty("http.proxyHost", "172.16.8.23");
+        //System.setProperty("http.proxyPort", "3128");
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
 
-    //@Resource(name = "asyncHttpClient")
-    @Resource(name = "webResourceUrlConnection")
+    @Resource(name = "asyncHttpClient")
+    //@Resource(name = "webResourceUrlConnection")
     //@Resource(name = "webResourceHtmlUnit")
+    //@Resource(name = "webResourceHttpClient")
     private WebResource webResource;
 
 
@@ -125,11 +126,14 @@ public class TestMain extends BaseTest {
         CountDownLatch latch = new CountDownLatch(1000);
         long start = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {
-            service.execute(() -> {
-                webResource.fetchPage("http://news.ifeng.com/a/20160418/48500891_0.shtml", (ResultConsumer) var1 -> {
-                    logger.debug("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
-                    latch.countDown();
-                });
+            /*service.execute(() -> {
+                Result var1 = webResource.fetchPage("http://news.ifeng.com/a/20160418/48500891_0.shtml");
+                logger.debug("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
+                latch.countDown();
+            });*/
+            webResource.fetchPage("http://news.ifeng.com/a/20160418/48500891_0.shtml", (ResultConsumer) var1 -> {
+                logger.debug("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
+                latch.countDown();
             });
         }
         latch.await();

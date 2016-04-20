@@ -224,43 +224,4 @@ public class Request implements Serializable {
         this.requestParam.put(paramName, String.valueOf(paramValue));
         return this;
     }
-
-    private static final Pattern ENCODE_P = Pattern.compile("(%[a-z|0-9]{2})+");
-
-    public static String toHttpclientSafeUrl(String url) {
-        int idx = url.indexOf("?");
-        if (idx > -1) {
-            String baseUrl = url.substring(0, idx);
-            String query = url.substring(idx + 1);
-            String queryPairs[] = query.split("&");
-            StringBuilder q = new StringBuilder();
-            for (String queryPair1 : queryPairs) {
-                String queryPair[] = queryPair1.split("=");
-                if (queryPair.length == 2) {
-                    if (q.length() > 0) {
-                        q.append("&");
-                    }
-                    q.append(queryPair[0]).append("=");
-                    if (queryPair[1].startsWith("%")) {
-                        Matcher matcher = ENCODE_P.matcher(queryPair[1].toLowerCase());
-                        if (matcher.matches()) {
-                            q.append(queryPair[1]);
-                        } else {
-                            q.append(RequestUtil.urlEncode(queryPair[1]));
-                        }
-                    } else {
-                        q.append(RequestUtil.urlEncode(queryPair[1]));
-                    }
-
-                }
-            }
-            return baseUrl + "?" + q.toString();
-        } else {
-            return url;
-        }
-    }
-
-    public static void main(String[] args) {
-        System.out.println(toHttpclientSafeUrl("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E"));
-    }
 }

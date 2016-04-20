@@ -37,15 +37,18 @@ import org.apache.http.nio.conn.SchemeIOSessionStrategy;
 import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.apache.http.nio.reactor.IOReactorException;
+import org.apache.http.protocol.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.net.ssl.SSLException;
+import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
 import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -106,7 +109,7 @@ public class Clients435 extends HttpClientHelper {
         requestConfigBuilder = RequestConfig.custom()
                 .setSocketTimeout(config.getSocketTimeout())
                 .setConnectTimeout(config.getConnectionTimeout())
-                .setRedirectsEnabled(config.isFollowRedirects())
+                .setRedirectsEnabled(config.isFollowRedirects()).setConnectionRequestTimeout(config.getConnectionTimeout())
                 .setCircularRedirectsAllowed(false)
                 .setExpectContinueEnabled(false)
                 .setCookieSpec(CookieSpecs.DEFAULT);
@@ -228,7 +231,6 @@ public class Clients435 extends HttpClientHelper {
         if (null != routePlanner) {
             asyncClientBuilder.setRoutePlanner(routePlanner);
         }
-
         return asyncClientBuilder;
     }
 

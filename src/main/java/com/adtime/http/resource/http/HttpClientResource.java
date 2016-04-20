@@ -32,7 +32,6 @@ public class HttpClientResource extends HttpClientBaseOperator {
     }
 
     private Result doRequest(String url, String oUrl, HttpClient client, Request request) {
-        url = Request.toHttpclientSafeUrl(url);
         HttpRequestBase requestBase = create(url, request);
         HttpResponse response = null;
         try {

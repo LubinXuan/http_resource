@@ -15,7 +15,6 @@ import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
