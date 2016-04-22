@@ -30,6 +30,7 @@
           p:config-ref="config"
           p:formatUrl-ref="formatUrl"
           p:invalidUrl-ref="invalidUrl"
+          p:dynamicProxyProvider-ref="dynamicProxyProvider"
     />
 
     <!--    <bean class="com.adtime.http.resource.url.CookieRegister" lazy-init="false"

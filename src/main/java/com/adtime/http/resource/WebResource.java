@@ -56,12 +56,17 @@ public abstract class WebResource {
             result = request.getResult();
         }
 
+        String requestUrl = request.requestUrl();
+
         if (!request.isTrust()) {
-            String tmpUrl = validUrl(request.requestUrl());
-            if (null == tmpUrl || tmpUrl.trim().length() < 1) {
-                request.setCompleted(new Result(request.getOrigUrl(), WebConst.LOCAL_NOT_ACCEPTABLE, "链接406: " + request.getOrigUrl()));
-                result = request.getResult();
-            }
+            requestUrl = validUrl(request.requestUrl());
+        }
+
+        requestUrl = URLCanonicalizer.getCanonicalURL(requestUrl);
+
+        if (null == requestUrl || requestUrl.trim().length() < 1) {
+            request.setCompleted(new Result(request.getOrigUrl(), WebConst.LOCAL_NOT_ACCEPTABLE, "链接406: " + request.getOrigUrl()));
+            result = request.getResult();
         }
 
         ResultConsumer resultConsumer = resultConsumers.length > 0 ? resultConsumers[0] : null;
@@ -70,15 +75,15 @@ public abstract class WebResource {
             resultConsumer.accept(result);
             return result;
         } else {
-            return getResult(request, resultConsumer);
+            return getResult(requestUrl, request, resultConsumer);
         }
     }
 
-    private Result getResult(final Request request, ResultConsumer resultConsumer) {
+    private Result getResult(final String requestUrl, final Request request, ResultConsumer resultConsumer) {
         long start = System.currentTimeMillis();
         if (null != resultConsumer && async) {
             AsyncHttpClient asyncHttpClient = (AsyncHttpClient) this;
-            asyncHttpClient.async(request.requestUrl(), request.getOrigUrl(), 0, request, result -> {
+            asyncHttpClient.async(requestUrl, request.getOrigUrl(), 0, request, result -> {
                 if (result.isRedirect() && result.getRedirectCount() < request.getMaxRedirect() && null != result.getMoveToUrl()) {
                     asyncHttpClient.async(result.getMoveToUrl(), result.getMoveToUrl(), result.getRedirectCount(), request, resultConsumer);
                 } else if (result.isRedirect()) {
@@ -93,7 +98,7 @@ public abstract class WebResource {
             });
             return null;
         } else {
-            Result result = request(request.requestUrl(), request.getOrigUrl(), request);
+            Result result = request(requestUrl, request.getOrigUrl(), request);
             int redirect = 0;
             while (result.isRedirect() && redirect < request.getMaxRedirect() && null != result.getMoveToUrl()) {
                 result = request(result.getMoveToUrl(), result.getMoveToUrl(), request);
@@ -166,13 +171,7 @@ public abstract class WebResource {
         } else if (null != invalidUrl && !invalidUrl.valid(url)) {
             return null;
         }
-        url = url.replaceAll("(?i)(http://){2,1000}", "http://").replaceAll("%2F", "/").replaceAll("\\\\", "/").replaceAll("\\n|\\t", "").replaceAll("#{2,1000}", "#");
-        url = URLCanonicalizer.getCanonicalURL(url);
-        if (null == url) {
-            return null;
-        } else {
-            return url.trim();
-        }
+        return url.trim();
     }
 
     protected String metaRefresh(Result result) {

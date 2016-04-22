@@ -40,9 +40,9 @@ public class TestMain extends BaseTest {
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
 
-    @Resource(name = "asyncHttpClient")
+    //@Resource(name = "asyncHttpClient")
     //@Resource(name = "webResourceUrlConnection")
-    //@Resource(name = "webResourceHtmlUnit")
+    @Resource(name = "webResourceHtmlUnit")
     //@Resource(name = "webResourceHttpClient")
     private WebResource webResource;
 
@@ -100,7 +100,7 @@ public class TestMain extends BaseTest {
 
     @Test
     public void testPage() {
-        Result result = webResource.fetchPage("http://www.chinaz.com/mobile/2016/0211/503864.shtml?uc_biz_str=%BD%E2%E");
+        Result result = webResource.fetchPage("http://weixin.sogou.com/weixin?type=1&query=honnercw4&ie=utf8&_sug_=n&_sug_type_=");
         System.out.println(result);
     }
 
