@@ -100,7 +100,7 @@ public class TestMain extends BaseTest {
 
     @Test
     public void testPage() {
-        Result result = webResource.fetchPage("http://weixin.sogou.com/weixin?type=1&query=honnercw4&ie=utf8&_sug_=n&_sug_type_=");
+        Result result = webResource.fetchPage("http://weixin.sogou.com/weixin?query=iphone se&type=2&page=1&ie=utf8");
         System.out.println(result);
     }
 
