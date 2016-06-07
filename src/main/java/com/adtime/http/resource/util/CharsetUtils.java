@@ -20,4 +20,16 @@ public class CharsetUtils {
             }
         }
     }
+
+    public static Charset getCharset(String charset) {
+        if (StringUtils.isBlank(charset)) {
+            return null;
+        } else {
+            try {
+                return Charset.forName(charset);
+            } catch (Throwable e) {
+                return null;
+            }
+        }
+    }
 }

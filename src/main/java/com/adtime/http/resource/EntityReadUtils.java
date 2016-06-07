@@ -1,5 +1,6 @@
 package com.adtime.http.resource;
 
+import com.adtime.http.resource.util.CharsetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -294,15 +295,7 @@ public class EntityReadUtils {
             if (!hasParse) {
                 try {
                     if (valid) {
-                        Charset _charset = null;
-                        if (StringUtils.isNotBlank(this.charSet)) {
-                            try {
-                                _charset = Charset.forName(this.charSet);
-                            } catch (Throwable ignore) {
-                                _charset = null;
-                            }
-                        }
-
+                        Charset _charset = CharsetUtils.getCharset(this.charSet);
 
                         if (null == _charset) {
                             CharsetDetector.CharsetInfo charsetInfo = CharsetDetectors.getCharSet(bytes, this.charSet);
