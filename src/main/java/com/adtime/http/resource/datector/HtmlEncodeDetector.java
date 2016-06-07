@@ -1,6 +1,7 @@
 package com.adtime.http.resource.datector;
 
 import com.adtime.http.resource.CharsetDetector;
+import com.adtime.http.resource.util.CharsetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.jsoup.Jsoup;
@@ -18,7 +19,7 @@ public class HtmlEncodeDetector extends CharsetDetector {
     @Override
     public CharsetInfo detect(byte[] data, String defaultCharset) {
         String charSet = generateCharSet(new String(data, UTF_8), defaultCharset);
-        if (validCharset(charSet)) {
+        if (CharsetUtils.isValidCharset(charSet)) {
             return new CharsetInfo(charSet, new String[]{});
         }
         return null;

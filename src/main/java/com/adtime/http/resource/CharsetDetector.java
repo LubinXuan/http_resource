@@ -13,10 +13,6 @@ public abstract class CharsetDetector {
 
     public static final CharsetInfo DEFAULT = new CharsetInfo(GBK.displayName(), new String[]{});
 
-    public static boolean validCharset(String charSet) {
-        return !(null == charSet || "void".equalsIgnoreCase(charSet));
-    }
-
     abstract public CharsetInfo detect(byte[] data, String defaultCharset);
 
     static public class CharsetInfo {

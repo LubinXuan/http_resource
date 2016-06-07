@@ -1,6 +1,7 @@
 package com.adtime.http.resource.datector;
 
 import com.adtime.http.resource.CharsetDetector;
+import com.adtime.http.resource.util.CharsetUtils;
 import info.monitorenter.cpdetector.io.*;
 
 import java.io.ByteArrayInputStream;
@@ -48,7 +49,7 @@ public class CPDetector extends CharsetDetector {
     @Override
     public CharsetInfo detect(byte[] data, String defaultCharset) {
         String charSet = detect(new ByteArrayInputStream(data), data.length);
-        if (validCharset(charSet)) {
+        if (CharsetUtils.isValidCharset(charSet)) {
             return new CharsetInfo(charSet, new String[]{});
         }
         return null;
