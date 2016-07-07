@@ -1,6 +1,7 @@
 package com.adtime.http.resource;
 
 import com.adtime.http.resource.util.JTidyFixHtml;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 
@@ -19,6 +20,7 @@ public class Result implements Serializable {
     private String url;
     private String moveToUrl;
     private String html;
+    private String tidyHtml;
     private boolean redirect;
     private int redirectCount;
     private int status;
@@ -115,10 +117,17 @@ public class Result implements Serializable {
 
     public Document getDocument(boolean removeStyle, boolean asXml) {
         if (null != html && html.length() > 0) {
+            if (StringUtils.isBlank(tidyHtml)) {
+                try {
+                    this.tidyHtml = JTidyFixHtml.fix(html);
+                } catch (Throwable r) {
+                    this.tidyHtml = this.html;
+                }
+            }
             if (asXml) {
-                return Parser.xmlParser().parseInput(JTidyFixHtml.fix(html), null == this.moveToUrl ? this.url : this.moveToUrl);
+                return Parser.xmlParser().parseInput(this.tidyHtml, null == this.moveToUrl ? this.url : this.moveToUrl);
             } else {
-                return Parser.htmlParser().parseInput(JTidyFixHtml.fix(html), null == this.moveToUrl ? this.url : this.moveToUrl);
+                return Parser.htmlParser().parseInput(this.tidyHtml, null == this.moveToUrl ? this.url : this.moveToUrl);
             }
         } else {
             return EMPTY;
