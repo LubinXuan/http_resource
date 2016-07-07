@@ -70,6 +70,12 @@
             <version>1.9.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>net.sf.jtidy</groupId>
+            <artifactId>jtidy</artifactId>
+            <version>r938</version>
+        </dependency>
+
         <!-- 编码自动侦测 -->
 
         <dependency>

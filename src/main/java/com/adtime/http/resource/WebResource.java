@@ -51,9 +51,14 @@ public abstract class WebResource {
     }
 
     public Result fetchPage(Request request, ResultConsumer... resultConsumers) {
-        Result result = null;
+        ResultConsumer resultConsumer = resultConsumers.length > 0 ? resultConsumers[0] : null;
+
         if (request.isCompleted()) {
-            result = request.getResult();
+            Result result = request.getResult();
+            if (null != resultConsumer) {
+                resultConsumer.accept(result);
+            }
+            return result;
         }
 
         String requestUrl = request.requestUrl();
@@ -61,22 +66,18 @@ public abstract class WebResource {
         if (!request.isTrust()) {
             requestUrl = validUrl(request.requestUrl());
         }
-
-        requestUrl = URLCanonicalizer.getCanonicalURL(requestUrl);
-
+        if (null != requestUrl) {
+            requestUrl = URLCanonicalizer.getCanonicalURL(requestUrl);
+        }
         if (null == requestUrl || requestUrl.trim().length() < 1) {
             request.setCompleted(new Result(request.getOrigUrl(), WebConst.LOCAL_NOT_ACCEPTABLE, "链接406: " + request.getOrigUrl()));
-            result = request.getResult();
+            if (null != resultConsumer) {
+                resultConsumer.accept(request.getResult());
+            }
+            return request.getResult();
         }
 
-        ResultConsumer resultConsumer = resultConsumers.length > 0 ? resultConsumers[0] : null;
-
-        if (null != result && null != resultConsumer) {
-            resultConsumer.accept(result);
-            return result;
-        } else {
-            return getResult(requestUrl, request, resultConsumer);
-        }
+        return getResult(requestUrl, request, resultConsumer);
     }
 
     private Result getResult(final String requestUrl, final Request request, ResultConsumer resultConsumer) {

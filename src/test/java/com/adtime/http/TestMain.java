@@ -1,11 +1,9 @@
 package com.adtime.http;
 
-import com.adtime.http.resource.HttpIns;
-import com.adtime.http.resource.Result;
-import com.adtime.http.resource.ResultConsumer;
-import com.adtime.http.resource.WebResource;
+import com.adtime.http.resource.*;
 import com.adtime.http.resource.http.AsyncHttpClient;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
+import javafx.application.Application;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.reactor.IOReactorException;
 import org.jsoup.Jsoup;
@@ -42,8 +40,8 @@ public class TestMain extends BaseTest {
 
     //@Resource(name = "asyncHttpClient")
     //@Resource(name = "webResourceUrlConnection")
-    @Resource(name = "webResourceHtmlUnit")
-    //@Resource(name = "webResourceHttpClient")
+    //@Resource(name = "webResourceHtmlUnit")
+    @Resource(name = "webResourceHttpClient")
     private WebResource webResource;
 
 
@@ -55,9 +53,12 @@ public class TestMain extends BaseTest {
         Set<String> hostSet = new HashSet<>();
         Set<String> httpsHostSet = new HashSet<>();
         Set<String> urlFilter = new HashSet<>();
-        String root = "http://www.youdaili.net/Daili/guonei/4210.html";
+        String root = "http://www.youdaili.net/Daili/guonei/4592.html";
         urlFilter.add(root);
-        Document document = Jsoup.parse(new URL(root), 3000);
+        Request request = new Request();
+        request.setUrl(root);
+        request.setHeader("Cookie", "yunsuo_session_verify=3d0da40a751da1b85d8a19406afaa22a; bdshare_ty=0x18; Hm_lvt_f8bdd88d72441a9ad0f8c82db3113a84=1466475057; Hm_lpvt_f8bdd88d72441a9ad0f8c82db3113a84=1466475717");
+        Document document = webResource.fetchPage(request).getDocument();
         extractProxyList(document, hostSet, httpsHostSet);
         Elements pages = document.select(".pagelist li a");
         for (Element element : pages) {
@@ -66,7 +67,9 @@ public class TestMain extends BaseTest {
             }
             String url = element.absUrl("href");
             if (StringUtils.isNotBlank(url) && urlFilter.add(url)) {
-                document = Jsoup.parse(new URL(url), 3000);
+                request.setUrl(url);
+                request.setHeader("Cookie", "yunsuo_session_verify=3d0da40a751da1b85d8a19406afaa22a; bdshare_ty=0x18; Hm_lvt_f8bdd88d72441a9ad0f8c82db3113a84=1466475057; Hm_lpvt_f8bdd88d72441a9ad0f8c82db3113a84=1466475717");
+                document = webResource.fetchPage(request).getDocument();
                 extractProxyList(document, hostSet, httpsHostSet);
             }
         }
@@ -232,6 +235,31 @@ public class TestMain extends BaseTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+
+    @Resource(name = "webResourceHtmlUnit")
+    WebResource webResourceHtmlUnit;
+
+    static {
+        /*System.setProperty("http.proxyHost","140.246.19.86");
+        System.setProperty("http.proxyPort","8888");*/
+    }
+
+    @Test
+    public void testProxy() {
+        Request request = RequestBuilder.buildRequest("http://www.ctex.cn/j/web/project.jsp?catEname=/zrxx/jsxm&infoId=20140900039427");
+        request.setMaxRedirect(20);
+        Result result = webResourceHtmlUnit.fetchPage(request);
+
+        System.out.println();
+
+    }
+
+    public static void main(String[] args) {
+        //Application.launch(JFXTest.class, "--views=10");
+        JFXHtmlUtils.init();
+        Application.launch(JFXJDSearch.class, "--views=1");
     }
 
 }

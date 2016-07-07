@@ -1,5 +1,7 @@
 package com.adtime.http.resource;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
@@ -148,6 +150,9 @@ public class Request implements Serializable {
             this.url = "http://" + url;
         } else {
             this.url = url;
+        }
+        if (StringUtils.isBlank(this.origUrl)) {
+            this.origUrl = this.url;
         }
         return this;
     }
