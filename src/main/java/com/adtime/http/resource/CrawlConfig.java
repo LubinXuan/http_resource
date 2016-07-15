@@ -131,6 +131,7 @@ public class CrawlConfig {
     }
 
     public CrawlConfig() {
+        readSystemProxy();
     }
 
     /**
@@ -411,7 +412,6 @@ public class CrawlConfig {
     }
 
 
-    @PostConstruct
     private void readSystemProxy() {
         String proxyHost = System.getProperty("http.proxyHost");
         if (null != proxyHost && proxyHost.trim().length() > 0) {
