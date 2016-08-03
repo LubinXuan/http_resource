@@ -26,7 +26,7 @@ public class HttpUnitResource extends WebResource {
         System.setProperty("com.google.appengine.runtime.environment", "true");
     }
 
-    private static final CookieManager cookieManager = new CookieManager();
+    private static final CookieManager cookieManager = new HttpUnitCookieManager();
 
     @PostConstruct
     public void _init() {

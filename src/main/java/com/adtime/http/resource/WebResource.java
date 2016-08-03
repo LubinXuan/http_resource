@@ -5,11 +5,14 @@ import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.url.format.FormatUrl;
 import com.adtime.http.resource.url.invalid.InvalidUrl;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.SocketTimeoutException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public abstract class WebResource {
@@ -28,6 +31,8 @@ public abstract class WebResource {
     protected CrawlConfig config;
 
     protected DynamicProxyProvider dynamicProxyProvider;
+
+    protected Set<String> cookieDisableHost = new HashSet<>();
 
     static {
         System.setProperty("jsse.enableSNIExtension", "false");
@@ -143,6 +148,20 @@ public abstract class WebResource {
 
     public Result fetchPage(String url, int maxRedirect, ResultConsumer... resultConsumer) {
         return fetchPage(url, null, null, false, maxRedirect, resultConsumer);
+    }
+
+    public void disableCookieSupport(String host) {
+        if (StringUtils.isBlank(host)) {
+            return;
+        }
+        cookieDisableHost.add(host);
+    }
+
+    public void enableCookieSupport(String host) {
+        if (StringUtils.isBlank(host)) {
+            return;
+        }
+        cookieDisableHost.remove(host);
     }
 
 

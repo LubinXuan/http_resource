@@ -11,8 +11,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 import java.net.*;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Lubin.Xuan on 2015/6/2.
@@ -20,16 +19,13 @@ import java.util.Map;
  */
 public class HttpUrlConnectionResource extends WebResource {
 
-    protected final static SSLSocketFactory sslSocketFactory;
-
-    private static final CookieManager manager;
+    private final static SSLSocketFactory sslSocketFactory;
 
     static {
         sslSocketFactory = SSLSocketUtil.getSSLContext().getSocketFactory();
-        manager = new CookieManager();
-        manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        CookieHandler.setDefault(manager);
     }
+
+    private static final CookieStore cookieStore = new MemoryCookieStore();
 
     @Override
     protected boolean _handException(Throwable e, String url, String oUrl) {
@@ -44,7 +40,7 @@ public class HttpUrlConnectionResource extends WebResource {
         cookie.setDomain(domain);
         cookie.setPath("/");
         cookie.setVersion(0);
-        manager.getCookieStore().add(null, cookie);
+        cookieStore.add(null, cookie);
     }
 
 
@@ -62,7 +58,6 @@ public class HttpUrlConnectionResource extends WebResource {
             }
         }
     }
-
 
     @Override
     public Result request(String url, String oUrl, Request request) {
@@ -115,6 +110,8 @@ public class HttpUrlConnectionResource extends WebResource {
                     ((HttpsURLConnection) con).setSSLSocketFactory(sslSocketFactory);
                 }
 
+                setCookie(con);
+
                 if (Request.Method.POST.equals(request.getMethod()) && null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
                     con.setDoOutput(true);
                     con.getOutputStream().write(RequestUtil.buildGetParameter(request.getRequestParam()).getBytes("utf-8"));
@@ -125,6 +122,8 @@ public class HttpUrlConnectionResource extends WebResource {
                 int sts = con.getResponseCode();
 
                 Map<String, List<String>> headerMap = con.getHeaderFields();
+
+                saveCookie(con);
 
                 if (sts == HttpURLConnection.HTTP_MOVED_PERM || sts == HttpURLConnection.HTTP_MOVED_TEMP) {
                     return handleRedirect(con, targetUrl).withHeader(headerMap);
@@ -242,4 +241,54 @@ public class HttpUrlConnectionResource extends WebResource {
         }
         return result;
     }
+
+    private void setCookie(HttpURLConnection connection) {
+
+        URL url = connection.getURL();
+
+        if (cookieDisableHost.contains(url.getHost())) {
+            return;
+        }
+
+        try {
+            List<HttpCookie> cookies = cookieStore.get(connection.getURL().toURI());
+            if (null != cookies && !cookies.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (HttpCookie cookie : cookies) {
+                    if (sb.length() > 0) {
+                        sb.append("; ");
+                    }
+                    sb.append(cookie.getName()).append("=").append(cookie.getValue());
+                }
+                String cookie = connection.getRequestProperty("Cookie");
+                if (null != cookie) {
+                    cookie = cookie + "; " + sb.toString();
+                } else {
+                    cookie = sb.toString();
+                }
+                connection.addRequestProperty("Cookie", cookie);
+                logger.info("url:{} cookie:{}", connection.getURL(), cookie);
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveCookie(HttpURLConnection connection) {
+        URI uri = null;
+        try {
+            uri = connection.getURL().toURI();
+        } catch (Throwable ignore) {
+        }
+        List<String> newCookies = connection.getHeaderFields().get("Set-Cookie");
+        if (null != newCookies) {
+            for (String ck : newCookies) {
+                List<HttpCookie> cookies = HttpCookie.parse(ck);
+                for (HttpCookie cookie : cookies) {
+                    cookieStore.add(uri, cookie);
+                }
+            }
+        }
+    }
+
 }
