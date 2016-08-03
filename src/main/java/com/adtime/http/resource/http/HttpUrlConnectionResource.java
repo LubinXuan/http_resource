@@ -277,7 +277,7 @@ public class HttpUrlConnectionResource extends WebResource {
                     cookie = sb.toString();
                 }
                 connection.addRequestProperty("Cookie", cookie);
-                logger.info("url:{} cookie:{}", connection.getURL(), cookie);
+                logger.debug("url:{} cookie:{}", connection.getURL(), cookie);
             }
         } catch (URISyntaxException e) {
             e.printStackTrace();
