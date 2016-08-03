@@ -255,11 +255,21 @@ public class HttpUrlConnectionResource extends WebResource {
             if (null != cookies && !cookies.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
                 for (HttpCookie cookie : cookies) {
+
+                    if (null != cookie.getDomain() && cookieDisableHost.contains(cookie.getDomain())) {
+                        continue;
+                    }
+
                     if (sb.length() > 0) {
                         sb.append("; ");
                     }
                     sb.append(cookie.getName()).append("=").append(cookie.getValue());
                 }
+
+                if (sb.length() == 0) {
+                    return;
+                }
+
                 String cookie = connection.getRequestProperty("Cookie");
                 if (null != cookie) {
                     cookie = cookie + "; " + sb.toString();
