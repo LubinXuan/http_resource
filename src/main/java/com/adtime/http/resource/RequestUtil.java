@@ -20,7 +20,9 @@ public class RequestUtil {
                     stringBuilder.append("&");
                 }
                 try {
-                    stringBuilder.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), "utf-8"));
+                    String encodeVal = URLEncoder.encode(entry.getValue(), "utf-8");
+                    encodeVal = encodeVal.replaceAll("\\+", "%20");
+                    stringBuilder.append(entry.getKey()).append("=").append(encodeVal);
                 } catch (Exception ignore) {
                 }
             }
