@@ -4,6 +4,7 @@ import com.adtime.http.resource.Request;
 import com.adtime.http.resource.Result;
 import com.adtime.http.resource.WebConst;
 import com.adtime.http.resource.exception.DownloadStreamException;
+import com.adtime.http.resource.util.HttpUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -43,7 +44,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
 
             int sts = response.getStatusLine().getStatusCode();
 
-            if (sts == HttpURLConnection.HTTP_MOVED_PERM || sts == HttpURLConnection.HTTP_MOVED_TEMP) {
+            if (HttpUtil.isRedirect(sts)) {
                 return handleRedirect(response, url);
             } else {
                 if (Request.Method.HEAD.equals(request.getMethod())) {

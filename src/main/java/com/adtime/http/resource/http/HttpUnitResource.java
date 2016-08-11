@@ -3,6 +3,7 @@ package com.adtime.http.resource.http;
 import com.adtime.http.resource.*;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.url.URLCanonicalizer;
+import com.adtime.http.resource.util.HttpUtil;
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.CookieManager;
 import com.gargoylesoftware.htmlunit.util.Cookie;
@@ -127,7 +128,7 @@ public class HttpUnitResource extends WebResource {
             int sts = page.getWebResponse().getStatusCode();
             Result result;
 
-            if (sts == HttpURLConnection.HTTP_MOVED_PERM || sts == HttpURLConnection.HTTP_MOVED_TEMP) {
+            if (HttpUtil.isRedirect(sts)) {
                 result = new Result(url, page.getWebResponse().getContentAsString(), true, sts);
                 result.setMoveToUrl(page.getWebResponse().getResponseHeaderValue("location"));
             } else {

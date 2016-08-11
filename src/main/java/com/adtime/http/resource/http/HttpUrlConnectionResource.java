@@ -4,6 +4,7 @@ import com.adtime.http.resource.*;
 import com.adtime.http.resource.exception.DownloadStreamException;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.url.URLCanonicalizer;
+import com.adtime.http.resource.util.HttpUtil;
 import com.adtime.http.resource.util.SSLSocketUtil;
 
 import javax.annotation.PostConstruct;
@@ -125,7 +126,7 @@ public class HttpUrlConnectionResource extends WebResource {
 
                 saveCookie(con);
 
-                if (sts == HttpURLConnection.HTTP_MOVED_PERM || sts == HttpURLConnection.HTTP_MOVED_TEMP) {
+                if (HttpUtil.isRedirect(sts)) {
                     return handleRedirect(con, targetUrl).withHeader(headerMap);
                 } else {
                     if (Request.Method.HEAD.equals(request.getMethod())) {
