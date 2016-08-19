@@ -58,7 +58,15 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
     }
 
     public void async(String url, String oUrl, int redirect, Request request, ResultConsumer resultConsumer) {
-        HttpRequestBase requestBase = create(url, request);
+        HttpRequestBase requestBase;
+        try {
+            requestBase = create(url, request);
+        } catch (Throwable e) {
+            handException(e, url, oUrl);
+            resultConsumer.accept(new Result(url, WebConst.HTTP_ERROR, e.toString()));
+            return;
+        }
+
         requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
         httpAsyncClient.execute(requestBase, new FutureCallback<HttpResponse>() {
             @Override
