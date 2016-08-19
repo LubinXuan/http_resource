@@ -56,7 +56,7 @@ public abstract class HttpClientBaseOperator extends WebResource {
             requestUri = URI.create(requestUrl);
         } catch (IllegalArgumentException e) {
             URL url = new URL(requestUrl);
-            requestUri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), null);
+            requestUri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), url.getRef());
         }
         if (Request.Method.GET.equals(request.getMethod())) {
             requestBase = new HttpGet(requestUri);

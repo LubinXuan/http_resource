@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
@@ -256,8 +258,11 @@ public class TestMain extends BaseTest {
 
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MalformedURLException {
         //Application.launch(JFXTest.class, "--views=10");
+
+        URL url = new URL("http://www.baibu.com/a/b/c?q=3&r=4&p=4#ddd=dsds");
+
         JFXHtmlUtils.init();
         Application.launch(JFXJDSearch.class, "--views=1");
     }
