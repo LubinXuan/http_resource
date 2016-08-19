@@ -1,17 +1,12 @@
 package com.adtime.http.resource;
 
-import com.adtime.http.resource.datector.CPDetector;
-import com.adtime.http.resource.datector.HtmlEncodeDetector;
-import com.adtime.http.resource.datector.ICUDetector;
-import com.adtime.http.resource.datector.NsDetector;
-import org.apache.commons.lang3.StringUtils;
+import com.adtime.http.resource.detector.CPDetector;
+import com.adtime.http.resource.detector.HtmlEncodeDetector;
+import com.adtime.http.resource.detector.ICUDetector;
+import com.adtime.http.resource.detector.NsDetector;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 /**
  * Created by Lubin.Xuan on 2015/8/6.

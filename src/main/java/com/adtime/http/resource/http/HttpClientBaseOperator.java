@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,11 +66,7 @@ public abstract class HttpClientBaseOperator extends WebResource {
             requestBase = new HttpPost(requestUri);
             if (null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
                 List<NameValuePair> valuePairs = request.getRequestParam().entrySet().stream().map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue())).collect(Collectors.toList());
-                try {
-                    ((HttpPost) requestBase).setEntity(new UrlEncodedFormEntity(valuePairs));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+                ((HttpPost) requestBase).setEntity(new UrlEncodedFormEntity(valuePairs, CharsetDetector.UTF_8));
             }
         }
         Map<String, String> _headers = request.getHeaderMap();

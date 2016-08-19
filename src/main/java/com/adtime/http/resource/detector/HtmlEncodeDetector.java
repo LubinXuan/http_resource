@@ -1,4 +1,4 @@
-package com.adtime.http.resource.datector;
+package com.adtime.http.resource.detector;
 
 import com.adtime.http.resource.CharsetDetector;
 import com.adtime.http.resource.util.CharsetUtils;
