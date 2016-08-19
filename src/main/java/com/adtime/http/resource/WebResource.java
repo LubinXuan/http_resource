@@ -210,6 +210,12 @@ public abstract class WebResource {
     protected void copy(EntityReadUtils.Entity entity, Result result) {
         result.length = entity.getLength();
         result.unCompressLength = entity.getUnCompressLength();
+        result.charSet = entity.getFinalCharSet();
+        result.bodyTruncatedWarning = entity.isBodyTruncatedWarning();
+        if (result.bodyTruncatedWarning) {
+            result.setMessage(entity.getWarningMsg());
+            result.status = result.status + WebConst.HTTP_BODY_TRUNCATED_OFFSET;
+        }
     }
 
     public void setFormatUrl(FormatUrl formatUrl) {

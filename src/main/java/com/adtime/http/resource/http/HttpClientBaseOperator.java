@@ -111,7 +111,7 @@ public abstract class HttpClientBaseOperator extends WebResource {
         if (null != contentType) {
             tmp.setContentType(contentType.getMimeType());
         }
-        tmp.setCharSet(entity.getFinalCharSet());
+
         String refreshUrl = metaRefresh(tmp);
         if (StringUtils.isNotBlank(refreshUrl)) {
             Result result = new Result(url, "", true, HttpURLConnection.HTTP_MOVED_PERM);

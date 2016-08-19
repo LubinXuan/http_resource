@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
 import java.util.zip.DataFormatException;
 import java.util.zip.GZIPInputStream;
@@ -69,14 +70,14 @@ public class EntityReadUtils {
 
     private static String contentLength(long pre, int cl) {
         long length = pre > cl ? pre : cl;
-        long v = length / 1024l;
+        long v = length / 1024L;
         int s = 0;
         while (v > 1024) {
             s++;
             if (s > 2) {
                 break;
             }
-            v = v / 1024l;
+            v = v / 1024L;
         }
         switch (s) {
             case 0:
@@ -102,9 +103,12 @@ public class EntityReadUtils {
         }
 
         ByteArrayBuffer byteArrayBuffer = null;
-        int contentLengthCurrent = 0;
-        String warningMsg = null;
         try {
+
+            int contentLengthCurrent = 0;
+            String warningMsg = null;
+            boolean bodyTruncatedWarning = false;
+
             try {
                 byte[] tmp = new byte[4096];
                 int l;
@@ -145,12 +149,26 @@ public class EntityReadUtils {
                     warningMsg = "页面流 EOF";
                 } else if (e instanceof SocketException) {
                     if (e.getMessage() != null && e.getMessage().contains("Software caused connection abort: recv failed")) {
+                        bodyTruncatedWarning = true;
                         warningMsg = "[connection abort recv failed]数据读取可能不完整！！！！";
+                    } else {
+                        if (byteArrayBuffer.length() != 0) {
+                            bodyTruncatedWarning = true;
+                            warningMsg = "[" + e.getMessage() + "]数据读取可能不完整！！！！";
+                        } else {
+                            return new Entity(false, e.getMessage());
+                        }
+                    }
+                } else if (e instanceof TruncatedChunkException) {
+                    bodyTruncatedWarning = true;
+                    warningMsg = "[TruncatedChunkException]数据读取可能不完整！！！！";
+                } else if (e instanceof SocketTimeoutException) {
+                    if (byteArrayBuffer.length() != 0) {
+                        bodyTruncatedWarning = true;
+                        warningMsg = "[" + e.getMessage() + "]数据读取可能不完整！！！！";
                     } else {
                         return new Entity(false, e.getMessage());
                     }
-                } else if (e instanceof TruncatedChunkException) {
-                    warningMsg = "[TruncatedChunkException]数据读取可能不完整！！！！";
                 } else {
                     return new Entity(false, e.getMessage());
                 }
@@ -165,7 +183,7 @@ public class EntityReadUtils {
             if (StringUtils.isNotBlank(warningMsg)) {
                 logger.warn(warningMsg);
             }
-            return getEntity(charSet, contentLengthCurrent, bytes, warningMsg);
+            return getEntity(charSet, contentLengthCurrent, bytes, warningMsg, bodyTruncatedWarning);
         } finally {
             try {
                 is.close();
@@ -238,10 +256,11 @@ public class EntityReadUtils {
         return byteArrayBuffer.buffer();
     }
 
-    private static Entity getEntity(String charSet, long contentLength, byte[] bytes, String warningMsg) {
+    private static Entity getEntity(String charSet, long contentLength, byte[] bytes, String warningMsg, boolean bodyTruncatedWarning) {
         Entity entity = new Entity(bytes, charSet);
         entity.length = contentLength;
         entity.warningMsg = warningMsg;
+        entity.bodyTruncatedWarning = bodyTruncatedWarning;
         return entity;
     }
 
@@ -258,6 +277,7 @@ public class EntityReadUtils {
         private long unCompressLength;
         private String content;
         private boolean hasParse = false;
+        private boolean bodyTruncatedWarning = false;
 
         public Entity(boolean valid, String msg) {
             this.valid = valid;
@@ -289,6 +309,14 @@ public class EntityReadUtils {
 
         public long getUnCompressLength() {
             return unCompressLength;
+        }
+
+        public String getWarningMsg() {
+            return warningMsg;
+        }
+
+        public boolean isBodyTruncatedWarning() {
+            return bodyTruncatedWarning;
         }
 
         public String toString(String url) throws Exception {

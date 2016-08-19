@@ -33,6 +33,9 @@ public class WebConst {
     public final static int TITLE_NOT_FONUD = 35404;
     public final static int LOCAL_NOT_ACCEPTABLE = 35406;
     public final static int HTTP_NO_CONTENT = 35204;
+
+    public final static int HTTP_BODY_TRUNCATED_OFFSET = 10000;
+
     public final static int LOCAL_DEAL_ERROR = 35500;
     public final static int LOCAL_INDEX_DENY = 35407;
     public final static int NULL_URL = -999;

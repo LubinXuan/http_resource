@@ -216,7 +216,7 @@ public class HttpUrlConnectionResource extends WebResource {
         EntityReadUtils.Entity entity = EntityReadUtils.read(con, error, charSet, checkBodySize);
         String content = entity.toString(url);
         Result tmp = new Result(url, content, false, con.getResponseCode())
-                .setContentType(contentType).setCharSet(entity.getFinalCharSet());
+                .setContentType(contentType);
         copy(entity, tmp);
         entity = null;
         return tmp;

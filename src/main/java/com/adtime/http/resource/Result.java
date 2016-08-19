@@ -23,17 +23,19 @@ public class Result implements Serializable {
     private String tidyHtml;
     private boolean redirect;
     private int redirectCount;
-    private int status;
+    int status;
     private String contentType;
-    private String charSet;
+    String charSet;
 
     private Map<String, List<String>> headersMap;
 
     private String message;
 
     protected long length;
-    protected long unCompressLength;
-    protected long requestTime;
+    long unCompressLength;
+    private long requestTime;
+    boolean bodyTruncatedWarning = false;
+
 
     public Result(String url, String html, boolean redirect, int status) {
         this.url = url;
@@ -136,11 +138,6 @@ public class Result implements Serializable {
 
     public String getCharSet() {
         return charSet;
-    }
-
-    public Result setCharSet(String charSet) {
-        this.charSet = charSet;
-        return this;
     }
 
     public Map<String, List<String>> getHeadersMap() {
