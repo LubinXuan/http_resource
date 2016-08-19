@@ -16,10 +16,7 @@ import org.apache.http.message.BasicNameValuePair;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,14 +48,21 @@ public abstract class HttpClientBaseOperator extends WebResource {
                 e instanceof TruncatedChunkException;
     }
 
-    protected HttpRequestBase create(String url, Request request) {
+    protected HttpRequestBase create(String requestUrl, Request request) throws MalformedURLException, URISyntaxException {
         HttpRequestBase requestBase;
+        URI requestUri;
+        try {
+            requestUri = URI.create(requestUrl);
+        } catch (IllegalArgumentException e) {
+            URL url = new URL(requestUrl);
+            requestUri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), null);
+        }
         if (Request.Method.GET.equals(request.getMethod())) {
-            requestBase = new HttpGet(url);
+            requestBase = new HttpGet(requestUri);
         } else if (Request.Method.HEAD.equals(request.getMethod())) {
-            requestBase = new HttpHead(url);
+            requestBase = new HttpHead(requestUri);
         } else {
-            requestBase = new HttpPost(url);
+            requestBase = new HttpPost(requestUri);
             if (null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
                 List<NameValuePair> valuePairs = request.getRequestParam().entrySet().stream().map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue())).collect(Collectors.toList());
                 try {

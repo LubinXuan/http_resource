@@ -33,17 +33,14 @@ public class HttpClientResource extends HttpClientBaseOperator {
     }
 
     private Result doRequest(String url, String oUrl, HttpClient client, Request request) {
-        HttpRequestBase requestBase = create(url, request);
+        HttpRequestBase requestBase = null;
         HttpResponse response = null;
         try {
+            requestBase = create(url, request);
             requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
-
             response = client.execute(requestBase);
-
             Map<String, List<String>> headerMap = readHeader(request, response);
-
             int sts = response.getStatusLine().getStatusCode();
-
             if (HttpUtil.isRedirect(sts)) {
                 return handleRedirect(response, url);
             } else {

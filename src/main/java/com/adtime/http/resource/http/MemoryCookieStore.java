@@ -95,6 +95,16 @@ class MemoryCookieStore implements CookieStore {
                     var2.remove();
                 }
             }
+
+            Iterator<Map.Entry<URI,List<HttpCookie>>> iterator = this.uriIndex.entrySet().iterator();
+            while (iterator.hasNext()){
+                Map.Entry<URI,List<HttpCookie>> entry = iterator.next();
+                List var4 = entry.getValue();
+                if (var4 == null || var4.size() == 0) {
+                    iterator.remove();
+                }
+            }
+
         } finally {
             var1.addAll(this.uriIndex.keySet());
             this.lock.unlock();
