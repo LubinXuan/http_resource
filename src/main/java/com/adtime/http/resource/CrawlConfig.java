@@ -66,7 +66,7 @@ public class CrawlConfig {
     /**
      * Socket timeout in milliseconds
      */
-    private int socketTimeout = 20000;
+    private int socketTimeout = 60000;
 
     /**
      * Connection timeout in milliseconds
