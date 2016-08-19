@@ -243,7 +243,7 @@ public class EntityReadUtils {
                 byteArrayBuffer.append(buffer, 0, n);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn("Gzip 解压异常:{}", e.getMessage());
         } finally {
             try {
                 in.close();

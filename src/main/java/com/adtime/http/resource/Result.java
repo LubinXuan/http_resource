@@ -160,6 +160,10 @@ public class Result implements Serializable {
         this.requestTime = requestTime;
     }
 
+    public boolean isBodyTruncatedWarning() {
+        return bodyTruncatedWarning;
+    }
+
     public Result withHeader(Map<String, List<String>> header) {
         this.headersMap = header;
         return this;
