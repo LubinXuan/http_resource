@@ -8,7 +8,7 @@
     <bean id="config" class="com.adtime.http.resource.CrawlConfig"
           p:userAgentString="${http.user.agent:}"
           p:connectionTimeout="${http.connect.timeout:20000}"
-          p:socketTimeout="${http.socket.timeout:60000}"
+          p:socketTimeout="${http.socket.timeout:30000}"
           p:followRedirects="${http.auto.redirect:false}"
           p:includeHttpsPages="${http.https.enable:true}"
           p:maxConnectionsPerHost="${http.maxConnectionsPerHost:100}"
