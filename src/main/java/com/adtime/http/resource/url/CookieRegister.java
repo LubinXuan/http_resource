@@ -53,4 +53,11 @@ public class CookieRegister {
         }
         webResourceList.forEach(w -> w.registerCookie(domain, name, value));
     }
+
+    public void disableHostCookie(String host) {
+        if (null == webResourceList || webResourceList.isEmpty()) {
+            return;
+        }
+        webResourceList.forEach(w -> w.disableCookieSupport(host));
+    }
 }
