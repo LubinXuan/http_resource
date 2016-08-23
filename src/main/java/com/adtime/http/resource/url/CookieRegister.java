@@ -76,6 +76,18 @@ public class CookieRegister {
         _disableHostCookie(host, true);
     }
 
+    public void enbleHostCookie(String host) {
+        if (null == webResourceList || webResourceList.isEmpty()) {
+            return;
+        }
+
+        if (!hostFilter.remove(host)) {
+            return;
+        }
+
+        webResourceList.forEach(w -> w.enableCookieSupport(host));
+        save();
+    }
 
     public void _disableHostCookie(String host, boolean save) {
         if (null == webResourceList || webResourceList.isEmpty()) {
@@ -89,12 +101,16 @@ public class CookieRegister {
         webResourceList.forEach(w -> w.disableCookieSupport(host));
 
         if (save) {
-            String data = StringUtils.join(hostFilter, "\n");
-            try {
-                FileUtils.write(STORE_FILE, data, "utf-8");
-            } catch (IOException e) {
-                logger.error("cookie禁用信息写入失败", e);
-            }
+            save();
+        }
+    }
+
+    private void save() {
+        String data = StringUtils.join(hostFilter, "\n");
+        try {
+            FileUtils.write(STORE_FILE, data, "utf-8");
+        } catch (IOException e) {
+            logger.error("cookie禁用信息写入失败", e);
         }
     }
 }
