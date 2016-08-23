@@ -2,10 +2,14 @@ package com.adtime.http.resource.url;
 
 import com.adtime.http.resource.WebResource;
 import com.adtime.http.resource.common.ConfigReader;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -16,12 +20,16 @@ public class CookieRegister {
 
     private static final Logger logger = LoggerFactory.getLogger(CookieRegister.class);
 
+    private static final File STORE_FILE = new File("hostCookieDisable.cfg");
+
     private List<WebResource> webResourceList;
 
     private String cookieConf;
 
+    private Set<String> hostFilter = new HashSet<>();
+
     @PostConstruct
-    public void init() {
+    public void init() throws IOException {
         try {
             String data = ConfigReader.readNOE(cookieConf);
             String[] lines = data.split("\n");
@@ -34,6 +42,16 @@ public class CookieRegister {
             }
         } catch (Exception e) {
             logger.error("默认Cookie初始化出错", e);
+        }
+        if (!STORE_FILE.exists() || STORE_FILE.isDirectory()) {
+            return;
+        }
+        List<String> lines = FileUtils.readLines(STORE_FILE);
+        for (String host : lines) {
+            if (StringUtils.startsWith(host, "#")) {
+                continue;
+            }
+            _disableHostCookie(host, false);
         }
     }
 
@@ -55,9 +73,28 @@ public class CookieRegister {
     }
 
     public void disableHostCookie(String host) {
+        _disableHostCookie(host, true);
+    }
+
+
+    public void _disableHostCookie(String host, boolean save) {
         if (null == webResourceList || webResourceList.isEmpty()) {
             return;
         }
+
+        if (!hostFilter.add(host)) {
+            return;
+        }
+
         webResourceList.forEach(w -> w.disableCookieSupport(host));
+
+        if (save) {
+            String data = StringUtils.join(hostFilter, "\n");
+            try {
+                FileUtils.write(STORE_FILE, data, "utf-8");
+            } catch (IOException e) {
+                logger.error("cookie禁用信息写入失败", e);
+            }
+        }
     }
 }
