@@ -4,6 +4,7 @@ import com.adtime.http.resource.Request;
 import com.adtime.http.resource.Result;
 import com.adtime.http.resource.WebConst;
 import com.adtime.http.resource.exception.DownloadStreamException;
+import com.adtime.http.resource.http.httpclient.HostCookieAdapterHttpRequestInterceptor;
 import com.adtime.http.resource.util.HttpUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -24,7 +25,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
 
     public HttpClientResource(HttpClientHelper httpClientHelper) {
         super(httpClientHelper);
-        httpClient = httpClientHelper.createHttpClientBuilder().build();
+        httpClient = httpClientHelper.createHttpClientBuilder(this).build();
     }
 
     @Override

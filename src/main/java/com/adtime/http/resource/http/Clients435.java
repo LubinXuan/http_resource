@@ -1,6 +1,8 @@
 package com.adtime.http.resource.http;
 
+import com.adtime.http.resource.WebResource;
 import com.adtime.http.resource.extend.DynamicProxyHttpRoutePlanner;
+import com.adtime.http.resource.http.httpclient.HostCookieAdapterHttpRequestInterceptor;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.util.SSLSocketUtil;
 import org.apache.http.*;
@@ -12,6 +14,7 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.MessageConstraints;
 import org.apache.http.config.RegistryBuilder;
@@ -162,7 +165,7 @@ public class Clients435 extends HttpClientHelper {
     }
 
     @Override
-    public HttpClientBuilder createHttpClientBuilder() {
+    public HttpClientBuilder createHttpClientBuilder(WebResource webResource) {
         if (null == connectionManager) {
             RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.create();
             registryBuilder.register("http", PlainConnectionSocketFactory.INSTANCE);
@@ -184,7 +187,11 @@ public class Clients435 extends HttpClientHelper {
                 .setUserAgent(config.getUserAgentString())
                 .setConnectionManager(connectionManager)
                 .setRetryHandler(retryHandler).setDefaultHeaders(DEFAULT_HEADERS)
-                .setDefaultCookieStore(cookieStore).disableContentCompression();
+                .setDefaultCookieStore(cookieStore).disableContentCompression()
+                .disableCookieManagement();
+
+        builder.addInterceptorLast(new HostCookieAdapterHttpRequestInterceptor(webResource));
+        builder.addInterceptorLast(new ResponseProcessCookies());
 
         if (null != credentialsProvider) {
             builder.setDefaultCredentialsProvider(credentialsProvider);
@@ -197,7 +204,7 @@ public class Clients435 extends HttpClientHelper {
     }
 
     @Override
-    public HttpAsyncClientBuilder createHttpAsyncClientBuilder() throws IOReactorException {
+    public HttpAsyncClientBuilder createHttpAsyncClientBuilder(WebResource webResource) throws IOReactorException {
         if (null == nHttpClientConnectionManager) {
             IOReactorConfig reactorConfig = IOReactorConfig.custom()
                     .setIoThreadCount(Runtime.getRuntime().availableProcessors() * 4)
@@ -224,6 +231,9 @@ public class Clients435 extends HttpClientHelper {
                 .setDefaultCookieStore(cookieStore);
 
         asyncClientBuilder.setConnectionManager(nHttpClientConnectionManager);
+
+        asyncClientBuilder.addInterceptorLast(new HostCookieAdapterHttpRequestInterceptor(webResource));
+        asyncClientBuilder.addInterceptorLast(new ResponseProcessCookies());
 
         if (null != credentialsProvider) {
             asyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider);

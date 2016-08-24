@@ -136,7 +136,7 @@ public abstract class HttpClientBaseOperator extends WebResource {
     }
 
     protected Map<String, List<String>> readHeader(Request request, HttpResponse response) {
-        if (request.isReturnHeader() && null != response.getAllHeaders()) {
+        if (null != response.getAllHeaders()) {
             Map<String, List<String>> headerMap = new HashMap<>();
             Header[] headers = response.getAllHeaders();
             for (Header header : headers) {

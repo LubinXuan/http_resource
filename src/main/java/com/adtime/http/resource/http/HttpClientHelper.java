@@ -1,6 +1,8 @@
 package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.CrawlConfig;
+import com.adtime.http.resource.WebResource;
+import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.cookie.ClientCookie;
@@ -78,7 +80,7 @@ public abstract class HttpClientHelper {
         return RANDOM_DNS_RESOLVER;
     }
 
-    public abstract HttpClientBuilder createHttpClientBuilder();
+    public abstract HttpClientBuilder createHttpClientBuilder(WebResource webResource);
 
-    public abstract HttpAsyncClientBuilder createHttpAsyncClientBuilder() throws IOReactorException;
+    public abstract HttpAsyncClientBuilder createHttpAsyncClientBuilder(WebResource webResource) throws IOReactorException;
 }

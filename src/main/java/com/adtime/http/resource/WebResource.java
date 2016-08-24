@@ -165,6 +165,11 @@ public abstract class WebResource {
     }
 
 
+    public boolean isCookieRejected(String host) {
+        return cookieDisableHost.contains(host);
+    }
+
+
     public abstract Result request(String url, String oUrl, Request request);
 
     public abstract void registerCookie(String domain, String name, String value);

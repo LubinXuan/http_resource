@@ -25,7 +25,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
 
     public AsyncHttpClient(HttpClientHelper httpClientHelper) throws IOReactorException {
         super(httpClientHelper);
-        httpAsyncClient = httpClientHelper.createHttpAsyncClientBuilder().build();
+        httpAsyncClient = httpClientHelper.createHttpAsyncClientBuilder(this).build();
         httpAsyncClient.start();
     }
 
