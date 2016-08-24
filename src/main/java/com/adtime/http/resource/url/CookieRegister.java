@@ -84,7 +84,7 @@ public class CookieRegister {
         if (null == webResourceList || webResourceList.isEmpty()) {
             return;
         }
-        logger.info("启用Cookie Host:{}", host);
+        logger.warn("启用Cookie Host:{}", host);
         webResourceList.forEach(w -> w.enableCookieSupport(host));
 
     }
@@ -100,7 +100,7 @@ public class CookieRegister {
             return;
         }
 
-        logger.info("禁用Cookie Host:{}", host);
+        logger.warn("禁用Cookie Host:{}", host);
 
         webResourceList.forEach(w -> w.disableCookieSupport(host));
     }
