@@ -24,6 +24,7 @@ public class HttpUrlConnectionResource extends WebResource {
 
     static {
         sslSocketFactory = SSLSocketUtil.getSSLContext().getSocketFactory();
+        System.setProperty("http.maxConnections", "5");
     }
 
     private static final CookieStore cookieStore = new MemoryCookieStore();

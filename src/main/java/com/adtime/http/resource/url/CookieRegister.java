@@ -77,32 +77,32 @@ public class CookieRegister {
     }
 
     public void enbleHostCookie(String host) {
-        if (null == webResourceList || webResourceList.isEmpty()) {
-            return;
-        }
-
         if (!hostFilter.remove(host)) {
             return;
         }
-
-        webResourceList.forEach(w -> w.enableCookieSupport(host));
         save();
+        if (null == webResourceList || webResourceList.isEmpty()) {
+            return;
+        }
+        logger.info("启用Cookie Host:{}", host);
+        webResourceList.forEach(w -> w.enableCookieSupport(host));
+
     }
 
     public void _disableHostCookie(String host, boolean save) {
+        if (!hostFilter.add(host)) {
+            return;
+        }
+        if (save) {
+            save();
+        }
         if (null == webResourceList || webResourceList.isEmpty()) {
             return;
         }
 
-        if (!hostFilter.add(host)) {
-            return;
-        }
+        logger.info("禁用Cookie Host:{}", host);
 
         webResourceList.forEach(w -> w.disableCookieSupport(host));
-
-        if (save) {
-            save();
-        }
     }
 
     private void save() {
