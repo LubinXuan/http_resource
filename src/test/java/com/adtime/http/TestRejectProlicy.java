@@ -21,8 +21,8 @@ import java.util.concurrent.Executors;
 public class TestRejectProlicy extends BaseTest {
 
     static {
-        System.setProperty("http.proxyHost", "172.16.8.28");
-        System.setProperty("http.proxyPort", "3128");
+        //System.setProperty("http.proxyHost", "172.16.8.28");
+        //System.setProperty("http.proxyPort", "3128");
     }
 
     @Resource(name = "webResourceHttpClient")
@@ -32,12 +32,12 @@ public class TestRejectProlicy extends BaseTest {
     @Test
     public void main() throws InterruptedException, IOException {
 
-        InputStream is = TestRejectProlicy.class.getClassLoader().getResourceAsStream("lexun.txt");
+        InputStream is = TestRejectProlicy.class.getClassLoader().getResourceAsStream("19lou.txt");
         List<String> urls = IOUtils.readLines(is);
         is.close();
 
         //resource.disableCookieSupport("f.lexun.com");
-        ExecutorService service = Executors.newFixedThreadPool(5);
+        ExecutorService service = Executors.newFixedThreadPool(1);
         CountDownLatch latch = new CountDownLatch(50000);
         for (int i = 0; i < 50000; i++) {
             int id = i;
@@ -49,7 +49,7 @@ public class TestRejectProlicy extends BaseTest {
                     Result result = resource.fetchPage(request);
                     if (result.isBodyTruncatedWarning()) {
                         System.out.println("页面获取耗时:::" + result.getRequestTime() + "   异常：" + result.getMessage());
-                    } else if (!StringUtils.contains(result.getHtml(), "乐讯社区")) {
+                    } else if (!StringUtils.contains(result.getHtml(), "关于19楼")) {
                         System.out.println("页面获取异常:::" + result.getStatus());
                     } else if (result.getStatus() != 200) {
                         System.out.println("页面获取耗时:::" + result.getRequestTime());

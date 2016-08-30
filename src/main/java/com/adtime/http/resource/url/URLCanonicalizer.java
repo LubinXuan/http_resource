@@ -4,10 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 public class URLCanonicalizer {
 
@@ -135,6 +132,10 @@ public class URLCanonicalizer {
     }
 
     public static String getCanonicalURL(String href, String context) {
+        return getCanonicalURL(href, context,null);
+    }
+
+    public static String getCanonicalURL(String href, String context,Set<String> excludeParameter) {
 
         try {
             URL canonicalURL = new URL(UrlResolver.resolveUrl(context == null ? "" : context, href));
@@ -175,7 +176,7 @@ public class URLCanonicalizer {
 			 */
             path = path.trim();
 
-            final SortedMap<String, String> params = createParameterMap(canonicalURL.getQuery());
+            final SortedMap<String, String> params = createParameterMap(canonicalURL.getQuery(),excludeParameter);
             final String queryString;
 
             if (params != null && params.size() > 0) {
@@ -219,7 +220,7 @@ public class URLCanonicalizer {
      *
      * @return Null if there is no query string.
      */
-    private static SortedMap<String, String> createParameterMap(final String queryString) {
+    private static SortedMap<String, String> createParameterMap(final String queryString,final Set<String> excludeParameter) {
         if (queryString == null || queryString.isEmpty()) {
             return null;
         }
@@ -238,10 +239,16 @@ public class URLCanonicalizer {
                     if (pair.charAt(0) == '=') {
                         params.put("", tokens[0]);
                     } else {
+                        if(null!=excludeParameter&&excludeParameter.contains(tokens[0])){
+                            continue;
+                        }
                         params.put(tokens[0], "");
                     }
                     break;
                 case 2:
+                    if(null!=excludeParameter&&excludeParameter.contains(tokens[0])){
+                        continue;
+                    }
                     params.put(tokens[0], tokens[1]);
                     break;
                 default:
