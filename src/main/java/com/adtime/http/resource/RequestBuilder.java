@@ -22,8 +22,8 @@ public class RequestBuilder {
     private static final Logger logger = LoggerFactory.getLogger(RequestBuilder.class);
 
     static {
-        java.security.Security.setProperty("networkaddress.cache.negative.ttl", "30");
-        java.security.Security.setProperty("networkaddress.cache.ttl", "300");
+        java.security.Security.setProperty("networkaddress.cache.negative.ttl", "0");
+        java.security.Security.setProperty("networkaddress.cache.ttl", "1800");
         System.setProperty("https.protocols", "TLSv1,SSLv3");
     }
 
