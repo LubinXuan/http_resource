@@ -1,6 +1,5 @@
 package com.adtime.http.resource.dns;
 
-import org.apache.commons.io.IOUtils;
 import org.xbill.DNS.Address;
 import sun.net.spi.nameservice.NameService;
 import sun.net.spi.nameservice.NameServiceDescriptor;
