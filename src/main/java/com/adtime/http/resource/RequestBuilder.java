@@ -22,6 +22,7 @@ public class RequestBuilder {
     private static final Logger logger = LoggerFactory.getLogger(RequestBuilder.class);
 
     static {
+        System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
         java.security.Security.setProperty("networkaddress.cache.negative.ttl", "0");
         java.security.Security.setProperty("networkaddress.cache.ttl", "1800");
         System.setProperty("https.protocols", "TLSv1,SSLv3");
