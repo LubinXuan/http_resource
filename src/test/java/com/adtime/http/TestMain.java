@@ -36,6 +36,7 @@ public class TestMain extends BaseTest {
     static {
         //System.setProperty("http.proxyHost", "172.16.8.23");
         //System.setProperty("http.proxyPort", "3128");
+        System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
