@@ -290,7 +290,8 @@ public class HttpUrlConnectionResource extends WebResource {
     private void saveCookie(HttpURLConnection connection) {
         URI uri = null;
         try {
-            uri = connection.getURL().toURI();
+            URL url = connection.getURL();
+            uri = new URI(url.getProtocol(), url.getHost(), null, null, null);
         } catch (Throwable ignore) {
         }
         List<String> newCookies = connection.getHeaderFields().get("Set-Cookie");
