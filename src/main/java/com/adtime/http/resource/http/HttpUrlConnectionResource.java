@@ -253,7 +253,8 @@ public class HttpUrlConnectionResource extends WebResource {
         }
 
         try {
-            List<HttpCookie> cookies = cookieStore.get(connection.getURL().toURI());
+            URI uri = new URI(url.getProtocol(), url.getHost(), null, null, null);
+            List<HttpCookie> cookies = cookieStore.get(uri);
             if (null != cookies && !cookies.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
                 for (HttpCookie cookie : cookies) {
