@@ -81,10 +81,15 @@ public class RequestBuilder {
         }
         if (num < 4) {
             InetAddress inetAddress = null;
-            try {
-                inetAddress = InetAddress.getByName(host);
-            } catch (UnknownHostException e) {
-                logger.error("域名不可解析", e);
+            int dnsTry = 3;
+            while (dnsTry > 0) {
+                try {
+                    inetAddress = InetAddress.getByName(host);
+                    break;
+                } catch (UnknownHostException e) {
+                    logger.error("域名不可解析", e);
+                }
+                dnsTry--;
             }
             if (inetAddress == null) {
                 request.setCompleted(new Result(request.requestUrl(), WebConst.LOCAL_HOST_ERROR, "域名不可解析 " + host));
