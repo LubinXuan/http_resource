@@ -69,7 +69,7 @@ public class DynamicProxyProvider {
     private Map<String, ProxyCursor> domainProxyCursorMap = new ConcurrentHashMap<>();
 
 
-    public void updateProxy(Set<String> proxies) {
+    public void updateProxy(String[] proxies) {
         reset(initProxy(proxies));
     }
 
@@ -88,7 +88,7 @@ public class DynamicProxyProvider {
         this.proxyArr = proxyArr;
     }
 
-    private List<ProxyInfo> initProxy(Set<String> proxySet) {
+    private List<ProxyInfo> initProxy(String[] proxySet) {
         List<ProxyInfo> proxies = new ArrayList<>();
         for (String proxyStr : proxySet) {
             String[] p = proxyStr.split(":");
