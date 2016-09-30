@@ -1,13 +1,11 @@
 package com.adtime.http.resource.proxy;
 
 import com.adtime.http.resource.url.URLCanonicalizer;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -66,32 +64,36 @@ public class DynamicProxyProvider {
     }
 
 
-    private ProxyInfo[] proxyArr = new ProxyInfo[0];
-    private ProxyInfo[] secureProxyArr = new ProxyInfo[0];
+    private List<ProxyInfo> proxyArr = new ArrayList<>();
+    private List<ProxyInfo> secureProxyArr = new ArrayList<>();
     private Map<String, ProxyCursor> domainProxyCursorMap = new ConcurrentHashMap<>();
 
 
-    public void updateProxy(Set<String> httpProxySet, Set<String> httpsProxySet) {
-        ProxyInfo[] _httpProxyArr = initProxy(httpProxySet);
-        ProxyInfo[] _httpsProxyArr = initProxy(httpsProxySet);
-        reset(_httpProxyArr, _httpsProxyArr);
+    public void updateProxy(Set<String> proxies) {
+        reset(initProxy(proxies));
     }
 
-    private void reset(ProxyInfo[] _httpProxyArr, ProxyInfo[] _httpsProxyArr) {
+    private void reset(List<ProxyInfo> proxyInfoList) {
         domainProxyCursorMap.clear();
-        proxyArr = _httpProxyArr;
-        secureProxyArr = _httpsProxyArr;
-        logger.info("代理信息更新 http:{}  secure:{}", proxyArr.length, secureProxyArr.length);
+        List<ProxyInfo> secureProxyArr = new ArrayList<>();
+        List<ProxyInfo> proxyArr = new ArrayList<>();
+        for (ProxyInfo proxyInfo : proxyInfoList) {
+            if (StringUtils.equalsIgnoreCase("https", proxyInfo.getProxyType())) {
+                secureProxyArr.add(proxyInfo);
+            }
+            proxyArr.add(proxyInfo);
+        }
+        logger.info("代理信息更新 http:{}  secure:{}", proxyArr.size(), secureProxyArr.size());
+        this.secureProxyArr = secureProxyArr;
+        this.proxyArr = proxyArr;
     }
 
-    private ProxyInfo[] initProxy(Set<String> proxySet) {
-        ProxyInfo[] proxies = new ProxyInfo[proxySet.size()];
-        int idx = 0;
+    private List<ProxyInfo> initProxy(Set<String> proxySet) {
+        List<ProxyInfo> proxies = new ArrayList<>();
         for (String proxyStr : proxySet) {
             String[] p = proxyStr.split(":");
             String description = p.length == 4 ? p[3] : null;
-            proxies[idx] = new ProxyInfo(p[1], Integer.parseInt(p[2]), p[0], description);
-            idx++;
+            proxies.add(new ProxyInfo(p[1], Integer.parseInt(p[2]), p[0], description));
         }
         return proxies;
     }
@@ -99,14 +101,16 @@ public class DynamicProxyProvider {
     private ExecutorService service = Executors.newFixedThreadPool(20);
 
     public void filter(int limitTime) throws InterruptedException {
-        CountDownLatch latch = new CountDownLatch(proxyArr.length + secureProxyArr.length);
-        List<ProxyInfo> httpProxy = test(proxyArr, limitTime, latch);
-        List<ProxyInfo> httpsProxy = test(secureProxyArr, limitTime, latch);
+        CountDownLatch latch = new CountDownLatch(proxyArr.size() + secureProxyArr.size());
+        List<ProxyInfo> proxyInfoList = new ArrayList<>();
+        proxyInfoList.addAll(proxyArr);
+        proxyInfoList.addAll(secureProxyArr);
+        List<ProxyInfo> httpProxy = test(proxyInfoList, limitTime, latch);
         latch.await();
-        reset(httpProxy.toArray(new ProxyInfo[httpProxy.size()]), httpsProxy.toArray(new ProxyInfo[httpsProxy.size()]));
+        reset(httpProxy);
     }
 
-    private List<ProxyInfo> test(ProxyInfo[] proxyInfoArr, int limitTime, CountDownLatch latch) {
+    private List<ProxyInfo> test(List<ProxyInfo> proxyInfoArr, int limitTime, CountDownLatch latch) {
         List<ProxyInfo> httpProxyList = new LinkedList<>();
         for (ProxyInfo proxyInfo : proxyInfoArr) {
             service.execute(() -> {
@@ -175,14 +179,14 @@ public class DynamicProxyProvider {
          * @return
          */
         public synchronized ProxyInfo get() {
-            ProxyInfo[] proxyArr = DynamicProxyProvider.this.proxyArr;
+            List<ProxyInfo> proxyArr = DynamicProxyProvider.this.proxyArr;
             ProxyInfo proxyInfo = null;
 
-            if (proxyArr.length > secIdx) {
-                proxyInfo = proxyArr[secIdx];
-                secIdx++;
+            if (proxyArr.size() > idx) {
+                proxyInfo = proxyArr.get(idx);
+                idx++;
             } else {
-                secIdx = 0;
+                idx = 0;
             }
             return proxyInfo;
         }
@@ -193,14 +197,14 @@ public class DynamicProxyProvider {
          * @return
          */
         public synchronized ProxyInfo getSecure() {
-            ProxyInfo[] proxyArr = secureProxyArr;
+            List<ProxyInfo> proxyArr = secureProxyArr;
             ProxyInfo proxyInfo = null;
 
-            if (proxyArr.length > idx) {
-                proxyInfo = proxyArr[idx];
-                idx++;
+            if (proxyArr.size() > secIdx) {
+                proxyInfo = proxyArr.get(secIdx);
+                secIdx++;
             } else {
-                idx = 0;
+                secIdx = 0;
             }
             return proxyInfo;
         }
