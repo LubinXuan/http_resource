@@ -28,11 +28,7 @@ public class DynamicProxySelector extends ProxySelector {
         @Override
         public Proxy create(DynamicProxyProvider.ProxyInfo proxyInfo) {
 
-            if (proxyInfo.isSecure() && !proxyInfo.isSocks()) {
-                return Proxy.NO_PROXY;
-            }
-
-            return proxyMap.compute(proxyInfo.getHost() + ":" + proxyInfo.getPort() + ":" + proxyInfo.isSecure(), (s, httpHost) -> {
+            return proxyMap.compute(proxyInfo.getHost() + ":" + proxyInfo.getPort(), (s, httpHost) -> {
                 if (null == httpHost) {
                     httpHost = new Proxy(proxyInfo.isSocks() ? Proxy.Type.SOCKS : Proxy.Type.HTTP, new InetSocketAddress(proxyInfo.getHost(), proxyInfo.getPort()));
                 }

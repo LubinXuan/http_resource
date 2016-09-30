@@ -34,8 +34,8 @@ import java.util.function.Consumer;
 public class TestMain extends BaseTest {
 
     static {
-        //System.setProperty("http.proxyHost", "172.16.8.23");
-        //System.setProperty("http.proxyPort", "3128");
+        System.setProperty("http.proxyHost", "172.16.8.28");
+        System.setProperty("http.proxyPort", "3128");
         System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
 
@@ -106,7 +106,7 @@ public class TestMain extends BaseTest {
 
     @Test
     public void testPage() {
-        Result result = webResource.fetchPage("http://weixin.sogou.com/weixin?query=iphone se&type=2&page=1&ie=utf8");
+        Result result = webResource.fetchPage("https://www.baidu.com/s?wd=proxy&oq=proxy&tn=baiduhome_pg&ie=utf-8&rsv_idx=2&rsv_pq=88488e310000a5a5&rsv_t=0a2efUkZOcFELV8XAo6jwJywCFrQchFbVTDRC5urQlQuE6Smr6PGrpgjno6X6aAorkJr&rqlang=cn&nojs=1&bqid=88488e310000a5a5");
         System.out.println(result);
     }
 

@@ -25,14 +25,12 @@ public class DynamicProxyProvider {
     public static class ProxyInfo {
         private String host;
         private Integer port;
-        private boolean secure;
         private String proxyType;
         private String description;
 
         public ProxyInfo(String host, Integer port, String proxyType, String description) {
             this.host = host;
             this.port = port;
-            this.secure = !"http".equals(proxyType);
             this.proxyType = proxyType;
             this.description = description;
         }
@@ -51,10 +49,6 @@ public class DynamicProxyProvider {
 
         public Integer getPort() {
             return port;
-        }
-
-        public boolean isSecure() {
-            return secure;
         }
 
         public boolean isSocks() {
