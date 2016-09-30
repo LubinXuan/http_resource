@@ -57,8 +57,8 @@ public class DynamicProxyProvider {
     }
 
 
-    public static void setDefaultProxy(String host, int port) {
-        _default = new ProxyInfo(host, port, "http", "default");
+    public static void setDefaultProxy(String host, int port, String proxyType) {
+        setDefaultProxy(new ProxyInfo(host, port, proxyType, "default"));
     }
 
     public static void setDefaultProxy(ProxyInfo defaultProxy) {

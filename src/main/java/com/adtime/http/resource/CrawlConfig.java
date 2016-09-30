@@ -428,7 +428,7 @@ public class CrawlConfig {
             }
             logger.warn("代理配置信息 {} {} {} {}", this.proxyHost, this.proxyPort, this.proxyUsername, this.proxyPassword);
 
-            DynamicProxyProvider.setDefaultProxy(this.proxyHost, this.proxyPort);
+            DynamicProxyProvider.setDefaultProxy(this.proxyHost, this.proxyPort, System.getProperty("http.proxyType", "https"));
 
         }
     }
