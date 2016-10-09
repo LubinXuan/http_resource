@@ -1,5 +1,6 @@
 package com.adtime.http.resource;
 
+import com.adtime.http.resource.dns.DnsPreFetchUtils;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.util.HttpHeaderUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -80,7 +81,8 @@ public class RequestBuilder {
             }
         }
         if (num < 4) {
-            InetAddress inetAddress = null;
+            DnsPreFetchUtils.preFetch(host);
+            /*InetAddress inetAddress = null;
             int dnsTry = 3;
             while (dnsTry > 0) {
                 try {
@@ -94,7 +96,7 @@ public class RequestBuilder {
             if (inetAddress == null) {
                 request.setCompleted(new Result(request.requestUrl(), WebConst.LOCAL_HOST_ERROR, "域名不可解析 " + host));
                 return request;
-            }
+            }*/
         }
 
         request.setCharSet(charSet);
