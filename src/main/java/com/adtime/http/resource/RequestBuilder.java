@@ -87,7 +87,7 @@ public class RequestBuilder {
                     inetAddress = InetAddress.getByName(host);
                     break;
                 } catch (UnknownHostException e) {
-                    logger.error("域名不可解析", e);
+                    logger.error("域名不可解析: {} {}", host, e);
                 }
                 dnsTry--;
             }

@@ -41,7 +41,7 @@ public class DnsPreFetchUtils {
             public void run() {
                 for (Iterator<DnsUpdateInfo> iterator = DOMAIN_FETCH_QUEUE.iterator(); iterator.hasNext(); ) {
                     DnsUpdateInfo updateInfo = iterator.next();
-                    if (updateInfo.createTime < System.currentTimeMillis() - 60000) {
+                    if (updateInfo.createTime < System.currentTimeMillis() - UPDATE_REQUIRE_TIME) {
                         updateDnsInfo(updateInfo);
                     }
                 }
@@ -51,7 +51,7 @@ public class DnsPreFetchUtils {
 
     private static void updateDnsInfo(DnsUpdateInfo updateInfo) {
         SERVICE.execute(() -> {
-            if (updateInfo.createTime < System.currentTimeMillis() - 60000) {
+            if (updateInfo.createTime < System.currentTimeMillis() - UPDATE_REQUIRE_TIME) {
                 return;
             }
             for (String nameServer : NAME_SERVERS) {
