@@ -51,7 +51,7 @@ public class DnsPreFetchUtils {
 
     private static void updateDnsInfo(DnsUpdateInfo updateInfo) {
         SERVICE.execute(() -> {
-            if (updateInfo.createTime < System.currentTimeMillis() - UPDATE_REQUIRE_TIME) {
+            if (updateInfo.createTime > System.currentTimeMillis() - UPDATE_REQUIRE_TIME / 2) {
                 return;
             }
             for (String nameServer : NAME_SERVERS) {
