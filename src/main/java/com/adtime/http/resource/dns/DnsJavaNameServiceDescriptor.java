@@ -1,7 +1,8 @@
 package com.adtime.http.resource.dns;
 
-import org.xbill.DNS.spi.DNSJavaNameServiceDescriptor;
 import sun.net.spi.nameservice.NameService;
+import sun.net.spi.nameservice.NameServiceDescriptor;
+import sun.net.spi.nameservice.dns.DNSNameService;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -11,15 +12,19 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by xuanlubin on 2016/9/8.
  */
-public class DnsJavaNameServiceDescriptor extends DNSJavaNameServiceDescriptor {
+public class DnsJavaNameServiceDescriptor implements NameServiceDescriptor {
 
     private static final Map<String, InetAddress[]> hostDomainCache = new ConcurrentHashMap<>();
 
-    @Override
-    public NameService createNameService() {
-        return new NameService() {
+    private final NameService superNs;
 
-            NameService superNs = DnsJavaNameServiceDescriptor.this.createNameService();
+    public DnsJavaNameServiceDescriptor() throws Exception {
+        superNs = new DNSNameService();
+    }
+
+    @Override
+    public NameService createNameService() throws Exception {
+        return new NameService() {
 
             @Override
             public InetAddress[] lookupAllHostAddr(String s) throws UnknownHostException {
