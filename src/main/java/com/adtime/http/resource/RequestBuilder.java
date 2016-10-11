@@ -62,6 +62,7 @@ public class RequestBuilder {
             request.setCompleted(new Result(request.requestUrl(), WebConst.LOCAL_HOST_ERROR, "获取host失败 " + url));
             return request;
         }
+        /*
         String[] part = host.split("\\.");
         int num = 0;
         if (part.length == 4) {
@@ -81,8 +82,7 @@ public class RequestBuilder {
             }
         }
         if (num < 4) {
-            DnsPreFetchUtils.preFetch(host);
-            /*InetAddress inetAddress = null;
+            InetAddress inetAddress = null;
             int dnsTry = 3;
             while (dnsTry > 0) {
                 try {
@@ -96,9 +96,10 @@ public class RequestBuilder {
             if (inetAddress == null) {
                 request.setCompleted(new Result(request.requestUrl(), WebConst.LOCAL_HOST_ERROR, "域名不可解析 " + host));
                 return request;
-            }*/
-        }
+            }
+        }*/
 
+        DnsPreFetchUtils.preFetch(host);
         request.setCharSet(charSet);
         request.setHeaderMap(headers);
         request.setMaxRedirect(maxRedirect);

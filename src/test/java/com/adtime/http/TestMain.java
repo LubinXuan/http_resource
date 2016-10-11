@@ -18,14 +18,12 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 /**
  * Created by Lubin.Xuan on 2015/6/2.
@@ -34,17 +32,18 @@ import java.util.function.Consumer;
 public class TestMain extends BaseTest {
 
     static {
-        System.setProperty("http.proxyHost", "172.16.8.28");
-        System.setProperty("http.proxyPort", "3128");
+        //System.setProperty("http.proxyHost", "172.16.8.28");
+        //System.setProperty("http.proxyPort", "3128");
         System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
 
-    //@Resource(name = "asyncHttpClient")
-    //@Resource(name = "webResourceUrlConnection")
+    @Resource(name = "asyncHttpClient")
+    private WebResource asyncHttpClient;
+    @Resource(name = "webResourceUrlConnection")
     //@Resource(name = "webResourceHtmlUnit")
-    @Resource(name = "webResourceHttpClient")
+    //@Resource(name = "webResourceHttpClient")
     private WebResource webResource;
 
 
@@ -54,7 +53,6 @@ public class TestMain extends BaseTest {
     @Test
     public void initProxy() throws IOException {
         Set<String> hostSet = new HashSet<>();
-        Set<String> httpsHostSet = new HashSet<>();
         Set<String> urlFilter = new HashSet<>();
         String root = "http://www.youdaili.net/Daili/guonei/4592.html";
         urlFilter.add(root);
@@ -62,7 +60,7 @@ public class TestMain extends BaseTest {
         request.setUrl(root);
         request.setHeader("Cookie", "yunsuo_session_verify=3d0da40a751da1b85d8a19406afaa22a; bdshare_ty=0x18; Hm_lvt_f8bdd88d72441a9ad0f8c82db3113a84=1466475057; Hm_lpvt_f8bdd88d72441a9ad0f8c82db3113a84=1466475717");
         Document document = webResource.fetchPage(request).getDocument();
-        extractProxyList(document, hostSet, httpsHostSet);
+        extractProxyList(document, hostSet, hostSet);
         Elements pages = document.select(".pagelist li a");
         for (Element element : pages) {
             if ("#".equals(element.attr("href"))) {
@@ -73,10 +71,11 @@ public class TestMain extends BaseTest {
                 request.setUrl(url);
                 request.setHeader("Cookie", "yunsuo_session_verify=3d0da40a751da1b85d8a19406afaa22a; bdshare_ty=0x18; Hm_lvt_f8bdd88d72441a9ad0f8c82db3113a84=1466475057; Hm_lpvt_f8bdd88d72441a9ad0f8c82db3113a84=1466475717");
                 document = webResource.fetchPage(request).getDocument();
-                extractProxyList(document, hostSet, httpsHostSet);
+                extractProxyList(document, hostSet, hostSet);
             }
         }
-        dynamicProxyProvider.updateProxy(hostSet, httpsHostSet);
+
+        dynamicProxyProvider.updateProxy(hostSet.toArray(new String[0]));
     }
 
     private void extractProxyList(Document document, Set<String> hostSet, Set<String> httpsHostSet) {
@@ -106,14 +105,20 @@ public class TestMain extends BaseTest {
 
     @Test
     public void testPage() {
-        Result result = webResource.fetchPage("https://www.baidu.com/s?wd=proxy&oq=proxy&tn=baiduhome_pg&ie=utf-8&rsv_idx=2&rsv_pq=88488e310000a5a5&rsv_t=0a2efUkZOcFELV8XAo6jwJywCFrQchFbVTDRC5urQlQuE6Smr6PGrpgjno6X6aAorkJr&rqlang=cn&nojs=1&bqid=88488e310000a5a5");
-        System.out.println(result);
+        //dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.103:3128","https:172.16.8.23:3128", "https:172.16.8.28:3128","https:172.16.8.40:3128"});
+        dynamicProxyProvider.updateProxy(new String[]{"https:192.168.100.50:60003"});
+        for (int i = 0; i < 10; i++) {
+            Result result = webResource.fetchPage("http://www.51upay.com/");
+            System.out.println("==================================");
+            System.out.println(result);
+        }
+
     }
 
 
     @Test
     public void testAsync() throws IOReactorException, InterruptedException {
-        AsyncHttpClient asyncHttpClient = HttpIns.asyncHttpClient();
+        dynamicProxyProvider.updateProxy(new String[]{"https:172.16.8.23:3128", "https:192.168.168.103:3128", "https:172.16.8.28:3128"});
         CountDownLatch latch = new CountDownLatch(1000);
         long start = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {
