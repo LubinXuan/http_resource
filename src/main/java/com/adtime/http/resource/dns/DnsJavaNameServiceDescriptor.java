@@ -28,7 +28,14 @@ public class DnsJavaNameServiceDescriptor implements NameServiceDescriptor {
 
             @Override
             public InetAddress[] lookupAllHostAddr(String s) throws UnknownHostException {
-                return hostDomainCache.getOrDefault(s.toLowerCase(), superNs.lookupAllHostAddr(s));
+                String host = s.toLowerCase();
+                if (!hostDomainCache.containsKey(host)) {
+                    InetAddress[] inetAddresses = superNs.lookupAllHostAddr(s);
+                    if (null != inetAddresses) {
+                        hostDomainCache.put(host, inetAddresses);
+                    }
+                }
+                return hostDomainCache.get(host);
             }
 
             @Override
