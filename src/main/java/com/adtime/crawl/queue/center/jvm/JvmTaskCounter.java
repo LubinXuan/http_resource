@@ -1,8 +1,8 @@
 package com.adtime.crawl.queue.center.jvm;
 
-import com.adtime.bullbat.queue.center.Identity;
-import com.adtime.bullbat.queue.center.ParallelService;
-import com.adtime.bullbat.queue.center.TaskCounter;
+import com.adtime.crawl.queue.center.Identity;
+import com.adtime.crawl.queue.center.ParallelService;
+import com.adtime.crawl.queue.center.TaskCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

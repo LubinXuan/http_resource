@@ -1,7 +1,7 @@
 package com.adtime.crawl.queue.center.redis;
 
-import com.adtime.bullbat.queue.center.Identity;
-import com.adtime.bullbat.queue.center.TaskCounter;
+import com.adtime.crawl.queue.center.Identity;
+import com.adtime.crawl.queue.center.TaskCounter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import org.slf4j.Logger;

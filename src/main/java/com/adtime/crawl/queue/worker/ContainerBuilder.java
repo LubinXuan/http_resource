@@ -1,6 +1,6 @@
 package com.adtime.crawl.queue.worker;
 
-import com.adtime.bullbat.queue.center.ParallelService;
+import com.adtime.crawl.queue.center.ParallelService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
