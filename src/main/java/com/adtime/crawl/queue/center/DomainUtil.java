@@ -15,7 +15,7 @@ import java.util.Set;
  */
 public class DomainUtil {
 
-    private static final String tldNamesFileName = "parallel/config/tld-names.txt";
+    private static final String tldNamesFileName = "parallel.config/tld-names.txt";
     private static Set<String> tldSet;
 
     static {
