@@ -77,8 +77,10 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
             return false;
         }
 
-        if (store && null != task.getId() && null != queueFilterService) {
-            if (!queueFilterService.add(task.getId())) {
+        if (null != task.getId() && null != queueFilterService) {
+            if (!store) {
+                queueFilterService.add(task.getId());
+            } else if (!queueFilterService.add(task.getId())) {
                 return false;
             }
         }
