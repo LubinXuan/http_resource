@@ -79,7 +79,9 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
 
         if (null != task.getId() && null != queueFilterService) {
             if (!store) {
-                queueFilterService.refreshFilter(task.getId());
+                try {
+                    queueFilterService.refreshFilter(task.getId());
+                }catch (Throwable ignore){}
             } else if (!queueFilterService.add(task.getId())) {
                 return false;
             }
