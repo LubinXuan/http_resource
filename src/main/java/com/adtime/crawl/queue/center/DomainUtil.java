@@ -1,11 +1,11 @@
 package com.adtime.crawl.queue.center;
 
+import org.apache.commons.lang3.StringUtils;
 import sun.net.util.IPAddressUtil;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,21 +48,33 @@ public class DomainUtil {
     public static String[] parse(String urlString) {
 
         try {
-            final URL url = new URL(urlString);
-            String domain = url.getHost();
-            if (IPAddressUtil.isIPv4LiteralAddress(domain)) {
-                return new String[]{domain, domain};
+            urlString = StringUtils.substringAfter(urlString, "://");
+            int end = StringUtils.indexOfAny(urlString, "/", "?", "#");
+
+            String domain, host;
+            if (end > 0) {
+                host = StringUtils.substring(urlString, 0, end);
+            } else {
+                host = urlString;
             }
-            final String[] parts = domain.split("\\.");
+            domain = host;
+            if (IPAddressUtil.isIPv4LiteralAddress(host)) {
+                return new String[]{domain, host};
+            }
+            final String[] parts = host.split("\\.");
             if (parts.length > 2) {
                 domain = parts[parts.length - 2] + "." + parts[parts.length - 1];
                 if (tldSet.contains(domain)) {
                     domain = parts[parts.length - 3] + "." + domain;
                 }
             }
-            return new String[]{domain, url.getHost()};
+            return new String[]{domain, host};
         } catch (Exception var4) {
             return EMPTY;
         }
+    }
+
+    public static void main(String[] args) {
+        parse("http://www.baidu.com?SSS");
     }
 }
