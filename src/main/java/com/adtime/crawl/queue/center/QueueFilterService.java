@@ -6,6 +6,8 @@ package com.adtime.crawl.queue.center;
 public interface QueueFilterService<P> {
     boolean add(P id);
 
+    boolean refreshFilter(P id);
+
     void remove(P id);
 
     boolean contains(P id);
