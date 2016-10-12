@@ -17,6 +17,8 @@ public class DomainUtil {
 
     private static final String tldNamesFileName = "parallel.config/tld-names.txt";
     private static Set<String> tldSet;
+    private static final String[] EMPTY = new String[]{null, null};
+
 
     static {
         tldSet = new HashSet<String>();
@@ -43,13 +45,13 @@ public class DomainUtil {
         }
     }
 
-    public static String parse(String urlString) {
+    public static String[] parse(String urlString) {
 
         try {
             final URL url = new URL(urlString);
             String domain = url.getHost();
             if (IPAddressUtil.isIPv4LiteralAddress(domain)) {
-                return domain;
+                return new String[]{domain, domain};
             }
             final String[] parts = domain.split("\\.");
             if (parts.length > 2) {
@@ -58,9 +60,9 @@ public class DomainUtil {
                     domain = parts[parts.length - 3] + "." + domain;
                 }
             }
-            return domain;
+            return new String[]{domain, url.getHost()};
         } catch (Exception var4) {
-            return null;
+            return EMPTY;
         }
     }
 }
