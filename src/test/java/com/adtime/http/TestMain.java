@@ -32,18 +32,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestMain extends BaseTest {
 
     static {
-        //System.setProperty("http.proxyHost", "172.16.8.28");
-        //System.setProperty("http.proxyPort", "3128");
-        System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
+        System.setProperty("http.proxyHost", "10.2.2.92");
+        System.setProperty("http.proxyPort", "8888");
+        //System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
 
     @Resource(name = "asyncHttpClient")
     private WebResource asyncHttpClient;
-    @Resource(name = "webResourceUrlConnection")
+    //@Resource(name = "webResourceUrlConnection")
     //@Resource(name = "webResourceHtmlUnit")
-    //@Resource(name = "webResourceHttpClient")
+    @Resource(name = "webResourceHttpClient")
     private WebResource webResource;
 
 
@@ -133,22 +133,33 @@ public class TestMain extends BaseTest {
 
     @Test
     public void testAsync2() throws IOReactorException, InterruptedException {
-        ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4);
-        CountDownLatch latch = new CountDownLatch(1000);
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < 1000; i++) {
-            /*service.execute(() -> {
-                Result var1 = webResource.fetchPage("http://news.ifeng.com/a/20160418/48500891_0.shtml");
-                logger.debug("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
-                latch.countDown();
-            });*/
-            webResource.fetchPage("http://news.ifeng.com/a/20160418/48500891_0.shtml", (ResultConsumer) var1 -> {
-                logger.debug("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
-                latch.countDown();
+
+        String[] urls = {
+                "http://tieba.baidu.com/p/4440709622",
+                "http://tieba.baidu.com/p/4113492066",
+                "http://tieba.baidu.com/p/4821619037",
+                "http://tieba.baidu.com/p/4820996081",
+                "http://tieba.baidu.com/p/4809890049",
+                "http://tieba.baidu.com/p/4818652748"
+        };
+
+        for (String url : urls) {
+            webResource.fetchPage(url, (ResultConsumer) var1 -> {
+                logger.info("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
             });
         }
-        latch.await();
-        logger.debug("耗时:{}", System.currentTimeMillis() - start);
+
+        webResource.fetchPage("http://news.ifeng.com/a/20160418/48500891_0.shtml", (ResultConsumer) var1 -> {
+            logger.info("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
+        });
+        webResource.fetchPage("http://www.ctex.cn/j/web/project.jsp?catEname=/zrxx/jsxm&infoId=20140900039427", (ResultConsumer) var1 -> {
+            logger.info("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
+        });
+        webResource.fetchPage("http://www.douban.com/group/10197/", (ResultConsumer) var1 -> {
+            logger.info("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
+        });
+
+
     }
 
     @Test
