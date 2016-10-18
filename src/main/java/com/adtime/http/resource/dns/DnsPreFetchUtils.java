@@ -22,7 +22,7 @@ public class DnsPreFetchUtils {
 
     private static final List<DnsUpdateInfo> DOMAIN_FETCH_QUEUE = new ArrayList<>(65535);
 
-    private static final ExecutorService SERVICE = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static final ExecutorService SERVICE = Executors.newFixedThreadPool(3);
 
     private static List<String> NAME_SERVERS = new ArrayList<>();
 
