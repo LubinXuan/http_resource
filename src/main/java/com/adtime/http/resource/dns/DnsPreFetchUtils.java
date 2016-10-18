@@ -112,7 +112,7 @@ public class DnsPreFetchUtils {
             dnsUpdateInfo.domain = domain;
             dnsUpdateInfo.createTime = -1;
             DOMAIN_FETCH_QUEUE.add(dnsUpdateInfo);
-            return updateDnsInfo(dnsUpdateInfo, true);
+            return updateDnsInfo(dnsUpdateInfo,false);
         } else {
             return DnsCache.getCacheDns(domain);
         }
