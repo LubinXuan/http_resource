@@ -7,8 +7,10 @@ import sun.net.util.IPAddressUtil;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Created by xuanlubin on 2016/9/8.
@@ -42,15 +44,16 @@ public class DnsPreFetchUtils {
                 for (Iterator<DnsUpdateInfo> iterator = DOMAIN_FETCH_QUEUE.iterator(); iterator.hasNext(); ) {
                     DnsUpdateInfo updateInfo = iterator.next();
                     if (updateInfo.createTime < System.currentTimeMillis() - UPDATE_REQUIRE_TIME) {
-                        updateDnsInfo(updateInfo);
+                        updateDnsInfo(updateInfo, false);
                     }
                 }
             }
         }, 5000, 5000);
     }
 
-    private static void updateDnsInfo(DnsUpdateInfo updateInfo) {
-        SERVICE.execute(() -> {
+    private static void updateDnsInfo(DnsUpdateInfo updateInfo, boolean sync) {
+
+        Runnable runnable = () -> {
             if (updateInfo.createTime > System.currentTimeMillis() - UPDATE_REQUIRE_TIME / 2) {
                 return;
             }
@@ -69,7 +72,18 @@ public class DnsPreFetchUtils {
                     break;
                 }
             }
-        });
+        };
+
+        if (sync) {
+            Future future = SERVICE.submit(runnable);
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        } else {
+            SERVICE.execute(runnable);
+        }
     }
 
 
@@ -88,7 +102,7 @@ public class DnsPreFetchUtils {
             dnsUpdateInfo.domain = domain;
             dnsUpdateInfo.createTime = -1;
             DOMAIN_FETCH_QUEUE.add(dnsUpdateInfo);
-            updateDnsInfo(dnsUpdateInfo);
+            updateDnsInfo(dnsUpdateInfo, true);
         }
     }
 
