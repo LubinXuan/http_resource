@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestMain extends BaseTest {
 
     static {
-        System.setProperty("http.proxyHost", "10.2.2.92");
+        System.setProperty("http.proxyHost", "192.168.100.50");
         System.setProperty("http.proxyPort", "8888");
         //System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
@@ -143,12 +143,6 @@ public class TestMain extends BaseTest {
                 "http://tieba.baidu.com/p/4818652748"
         };
 
-        for (String url : urls) {
-            webResource.fetchPage(url, (ResultConsumer) var1 -> {
-                logger.info("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
-            });
-        }
-
         webResource.fetchPage("http://news.ifeng.com/a/20160418/48500891_0.shtml", (ResultConsumer) var1 -> {
             logger.info("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
         });
@@ -158,6 +152,14 @@ public class TestMain extends BaseTest {
         webResource.fetchPage("http://www.douban.com/group/10197/", (ResultConsumer) var1 -> {
             logger.info("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
         });
+
+        for (String url : urls) {
+            webResource.fetchPage(url, (ResultConsumer) var1 -> {
+                logger.info("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
+            });
+        }
+
+
 
 
     }

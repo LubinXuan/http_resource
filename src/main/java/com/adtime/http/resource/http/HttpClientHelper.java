@@ -54,6 +54,7 @@ public abstract class HttpClientHelper {
 
             if (null == addresses) {
                 addresses = InetAddress.getAllByName(host);
+                DnsCache.cacheDns(host, addresses);
             }
 
             InetAddress[] _addresses = new InetAddress[addresses.length];
