@@ -7,10 +7,7 @@ import sun.net.util.IPAddressUtil;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * Created by xuanlubin on 2016/9/8.
@@ -51,11 +48,11 @@ public class DnsPreFetchUtils {
         }, 5000, 5000);
     }
 
-    private static void updateDnsInfo(DnsUpdateInfo updateInfo, boolean sync) {
+    private static InetAddress[] updateDnsInfo(DnsUpdateInfo updateInfo, boolean sync) {
 
-        Runnable runnable = () -> {
+        Callable<InetAddress[]> runnable = () -> {
             if (updateInfo.createTime > System.currentTimeMillis() - UPDATE_REQUIRE_TIME / 2) {
-                return;
+                return DnsCache.getCacheDns(updateInfo.domain);
             }
             for (String nameServer : NAME_SERVERS) {
                 List<String> resultList = DNSService.search(nameServer, 2000, "A", updateInfo.domain);
@@ -68,33 +65,39 @@ public class DnsPreFetchUtils {
                         }
                     }
                     updateInfo.createTime = System.currentTimeMillis();
-                    DnsJavaNameServiceDescriptor.cacheDns(updateInfo.domain, inetAddresses);
-                    break;
+                    DnsCache.cacheDns(updateInfo.domain, inetAddresses);
+                    return inetAddresses;
                 }
             }
+            return null;
         };
 
         if (sync) {
-            Future future = SERVICE.submit(runnable);
+            Future<InetAddress[]> future = SERVICE.submit(runnable);
             try {
-                future.get();
+                return future.get();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         } else {
-            SERVICE.execute(runnable);
+            SERVICE.submit(runnable);
         }
+        return null;
     }
 
 
-    public static void preFetch(String domain) {
+    public static InetAddress[] preFetch(String domain) {
 
         if (StringUtils.isBlank(domain)) {
-            return;
+            return null;
         }
 
         if (IPAddressUtil.isIPv4LiteralAddress(domain)) {
-            return;
+            try {
+                return InetAddress.getAllByName(domain);
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         if (DOMAIN_FILTER.add(domain.toLowerCase())) {
@@ -102,7 +105,9 @@ public class DnsPreFetchUtils {
             dnsUpdateInfo.domain = domain;
             dnsUpdateInfo.createTime = -1;
             DOMAIN_FETCH_QUEUE.add(dnsUpdateInfo);
-            updateDnsInfo(dnsUpdateInfo, true);
+            return updateDnsInfo(dnsUpdateInfo, true);
+        } else {
+            return DnsCache.getCacheDns(domain);
         }
     }
 

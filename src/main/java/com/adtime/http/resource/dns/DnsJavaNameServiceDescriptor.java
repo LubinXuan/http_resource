@@ -14,8 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DnsJavaNameServiceDescriptor implements NameServiceDescriptor {
 
-    private static final Map<String, InetAddress[]> hostDomainCache = new ConcurrentHashMap<>();
-
     private final NameService superNs;
 
     public DnsJavaNameServiceDescriptor() throws Exception {
@@ -29,13 +27,10 @@ public class DnsJavaNameServiceDescriptor implements NameServiceDescriptor {
             @Override
             public InetAddress[] lookupAllHostAddr(String s) throws UnknownHostException {
                 String host = s.toLowerCase();
-                if (!hostDomainCache.containsKey(host)) {
-                    InetAddress[] inetAddresses = superNs.lookupAllHostAddr(s);
-                    if (null != inetAddresses) {
-                        hostDomainCache.put(host, inetAddresses);
-                    }
+                if (!DnsCache.contains(host)) {
+                    DnsCache.cacheDns(host, superNs.lookupAllHostAddr(s));
                 }
-                return hostDomainCache.get(host);
+                return DnsCache.getCacheDns(host);
             }
 
             @Override
@@ -54,9 +49,5 @@ public class DnsJavaNameServiceDescriptor implements NameServiceDescriptor {
     @Override
     public String getType() {
         return "dns";
-    }
-
-    public static void cacheDns(String domain, InetAddress[] inetAddresses) {
-        hostDomainCache.put(domain.toLowerCase(), inetAddresses);
     }
 }
