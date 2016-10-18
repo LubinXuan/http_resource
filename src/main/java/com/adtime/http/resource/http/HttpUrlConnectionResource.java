@@ -282,27 +282,28 @@ public class HttpUrlConnectionResource extends WebResource {
                 connection.addRequestProperty("Cookie", cookie);
                 logger.debug("url:{} cookie:{}", connection.getURL(), cookie);
             }
-        } catch (URISyntaxException e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
 
     private void saveCookie(HttpURLConnection connection) {
-        URI uri = null;
         try {
             URL url = connection.getURL();
-            uri = new URI(url.getProtocol(), url.getHost(), null, null, null);
-        } catch (Throwable ignore) {
-        }
-        List<String> newCookies = connection.getHeaderFields().get("Set-Cookie");
-        if (null != newCookies) {
-            for (String ck : newCookies) {
-                List<HttpCookie> cookies = HttpCookie.parse(ck);
-                for (HttpCookie cookie : cookies) {
-                    cookieStore.add(uri, cookie);
+            URI uri = new URI(url.getProtocol(), url.getHost(), null, null, null);
+            List<String> newCookies = connection.getHeaderFields().get("Set-Cookie");
+            if (null != newCookies) {
+                for (String ck : newCookies) {
+                    List<HttpCookie> cookies = HttpCookie.parse(ck);
+                    for (HttpCookie cookie : cookies) {
+                        cookieStore.add(uri, cookie);
+                    }
                 }
             }
+        } catch (Throwable ignore) {
+
         }
+
     }
 
 }

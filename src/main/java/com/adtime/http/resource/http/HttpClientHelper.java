@@ -3,8 +3,6 @@ package com.adtime.http.resource.http;
 import com.adtime.http.resource.CrawlConfig;
 import com.adtime.http.resource.WebResource;
 import com.adtime.http.resource.dns.DnsCache;
-import com.adtime.http.resource.dns.DnsPreFetchUtils;
-import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.cookie.ClientCookie;
@@ -52,10 +50,10 @@ public abstract class HttpClientHelper {
 
         @Override
         public InetAddress[] resolve(String host) throws UnknownHostException {
-            InetAddress[] addresses = DnsPreFetchUtils.preFetch(host);
+            InetAddress[] addresses = DnsCache.getCacheDns(host);
 
             if (null == addresses) {
-                throw new UnknownHostException(host);
+                addresses = InetAddress.getAllByName(host);
             }
 
             InetAddress[] _addresses = new InetAddress[addresses.length];

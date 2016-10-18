@@ -2,6 +2,8 @@ package com.adtime.http.resource.dns;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.ConcurrentHashSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.net.util.IPAddressUtil;
 
 import java.net.InetAddress;
@@ -13,6 +15,8 @@ import java.util.concurrent.*;
  * Created by xuanlubin on 2016/9/8.
  */
 public class DnsPreFetchUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(DnsPreFetchUtils.class);
 
     private static final ConcurrentHashSet<String> DOMAIN_FILTER = new ConcurrentHashSet<>();
 
@@ -69,6 +73,9 @@ public class DnsPreFetchUtils {
                     return inetAddresses;
                 }
             }
+
+            logger.error("Can't get dns info of [{}]", updateInfo.domain);
+
             return null;
         };
 
