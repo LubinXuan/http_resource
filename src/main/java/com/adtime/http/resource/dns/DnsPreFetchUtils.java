@@ -79,15 +79,14 @@ public class DnsPreFetchUtils {
             return null;
         };
 
+        Future<InetAddress[]> future = SERVICE.submit(runnable);
+
         if (sync) {
-            Future<InetAddress[]> future = SERVICE.submit(runnable);
             try {
                 return future.get();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
-        } else {
-            SERVICE.submit(runnable);
         }
         return null;
     }
@@ -112,7 +111,7 @@ public class DnsPreFetchUtils {
             dnsUpdateInfo.domain = domain;
             dnsUpdateInfo.createTime = -1;
             DOMAIN_FETCH_QUEUE.add(dnsUpdateInfo);
-            return updateDnsInfo(dnsUpdateInfo,false);
+            return updateDnsInfo(dnsUpdateInfo, false);
         } else {
             return DnsCache.getCacheDns(domain);
         }
