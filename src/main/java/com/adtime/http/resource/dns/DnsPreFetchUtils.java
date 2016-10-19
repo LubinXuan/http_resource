@@ -92,7 +92,11 @@ public class DnsPreFetchUtils {
     }
 
 
-    public static InetAddress[] preFetch(String domain) {
+    public static void preFetch(String domain) {
+        _preFetch(domain, false);
+    }
+
+    public static InetAddress[] _preFetch(String domain, boolean sync) {
 
         if (StringUtils.isBlank(domain)) {
             return null;
@@ -111,10 +115,14 @@ public class DnsPreFetchUtils {
             dnsUpdateInfo.domain = domain;
             dnsUpdateInfo.createTime = -1;
             DOMAIN_FETCH_QUEUE.add(dnsUpdateInfo);
-            return updateDnsInfo(dnsUpdateInfo, false);
+            return updateDnsInfo(dnsUpdateInfo, sync);
         } else {
             return DnsCache.getCacheDns(domain);
         }
+    }
+
+    public static InetAddress[] preFetchSync(String domain) {
+        return _preFetch(domain, true);
     }
 
 }
