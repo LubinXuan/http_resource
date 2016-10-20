@@ -60,6 +60,13 @@ public class ConnectionAbortUtils {
         }
     };
 
+    /**
+     * 根据请求返回的状态以及错误信息判断是否网络中断导致本次请求异常
+     *
+     * @param result  请求结果
+     * @param request 请求信息
+     * @return
+     */
     public static boolean isNetworkOut(Result result, Request request) {
 
         if (result.getStatus() != WebConst.HTTP_ERROR) {
@@ -72,7 +79,7 @@ public class ConnectionAbortUtils {
                 new Thread(checkNetworkRunnable).start();
             }
 
-            isNetworkOut();
+            checkNetworkStatus();
             return true;
         }
 
@@ -86,7 +93,10 @@ public class ConnectionAbortUtils {
     }
 
 
-    public static void isNetworkOut() {
+    /**
+     * 判定网络状态，如果网络不可用，线程进入等待状态
+     */
+    public static void checkNetworkStatus() {
         if (checkNetwork.get()) {
             logger.warn("Network is unreachable wait it stable");
             synchronized (checkNetwork) {
@@ -101,7 +111,14 @@ public class ConnectionAbortUtils {
         }
     }
 
-    public static boolean isNetworkDown() {
-        return checkNetwork.get();
+
+    /**
+     * 更具数据开始读取的时间判断是否网络中断
+     *
+     * @param readStartTime 数据读取时间
+     * @return
+     */
+    public static boolean checkNetworkStatus(long readStartTime) {
+        return readStartTime < lastInActive || checkNetwork.get();
     }
 }

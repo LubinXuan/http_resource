@@ -103,6 +103,8 @@ public class EntityReadUtils {
             return new Entity(false, "流大小:[" + contentLength(contentLength, 0) + "] max than [" + MAX_PAGE_SIZE + "] as a download Stream");
         }
 
+        long start_read_time = System.currentTimeMillis();
+
         ByteArrayBuffer byteArrayBuffer = null;
         try {
 
@@ -164,7 +166,7 @@ public class EntityReadUtils {
                     bodyTruncatedWarning = true;
                     warningMsg = "[TruncatedChunkException]数据读取可能不完整！！！！";
                 } else if (e instanceof SocketTimeoutException) {
-                    if (byteArrayBuffer.length() != 0 && !ConnectionAbortUtils.isNetworkDown()) {
+                    if (byteArrayBuffer.length() != 0 && !ConnectionAbortUtils.checkNetworkStatus(start_read_time)) {
                         bodyTruncatedWarning = true;
                         warningMsg = "[" + e.getMessage() + "]数据读取可能不完整！！！！";
                     } else {
