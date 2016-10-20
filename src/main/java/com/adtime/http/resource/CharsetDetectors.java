@@ -42,6 +42,7 @@ public class CharsetDetectors {
         PRIORITY.put("UTF-16LE", 2);
         PRIORITY.put("BIG5", 2);
         PRIORITY.put("EUC-JP", 3);
+        PRIORITY.put("ASCII", 4);
 
         comparator = (key1, key2) -> {
             Integer idx1 = PRIORITY.get(StringUtils.upperCase(key1));

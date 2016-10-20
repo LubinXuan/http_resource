@@ -174,7 +174,7 @@ public class HttpUnitResource extends WebResource {
                 if (Request.Method.HEAD.equals(request.getMethod())) {
                     result = new Result(url, sts, "").withHeader(headerMap);
                 } else {
-                    result = new Result(url, page.getWebResponse().getContentAsString(), false, sts);
+                    result = getResult(page.getWebResponse(), request.getCharSet(), url, true);
                 }
             }
             return result.withHeader(headerMap);
@@ -188,6 +188,36 @@ public class HttpUnitResource extends WebResource {
             webClient.close();
         }
     }
+
+    private Result getResult(WebResponse webResponse, String charSet, String url, boolean checkBodySize) throws Exception {
+        String header_contentType = webResponse.getContentType();
+        if (null != header_contentType) {
+            header_contentType = header_contentType.replaceAll("\\s", "");
+        }
+        String contentType = null;
+        String contentCharset = null;
+        if (null != header_contentType) {
+            String[] part = StringUtils.splitByWholeSeparator(header_contentType.toLowerCase(), ";charset=");
+            if (part.length == 2) {
+                contentType = part[0];
+                contentCharset = part[1];
+            } else {
+                contentType = header_contentType;
+            }
+        }
+
+        if (null != contentCharset) {
+            charSet = contentCharset;
+        }
+
+        EntityReadUtils.Entity entity = EntityReadUtils.read(webResponse, charSet, checkBodySize);
+        String content = entity.toString(url);
+        Result tmp = new Result(url, content, false, webResponse.getStatusCode()).setContentType(contentType);
+        copy(entity, tmp);
+        entity = null;
+        return tmp;
+    }
+
 
     @Override
     protected boolean _handException(Throwable e, String url, String oUrl) {

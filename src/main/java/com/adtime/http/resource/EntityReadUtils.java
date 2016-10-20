@@ -2,6 +2,7 @@ package com.adtime.http.resource;
 
 import com.adtime.http.resource.util.CharsetUtils;
 import com.adtime.http.resource.util.ConnectionAbortUtils;
+import com.gargoylesoftware.htmlunit.WebResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -46,6 +47,14 @@ public class EntityReadUtils {
         Header header = entity.getContentEncoding();
         String conEncoding = null != header ? header.getValue() : null;
         return streamAsByte(entity.getContentLength(), charSet, entity.getContent(), isGzip(conEncoding), isDeflate(conEncoding), checkBodySize);
+    }
+
+    public static Entity read(final WebResponse entity, final String charSet, boolean checkBodySize) throws IOException {
+        if (entity == null) {
+            throw new IllegalArgumentException("WebResponse may not be null");
+        }
+        String conEncoding = entity.getContentCharset();
+        return streamAsByte(entity.getContentLength(), charSet, entity.getContentAsStream(), isGzip(conEncoding), isDeflate(conEncoding), checkBodySize);
     }
 
     public static Entity read(final HttpURLConnection con, final boolean error, final String charSet, boolean checkBodySize) throws IOException {

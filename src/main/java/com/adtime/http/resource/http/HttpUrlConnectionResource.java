@@ -221,18 +221,19 @@ public class HttpUrlConnectionResource extends WebResource {
         if (null != header_contentType) {
             header_contentType = header_contentType.replaceAll("\\s", "");
         }
+
         String contentType = null;
         String contentCharset = null;
-        String charsetKey = ";charset=";
         if (null != header_contentType) {
-            if (header_contentType.toLowerCase().contains(charsetKey)) {
-                int idx_pre = header_contentType.toLowerCase().indexOf(charsetKey);
-                contentType = header_contentType.substring(0, idx_pre);
-                contentCharset = header_contentType.substring(idx_pre + +charsetKey.length());
+            String[] part = StringUtils.splitByWholeSeparator(header_contentType.toLowerCase(), ";charset=");
+            if (part.length == 2) {
+                contentType = part[0];
+                contentCharset = part[1];
             } else {
                 contentType = header_contentType;
             }
         }
+
         if (null != contentCharset) {
             charSet = contentCharset;
         }
