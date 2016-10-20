@@ -61,7 +61,12 @@ public class ConnectionAbortUtils {
     };
 
     public static boolean isNetworkOut(Result result, Request request) {
-        boolean isNetworkOut = result.getStatus() == WebConst.HTTP_ERROR && StringUtils.contains(result.getMessage(), "Network is unreachable");
+
+        if (result.getStatus() != WebConst.HTTP_ERROR) {
+            return false;
+        }
+
+        boolean isNetworkOut = StringUtils.contains(result.getMessage(), "Network is unreachable");
         if (isNetworkOut) {
             if (checkNetwork.compareAndSet(false, true)) {
                 new Thread(checkNetworkRunnable).start();
