@@ -87,7 +87,6 @@ public class HttpUrlConnectionResource extends WebResource {
                 }
             }
 
-
         } catch (Exception e) {
             handException(e, targetUrl, oUrl);
             return new Result(targetUrl, WebConst.HTTP_ERROR, e.toString());

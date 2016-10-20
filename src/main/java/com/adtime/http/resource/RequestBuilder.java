@@ -55,51 +55,7 @@ public class RequestBuilder {
         }
 
         String origUrl = url;
-        String host;
-        try {
-            host = new URL(url).getHost();
-        } catch (Throwable e) {
-            request.setCompleted(new Result(request.requestUrl(), WebConst.LOCAL_HOST_ERROR, "获取host失败 " + url));
-            return request;
-        }
-        /*
-        String[] part = host.split("\\.");
-        int num = 0;
-        if (part.length == 4) {
-            for (String p : part) {
-                try {
-                    if (p.length() > 3) {
-                        break;
-                    } else {
-                        int n = Integer.parseInt(p);
-                        if (n > -1 && n < 256) {
-                            num++;
-                        }
-                    }
-                } catch (Exception e) {
-                    break;
-                }
-            }
-        }
-        if (num < 4) {
-            InetAddress inetAddress = null;
-            int dnsTry = 3;
-            while (dnsTry > 0) {
-                try {
-                    inetAddress = InetAddress.getByName(host);
-                    break;
-                } catch (UnknownHostException e) {
-                    logger.error("域名不可解析: {} {}", host, e);
-                }
-                dnsTry--;
-            }
-            if (inetAddress == null) {
-                request.setCompleted(new Result(request.requestUrl(), WebConst.LOCAL_HOST_ERROR, "域名不可解析 " + host));
-                return request;
-            }
-        }*/
-
-        DnsPreFetchUtils.preFetch(host);
+        DnsPreFetchUtils.preFetch(URLCanonicalizer.getHost(url));
         request.setCharSet(charSet);
         request.setHeaderMap(headers);
         request.setMaxRedirect(maxRedirect);
