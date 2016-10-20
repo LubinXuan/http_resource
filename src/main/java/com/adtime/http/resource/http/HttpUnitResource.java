@@ -23,9 +23,9 @@ import java.util.Map;
  */
 public class HttpUnitResource extends WebResource {
 
-    static {
-        System.setProperty("com.google.appengine.runtime.environment", "true");
-    }
+   /* static {
+        //System.setProperty("com.google.appengine.runtime.environment", "true");
+    }*/
 
     private static final CookieManager cookieManager = new HttpUnitCookieManager();
 
