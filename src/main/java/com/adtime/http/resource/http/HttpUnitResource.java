@@ -1,10 +1,10 @@
 package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
+import com.adtime.http.resource.dns.DnsCache;
 import com.adtime.http.resource.extend.DynamicProxyHttpRoutePlanner;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.http.htmlunit.HttpWebConnectionWrap;
-import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.util.HttpUtil;
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.CookieManager;
@@ -12,8 +12,10 @@ import com.gargoylesoftware.htmlunit.gae.GAEUtils;
 import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gargoylesoftware.htmlunit.util.UrlUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
+import sun.net.util.IPAddressUtil;
 
 import javax.annotation.PostConstruct;
 import java.net.*;
@@ -48,7 +50,7 @@ public class HttpUnitResource extends WebResource {
     }
 
     public WebClient build(CrawlConfig config, Request request) {
-        WebClient webClient = new WebClient(BrowserVersion.CHROME);
+        WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED);
         if (null != request.getConnectionTimeout()) {
             webClient.getOptions().setTimeout(request.getConnectionTimeout());
         } else {
@@ -89,29 +91,27 @@ public class HttpUnitResource extends WebResource {
     public Result request(String url, String oUrl, Request request) {
         WebClient webClient = build(config, request);
         try {
-            Map<String, String> _headers = request.getHeaderMap();
-            String domain = URLCanonicalizer.getHost(url);
-            _headers.forEach((k, v) -> {
-                if (null != v) {
-                    if (!"cookie".equalsIgnoreCase(k)) {
-                        webClient.addRequestHeader(k, v);
-                    } else if (null != domain) {
-                        String[] cookiePair = v.split(";");
-                        for (String onePair : cookiePair) {
-                            String pair[] = onePair.split("=");
-                            if (pair.length >= 2) {
-                                registerCookie(domain, pair[0], pair[1]);
-                            }
-                        }
+
+            URL __url = UrlUtils.toUrlUnsafe(url);
+
+            String host = null, cookie_host = __url.getHost();
+
+            if (GAEUtils.isGaeMode()) {
+                if (!IPAddressUtil.isIPv4LiteralAddress(__url.getHost())) {
+                    InetAddress inetAddress = DnsCache.random(__url.getHost());
+                    if (null != inetAddress) {
+                        host = __url.getHost();
+                        __url = new URL(__url.getProtocol(), inetAddress.getHostAddress(), __url.getPort(), __url.getFile());
                     }
                 }
-            });
+            }
+
             WebRequest webRequest;
-            webClient.addRequestHeader("Connection", "close");
+
             if (Request.Method.GET.equals(request.getMethod()) || Request.Method.HEAD.equals(request.getMethod())) {
-                webRequest = new WebRequest(UrlUtils.toUrlUnsafe(url), HttpMethod.valueOf(request.getMethod().name()));
+                webRequest = new WebRequest(__url, HttpMethod.valueOf(request.getMethod().name()));
             } else {
-                webRequest = new WebRequest(UrlUtils.toUrlUnsafe(url), HttpMethod.valueOf(request.getMethod().name()));
+                webRequest = new WebRequest(__url, HttpMethod.valueOf(request.getMethod().name()));
                 if (null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
                     List<NameValuePair> valuePairs = new ArrayList<>();
                     for (Map.Entry<String, String> entry : request.getRequestParam().entrySet()) {
@@ -120,6 +120,29 @@ public class HttpUnitResource extends WebResource {
                     webRequest.setRequestParameters(valuePairs);
                 }
             }
+
+            if (StringUtils.isNotBlank(host)) {
+                webRequest.setAdditionalHeader("Host", host);
+            }
+            webRequest.setAdditionalHeader("Connection", "close");
+
+            Map<String, String> _headers = request.getHeaderMap();
+            for (Map.Entry<String, String> entry : _headers.entrySet()) {
+                if (StringUtils.equalsIgnoreCase(WebConst.COOKIE, entry.getKey())) {
+                    String[] cookiePair = entry.getValue().split(";");
+                    for (String onePair : cookiePair) {
+                        String pair[] = onePair.split("=");
+                        if (pair.length >= 2) {
+                            registerCookie(cookie_host, pair[0], pair[1]);
+                        }
+                    }
+                } else if (StringUtils.equalsIgnoreCase(WebConst.UserAgent, entry.getKey())) {
+                    webClient.getBrowserVersion().setUserAgent(entry.getValue());
+                } else {
+                    webRequest.setAdditionalHeader(entry.getKey(), entry.getValue());
+                }
+            }
+
             if (request.getMaxRedirect() < 1) {
                 webClient.getOptions().setRedirectEnabled(false);
             }

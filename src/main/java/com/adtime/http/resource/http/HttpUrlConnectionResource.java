@@ -182,9 +182,6 @@ public class HttpUrlConnectionResource extends WebResource {
         if (Request.Method.POST.equals(request.getMethod()) && null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
             con.setDoOutput(true);
             con.getOutputStream().write(RequestUtil.buildGetParameter(request.getRequestParam()).getBytes("utf-8"));
-        } else {
-            con.setDoOutput(false);
-            con.connect();
         }
         return con;
     }
