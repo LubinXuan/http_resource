@@ -231,12 +231,6 @@ public class Clients435 extends HttpClientHelper {
         asyncClientBuilder.setConnectionManager(nHttpClientConnectionManager);
         asyncClientBuilder.addInterceptorLast(new HostCookieAdapterHttpRequestInterceptor(webResource));
         asyncClientBuilder.addInterceptorLast(new ResponseProcessCookies());
-        asyncClientBuilder.addInterceptorLast(new HttpResponseInterceptor() {
-            @Override
-            public void process(HttpResponse httpResponse, HttpContext httpContext) throws HttpException, IOException {
-                System.out.println();
-            }
-        });
 
         if (null != credentialsProvider) {
             asyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
