@@ -5,6 +5,7 @@ import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.url.format.FormatUrl;
 import com.adtime.http.resource.url.invalid.InvalidUrl;
+import com.adtime.http.resource.util.ConnectionAbortUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,6 @@ import java.net.SocketTimeoutException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public abstract class WebResource {
 
@@ -90,7 +90,10 @@ public abstract class WebResource {
         if (null != resultConsumer && async) {
             AsyncHttpClient asyncHttpClient = (AsyncHttpClient) this;
             asyncHttpClient.async(requestUrl, request.getOrigUrl(), 0, request, result -> {
-                if (result.isRedirect() && result.getRedirectCount() < request.getMaxRedirect() && null != result.getMoveToUrl()) {
+                //判断是否网络断开
+                if (ConnectionAbortUtils.isNetworkOut(result)) {
+                    asyncHttpClient.async(result.getUrl(), result.getUrl(), result.getRedirectCount(), request, resultConsumer);
+                } else if (result.isRedirect() && result.getRedirectCount() < request.getMaxRedirect() && null != result.getMoveToUrl()) {
                     asyncHttpClient.async(result.getMoveToUrl(), result.getMoveToUrl(), result.getRedirectCount(), request, resultConsumer);
                 } else if (result.isRedirect()) {
                     result.setMoveToUrl(result.getUrl());
@@ -104,12 +107,28 @@ public abstract class WebResource {
             });
             return null;
         } else {
-            Result result = request(requestUrl, request.getOrigUrl(), request);
+
             int redirect = 0;
-            while (result.isRedirect() && redirect < request.getMaxRedirect() && null != result.getMoveToUrl()) {
-                result = request(result.getMoveToUrl(), result.getMoveToUrl(), request);
-                redirect++;
+            Result result;
+
+            String _requestUrl = requestUrl;
+
+            while (true) {
+                result = request(_requestUrl, request.getOrigUrl(), request);
+
+                //判断是否网络断开
+                if (ConnectionAbortUtils.isNetworkOut(result)) {
+                    continue;
+                }
+
+                if (result.isRedirect() && redirect < request.getMaxRedirect() && null != result.getMoveToUrl()) {
+                    _requestUrl = result.getMoveToUrl();
+                    redirect++;
+                } else {
+                    break;
+                }
             }
+
 
             if (redirect > 0) {
                 result.setRedirectCount(redirect);
@@ -122,6 +141,7 @@ public abstract class WebResource {
             if (null != resultConsumer) {
                 resultConsumer.accept(result);
             }
+
             return result;
         }
     }
