@@ -47,10 +47,10 @@ public class CPDetector extends CharsetDetector {
     }
 
     @Override
-    public CharsetInfo detect(byte[] data, String defaultCharset) {
+    public String[] detect(byte[] data, String defaultCharset) {
         String charSet = detect(new ByteArrayInputStream(data), data.length);
         if (CharsetUtils.isValidCharset(charSet)) {
-            return new CharsetInfo(charSet, new String[]{});
+            return new String[]{charSet};
         }
         return null;
     }

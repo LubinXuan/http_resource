@@ -11,25 +11,7 @@ public abstract class CharsetDetector {
     public static final Charset UTF_8 = Charset.forName("utf-8");
     public static final Charset GBK = Charset.forName("GBK");
 
-    public static final CharsetInfo DEFAULT = new CharsetInfo(GBK.displayName(), new String[]{});
+    public static final String[] DEFAULT = new String[]{GBK.displayName()};
 
-    abstract public CharsetInfo detect(byte[] data, String defaultCharset);
-
-    static public class CharsetInfo {
-        private String charset;
-        private String[] propCharset;
-
-        public CharsetInfo(String charset, String[] propCharset) {
-            this.charset = charset;
-            this.propCharset = propCharset;
-        }
-
-        public String getCharset() {
-            return charset;
-        }
-
-        public String[] getPropCharset() {
-            return propCharset;
-        }
-    }
+    abstract public String[] detect(byte[] data, String defaultCharset);
 }

@@ -17,10 +17,10 @@ import java.nio.charset.Charset;
  */
 public class HtmlEncodeDetector extends CharsetDetector {
     @Override
-    public CharsetInfo detect(byte[] data, String defaultCharset) {
+    public String[] detect(byte[] data, String defaultCharset) {
         String charSet = generateCharSet(new String(data, UTF_8), defaultCharset);
         if (CharsetUtils.isValidCharset(charSet)) {
-            return new CharsetInfo(charSet, new String[]{});
+            return new String[]{charSet};
         }
         return null;
     }

@@ -53,7 +53,7 @@ public class ICUDetector extends CharsetDetector {
     }
 
     @Override
-    public CharsetInfo detect(byte[] data, String defaultCharset) {
+    public String [] detect(byte[] data, String defaultCharset) {
         com.ibm.icu.text.CharsetDetector charsetDetector = new com.ibm.icu.text.CharsetDetector();
         charsetDetector.setText(data);
         CharsetMatch[] all = charsetDetector.detectAll();
@@ -62,7 +62,7 @@ public class ICUDetector extends CharsetDetector {
             for (int i = 0; i < all.length; i++) {
                 allProp[i] = all[i].getName();
             }
-            return new CharsetInfo(all[0].getName(), allProp);
+            return allProp;
         } else {
             return null;
         }

@@ -327,9 +327,8 @@ public class EntityReadUtils {
                         Charset _charset = CharsetUtils.getCharset(this.charSet);
 
                         if (null == _charset) {
-                            CharsetDetector.CharsetInfo charsetInfo = CharsetDetectors.getCharSet(bytes, this.charSet);
-                            String charSet = charsetInfo.getCharset();
-                            String[] proCharSet = charsetInfo.getPropCharset();
+                            String[] proCharSet = CharsetDetectors.getCharSet(bytes, this.charSet);
+                            String charSet = proCharSet[0];
                             String value = new String(bytes, charSet).trim();
                             finalCharSet = charSet;
                             if (charSet.toLowerCase().contains("ascii")) {
