@@ -2,6 +2,7 @@ package com.adtime.http.resource;
 
 import com.adtime.http.resource.util.CharsetUtils;
 import com.adtime.http.resource.util.ConnectionAbortUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -194,16 +195,7 @@ public class EntityReadUtils {
             }
             return getEntity(charSet, contentLengthCurrent, bytes, warningMsg, bodyTruncatedWarning);
         } finally {
-            try {
-                is.close();
-            } catch (Exception ignore) {
-            }
-
-            try {
-                if (null != byteArrayBuffer)
-                    byteArrayBuffer.clear();
-            } catch (Exception ignore) {
-            }
+            IOUtils.closeQuietly(is);
         }
     }
 
