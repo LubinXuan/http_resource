@@ -2,6 +2,7 @@ package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
 import com.adtime.http.resource.extend.DynamicProxySelector;
+import com.adtime.http.resource.http.htmlunit.HttpWebConnectionWrap;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.util.HttpUtil;
 import com.gargoylesoftware.htmlunit.*;
@@ -59,6 +60,11 @@ public class HttpUnitResource extends WebResource {
             }
         }
         webClient.setCookieManager(cookieManager);
+        WebConnection connection = webClient.getWebConnection();
+        if (connection instanceof HttpWebConnection) {
+            HttpWebConnectionWrap wrap = new HttpWebConnectionWrap((HttpWebConnection) connection);
+            webClient.setWebConnection(wrap);
+        }
         return webClient;
     }
 
