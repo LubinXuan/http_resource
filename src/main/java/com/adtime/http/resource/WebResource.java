@@ -86,6 +86,10 @@ public abstract class WebResource {
     }
 
     private Result getResult(final String requestUrl, final Request request, ResultConsumer resultConsumer) {
+
+        //检查网络是否正常
+        ConnectionAbortUtils.isNetworkOut();
+
         long start = System.currentTimeMillis();
         if (null != resultConsumer && async) {
             AsyncHttpClient asyncHttpClient = (AsyncHttpClient) this;
