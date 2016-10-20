@@ -1,6 +1,7 @@
 package com.adtime.http.resource;
 
 import com.adtime.http.resource.util.CharsetUtils;
+import com.adtime.http.resource.util.ConnectionAbortUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -163,7 +164,7 @@ public class EntityReadUtils {
                     bodyTruncatedWarning = true;
                     warningMsg = "[TruncatedChunkException]数据读取可能不完整！！！！";
                 } else if (e instanceof SocketTimeoutException) {
-                    if (byteArrayBuffer.length() != 0) {
+                    if (byteArrayBuffer.length() != 0 && !ConnectionAbortUtils.isNetworkDown()) {
                         bodyTruncatedWarning = true;
                         warningMsg = "[" + e.getMessage() + "]数据读取可能不完整！！！！";
                     } else {

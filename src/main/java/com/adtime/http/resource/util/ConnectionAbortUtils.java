@@ -100,4 +100,8 @@ public class ConnectionAbortUtils {
             }
         }
     }
+
+    public static boolean isNetworkDown() {
+        return checkNetwork.get();
+    }
 }
