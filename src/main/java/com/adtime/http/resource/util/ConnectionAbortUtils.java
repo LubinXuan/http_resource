@@ -118,7 +118,7 @@ public class ConnectionAbortUtils {
      * @param readStartTime 数据读取时间
      * @return
      */
-    public static boolean checkNetworkStatus(long readStartTime) {
+    public static boolean isNetworkOut(long readStartTime) {
         return readStartTime < lastInActive || checkNetwork.get();
     }
 }

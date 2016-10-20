@@ -148,6 +148,12 @@ public class EntityReadUtils {
 
 
             } catch (Exception e) {
+
+                //判断是否网络中断导致数据读取异常
+                if (ConnectionAbortUtils.isNetworkOut(start_read_time)) {
+                    return new Entity(false, e.getMessage());
+                }
+
                 if (e instanceof EOFException) {
                     warningMsg = "页面流 EOF";
                 } else if (e instanceof SocketException) {
@@ -166,7 +172,7 @@ public class EntityReadUtils {
                     bodyTruncatedWarning = true;
                     warningMsg = "[TruncatedChunkException]数据读取可能不完整！！！！";
                 } else if (e instanceof SocketTimeoutException) {
-                    if (byteArrayBuffer.length() != 0 && !ConnectionAbortUtils.checkNetworkStatus(start_read_time)) {
+                    if (byteArrayBuffer.length() != 0) {
                         bodyTruncatedWarning = true;
                         warningMsg = "[" + e.getMessage() + "]数据读取可能不完整！！！！";
                     } else {
