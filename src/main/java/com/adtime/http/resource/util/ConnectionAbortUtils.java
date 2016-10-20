@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.file.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -25,7 +27,24 @@ public class ConnectionAbortUtils {
 
     private static final AtomicBoolean checkNetwork = new AtomicBoolean(false);
 
+    private static WatchKey watchKey = null;
+
     private static long lastInActive = -1;
+
+    static {
+
+        String networkMonitorFile = System.getProperty("network.monitor.file", "C:\\adsl");
+
+        if (StringUtils.isNotBlank(networkMonitorFile)) {
+            try {
+                WatchService watcher = FileSystems.getDefault().newWatchService();
+                Path path = Paths.get(networkMonitorFile);
+                watchKey = path.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY);
+            } catch (IOException e) {
+                logger.warn("网络监听文件监听注册失败", e);
+            }
+        }
+    }
 
     private static final Runnable checkNetworkRunnable = () -> {
 
@@ -74,12 +93,27 @@ public class ConnectionAbortUtils {
         }
 
         boolean isNetworkOut = StringUtils.contains(result.getMessage(), "Network is unreachable");
+
+        if (!isNetworkOut && null != watchKey) {
+            List<WatchEvent<?>> watchEventList = watchKey.pollEvents();
+            for (WatchEvent event : watchEventList) {
+                if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
+                    continue;
+                }
+                if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE || event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
+                    isNetworkOut = true;
+                    break;
+                }
+            }
+        }
+
         if (isNetworkOut) {
             if (checkNetwork.compareAndSet(false, true)) {
                 new Thread(checkNetworkRunnable).start();
             }
-
             checkNetworkStatus();
+            return true;
+        } else if (checkNetworkStatus()) {
             return true;
         }
 
@@ -96,7 +130,7 @@ public class ConnectionAbortUtils {
     /**
      * 判定网络状态，如果网络不可用，线程进入等待状态
      */
-    public static void checkNetworkStatus() {
+    public static boolean checkNetworkStatus() {
         if (checkNetwork.get()) {
             logger.warn("Network is unreachable wait it stable");
             synchronized (checkNetwork) {
@@ -108,6 +142,9 @@ public class ConnectionAbortUtils {
                     }
                 }
             }
+            return true;
+        } else {
+            return false;
         }
     }
 
