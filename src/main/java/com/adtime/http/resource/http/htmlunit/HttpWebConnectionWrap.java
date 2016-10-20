@@ -5,6 +5,7 @@ import com.gargoylesoftware.htmlunit.HttpWebConnection;
 import com.gargoylesoftware.htmlunit.WebConnection;
 import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.WebResponse;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
@@ -29,11 +30,12 @@ public class HttpWebConnectionWrap implements WebConnection {
 
     private final HttpWebConnection webConnection;
 
-    public HttpWebConnectionWrap(HttpWebConnection webConnection) {
+    public HttpWebConnectionWrap(HttpWebConnection webConnection, HttpRoutePlanner routePlanner) {
         this.webConnection = webConnection;
         try {
             HttpClientBuilder builder = (HttpClientBuilder) getHttpClientBuilder.invoke(this.webConnection);
             builder.setDnsResolver(HttpClientHelper.randomDns());
+            builder.setRoutePlanner(routePlanner);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }

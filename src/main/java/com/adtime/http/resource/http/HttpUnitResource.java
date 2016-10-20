@@ -1,15 +1,19 @@
 package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
+import com.adtime.http.resource.extend.DynamicProxyHttpRoutePlanner;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.http.htmlunit.HttpWebConnectionWrap;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.util.HttpUtil;
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.CookieManager;
+import com.gargoylesoftware.htmlunit.gae.GAEUtils;
 import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
 import com.gargoylesoftware.htmlunit.util.UrlUtils;
+import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.impl.conn.DefaultSchemePortResolver;
 
 import javax.annotation.PostConstruct;
 import java.net.*;
@@ -30,9 +34,17 @@ public class HttpUnitResource extends WebResource {
 
     private static final CookieManager cookieManager = new HttpUnitCookieManager();
 
+    private HttpRoutePlanner routePlanner;
+
     @PostConstruct
     public void _init() {
-        ProxySelector.setDefault(new DynamicProxySelector(dynamicProxyProvider));
+        if (null != dynamicProxyProvider) {
+            if (GAEUtils.isGaeMode()) {
+                ProxySelector.setDefault(new DynamicProxySelector(dynamicProxyProvider));
+            } else {
+                this.routePlanner = new DynamicProxyHttpRoutePlanner(new DefaultSchemePortResolver(), dynamicProxyProvider);
+            }
+        }
     }
 
     public WebClient build(CrawlConfig config, Request request) {
@@ -62,7 +74,7 @@ public class HttpUnitResource extends WebResource {
         webClient.setCookieManager(cookieManager);
         WebConnection connection = webClient.getWebConnection();
         if (connection instanceof HttpWebConnection) {
-            HttpWebConnectionWrap wrap = new HttpWebConnectionWrap((HttpWebConnection) connection);
+            HttpWebConnectionWrap wrap = new HttpWebConnectionWrap((HttpWebConnection) connection, this.routePlanner);
             webClient.setWebConnection(wrap);
         }
         return webClient;
