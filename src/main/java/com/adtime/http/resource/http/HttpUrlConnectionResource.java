@@ -79,14 +79,11 @@ public class HttpUrlConnectionResource extends WebResource {
 
         try {
             url = new URL(targetUrl);
-            if (!IPAddressUtil.isIPv4LiteralAddress(url.getHost())) {
-                InetAddress inetAddress = DnsCache.random(url.getHost());
-                if (null != inetAddress) {
-                    __host = url.getHost();
-                    url = new URL(url.getProtocol(), inetAddress.getHostAddress(), url.getPort(), url.getFile());
-                }
+            InetAddress inetAddress = DnsCache.random(url.getHost());
+            if (null != inetAddress && !StringUtils.equalsIgnoreCase(inetAddress.getHostAddress(), url.getHost())) {
+                __host = url.getHost();
+                url = new URL(url.getProtocol(), inetAddress.getHostAddress(), url.getPort(), url.getFile());
             }
-
         } catch (Exception e) {
             handException(e, targetUrl, oUrl);
             return new Result(targetUrl, WebConst.HTTP_ERROR, e.toString());

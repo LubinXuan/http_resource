@@ -16,6 +16,8 @@ import java.io.IOException;
  */
 public class HostCookieAdapterHttpRequestInterceptor extends RequestAddCookies {
 
+    public static final String HTTP_EXEC_TIME = "http-exec-start";
+
     private WebResource resource;
 
     public HostCookieAdapterHttpRequestInterceptor(WebResource resource) {
@@ -27,12 +29,13 @@ public class HostCookieAdapterHttpRequestInterceptor extends RequestAddCookies {
         super.process(request, context);
         if (request instanceof HttpRequestWrapper) {
             HttpRequest _req = ((HttpRequestWrapper) request).getOriginal();
-            if(_req instanceof HttpRequestBase){
+            if (_req instanceof HttpRequestBase) {
                 String host = ((HttpRequestBase) _req).getURI().getHost();
                 if (resource.isCookieRejected(host)) {
                     request.removeHeaders(WebConst.COOKIE);
                 }
             }
         }
+        context.setAttribute(HTTP_EXEC_TIME, System.currentTimeMillis());
     }
 }

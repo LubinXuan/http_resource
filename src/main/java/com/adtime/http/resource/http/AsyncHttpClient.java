@@ -5,8 +5,10 @@ import com.adtime.http.resource.Result;
 import com.adtime.http.resource.ResultConsumer;
 import com.adtime.http.resource.WebConst;
 import com.adtime.http.resource.exception.DownloadStreamException;
+import com.adtime.http.resource.http.httpclient.HostCookieAdapterHttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.nio.reactor.IOReactorException;
@@ -68,9 +70,14 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
         }
 
         requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
-        httpAsyncClient.execute(requestBase, new FutureCallback<HttpResponse>() {
+
+        HttpClientContext httpClientContext = HttpClientContext.create();
+
+        httpAsyncClient.execute(requestBase, httpClientContext, new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse response) {
+                request.setHttpExecStartTime((long) httpClientContext.getAttribute(HostCookieAdapterHttpRequestInterceptor.HTTP_EXEC_TIME));
+
                 Map<String, List<String>> headerMap = readHeader(request, response);
 
                 Result result;
@@ -94,6 +101,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
                         }
                         result.setRedirectCount(redirect);
                     }
+
                     resultConsumer.accept(result);
                 } catch (Exception e) {
                     failed(e);
@@ -104,6 +112,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
 
             @Override
             public void failed(Exception e) {
+                request.setHttpExecStartTime((long) httpClientContext.getAttribute(HostCookieAdapterHttpRequestInterceptor.HTTP_EXEC_TIME));
                 handException(e, url, oUrl);
                 Result result;
                 if (e instanceof DownloadStreamException) {
@@ -118,6 +127,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
 
             @Override
             public void cancelled() {
+                request.setHttpExecStartTime((long) httpClientContext.getAttribute(HostCookieAdapterHttpRequestInterceptor.HTTP_EXEC_TIME));
                 Result result = new Result(url, -1, "请求取消");
                 result.setRedirectCount(redirect);
                 resultConsumer.accept(result);

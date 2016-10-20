@@ -1,5 +1,6 @@
 package com.adtime.http.resource.util;
 
+import com.adtime.http.resource.Request;
 import com.adtime.http.resource.Result;
 import com.adtime.http.resource.WebConst;
 import org.apache.commons.lang3.StringUtils;
@@ -24,9 +25,15 @@ public class ConnectionAbortUtils {
 
     private static final AtomicBoolean checkNetwork = new AtomicBoolean(false);
 
+    private static long lastInActive = -1;
+
     private static final Runnable checkNetworkRunnable = () -> {
 
         logger.warn("Start Network Check Thread");
+
+
+        //更新上次网络故障时间
+        lastInActive = System.currentTimeMillis();
 
         while (true) {
             Socket socket = new Socket();
@@ -53,21 +60,28 @@ public class ConnectionAbortUtils {
         }
     };
 
-    public static boolean isNetworkOut(Result result) {
+    public static boolean isNetworkOut(Result result, Request request) {
         boolean isNetworkOut = result.getStatus() == WebConst.HTTP_ERROR && StringUtils.contains(result.getMessage(), "Network is unreachable");
         if (isNetworkOut) {
             if (checkNetwork.compareAndSet(false, true)) {
                 new Thread(checkNetworkRunnable).start();
             }
 
-            isNetworkOut();
-
+            isNetworkOut(request);
+            return true;
         }
-        return isNetworkOut;
+
+        //判断请求时间与上次网络故障时间
+        if (request.getHttpExecStartTime() < lastInActive) {
+            logger.debug("request start before last network inactive time");
+            return true;
+        }
+
+        return false;
     }
 
 
-    public static void isNetworkOut() {
+    public static void isNetworkOut(Request request) {
         if (checkNetwork.get()) {
             logger.warn("Network is unreachable wait it stable");
             synchronized (checkNetwork) {
@@ -80,5 +94,6 @@ public class ConnectionAbortUtils {
                 }
             }
         }
+        request.setHttpExecStartTime(System.currentTimeMillis());
     }
 }

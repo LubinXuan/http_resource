@@ -6,8 +6,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by Lubin.Xuan on 2015/7/13.
@@ -42,6 +40,8 @@ public class Request implements Serializable {
 
     private Integer connectionTimeout;
     private Integer readTimeout;
+
+    private long httpExecStartTime;
 
     public Request() {
     }
@@ -143,6 +143,14 @@ public class Request implements Serializable {
     public Request setRequestParam(Map<String, String> requestParam) {
         this.requestParam = requestParam;
         return this;
+    }
+
+    public long getHttpExecStartTime() {
+        return httpExecStartTime;
+    }
+
+    public void setHttpExecStartTime(long httpExecStartTime) {
+        this.httpExecStartTime = httpExecStartTime;
     }
 
     public Request setUrl(String url) {

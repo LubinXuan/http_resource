@@ -88,14 +88,12 @@ public abstract class WebResource {
     private Result getResult(final String requestUrl, final Request request, ResultConsumer resultConsumer) {
 
         //检查网络是否正常
-        ConnectionAbortUtils.isNetworkOut();
-
         long start = System.currentTimeMillis();
         if (null != resultConsumer && async) {
             AsyncHttpClient asyncHttpClient = (AsyncHttpClient) this;
             asyncHttpClient.async(requestUrl, request.getOrigUrl(), 0, request, result -> {
                 //判断是否网络断开
-                if (ConnectionAbortUtils.isNetworkOut(result)) {
+                if (ConnectionAbortUtils.isNetworkOut(result, request)) {
                     asyncHttpClient.async(result.getUrl(), result.getUrl(), result.getRedirectCount(), request, resultConsumer);
                 } else if (result.isRedirect() && result.getRedirectCount() < request.getMaxRedirect() && null != result.getMoveToUrl()) {
                     asyncHttpClient.async(result.getMoveToUrl(), result.getMoveToUrl(), result.getRedirectCount(), request, resultConsumer);
@@ -118,10 +116,15 @@ public abstract class WebResource {
             String _requestUrl = requestUrl;
 
             while (true) {
+
+                //判断是否网络断开
+
+                ConnectionAbortUtils.isNetworkOut(request);
+
                 result = request(_requestUrl, request.getOrigUrl(), request);
 
                 //判断是否网络断开
-                if (ConnectionAbortUtils.isNetworkOut(result)) {
+                if (ConnectionAbortUtils.isNetworkOut(result, request)) {
                     continue;
                 }
 

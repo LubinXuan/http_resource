@@ -97,12 +97,10 @@ public class HttpUnitResource extends WebResource {
             String host = null, cookie_host = __url.getHost();
 
             if (GAEUtils.isGaeMode()) {
-                if (!IPAddressUtil.isIPv4LiteralAddress(__url.getHost())) {
-                    InetAddress inetAddress = DnsCache.random(__url.getHost());
-                    if (null != inetAddress) {
-                        host = __url.getHost();
-                        __url = new URL(__url.getProtocol(), inetAddress.getHostAddress(), __url.getPort(), __url.getFile());
-                    }
+                InetAddress inetAddress = DnsCache.random(__url.getHost());
+                if (null != inetAddress && !StringUtils.equalsIgnoreCase(inetAddress.getHostAddress(), __url.getHost())) {
+                    host = __url.getHost();
+                    __url = new URL(__url.getProtocol(), inetAddress.getHostAddress(), __url.getPort(), __url.getFile());
                 }
             }
 
