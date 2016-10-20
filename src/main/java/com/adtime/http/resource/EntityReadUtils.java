@@ -53,8 +53,8 @@ public class EntityReadUtils {
         if (entity == null) {
             throw new IllegalArgumentException("WebResponse may not be null");
         }
-        String conEncoding = entity.getContentCharset();
-        return streamAsByte(entity.getContentLength(), charSet, entity.getContentAsStream(), isGzip(conEncoding), isDeflate(conEncoding), checkBodySize);
+        //String conEncoding = entity.getResponseHeaderValue("content-encoding");
+        return streamAsByte(entity.getContentLength(), charSet, entity.getContentAsStream(), false, false, checkBodySize);
     }
 
     public static Entity read(final HttpURLConnection con, final boolean error, final String charSet, boolean checkBodySize) throws IOException {
