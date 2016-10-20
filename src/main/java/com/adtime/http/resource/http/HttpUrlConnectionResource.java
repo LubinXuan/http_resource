@@ -1,16 +1,20 @@
 package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
+import com.adtime.http.resource.dns.DnsCache;
 import com.adtime.http.resource.exception.DownloadStreamException;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.util.HttpUtil;
 import com.adtime.http.resource.util.SSLSocketUtil;
+import org.apache.commons.lang3.StringUtils;
+import sun.net.util.IPAddressUtil;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
+import java.io.IOException;
 import java.net.*;
 import java.util.*;
 
@@ -25,6 +29,7 @@ public class HttpUrlConnectionResource extends WebResource {
     static {
         sslSocketFactory = SSLSocketUtil.getSSLContext().getSocketFactory();
         System.setProperty("http.maxConnections", "5");
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
     }
 
     private static final CookieStore cookieStore = new MemoryCookieStore();
@@ -68,59 +73,37 @@ public class HttpUrlConnectionResource extends WebResource {
 
     public Result doRequest(String targetUrl, String oUrl, CrawlConfig config, Request request) {
         int retryCount = config.getRetryCount();
-        Result result = null;
+        String __host = null;
+
         URL url;
 
         try {
             url = new URL(targetUrl);
+            if (!IPAddressUtil.isIPv4LiteralAddress(url.getHost())) {
+                InetAddress inetAddress = DnsCache.random(url.getHost());
+                if (null != inetAddress) {
+                    __host = url.getHost();
+                    url = new URL(url.getProtocol(), inetAddress.getHostAddress(), url.getPort(), url.getFile());
+                }
+            }
+
+
         } catch (Exception e) {
             handException(e, targetUrl, oUrl);
             return new Result(targetUrl, WebConst.HTTP_ERROR, e.toString());
         }
 
+        return __send(request, url, __host, targetUrl, oUrl, retryCount);
+    }
+
+    private Result __send(Request request, URL url, String __host, String targetUrl, String oUrl, int retryCount) {
+        Result result;
         do {
             boolean isTimeOut = false;
             HttpURLConnection con = null;
             try {
-                con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod(request.getMethod().name());
-                con.setDoInput(true);
-                con.setUseCaches(false);
-                con.setInstanceFollowRedirects(config.isFollowRedirects());
-                if (null != request.getConnectionTimeout()) {
-                    con.setConnectTimeout(request.getConnectionTimeout());
-                } else {
-                    con.setConnectTimeout(config.getConnectionTimeout());
-                }
-                if (null != request.getReadTimeout()) {
-                    con.setReadTimeout(request.getReadTimeout());
-                } else {
-                    con.setReadTimeout(config.getSocketTimeout());
-                }
-                Map<String, String> default_headers = request.getHeaderMap();
-                for (Map.Entry<String, String> entry : default_headers.entrySet()) {
-                    if (WebConst.COOKIE.equals(entry.getKey())) {
-                        con.setRequestProperty(entry.getKey(), entry.getValue());
-                    } else {
-                        con.addRequestProperty(entry.getKey(), entry.getValue());
-                    }
-                }
-                if (con instanceof HttpsURLConnection) {
-                    if (null == sslSocketFactory) {
-                        throw new SSLException("SSLSocketFactory 没有被初始化!!!");
-                    }
-                    ((HttpsURLConnection) con).setSSLSocketFactory(sslSocketFactory);
-                }
+                con = configConnectionAndSend(request, url, __host);
 
-                setCookie(con);
-
-                if (Request.Method.POST.equals(request.getMethod()) && null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
-                    con.setDoOutput(true);
-                    con.getOutputStream().write(RequestUtil.buildGetParameter(request.getRequestParam()).getBytes("utf-8"));
-                } else {
-                    con.setDoOutput(false);
-                    con.connect();
-                }
                 int sts = con.getResponseCode();
 
                 Map<String, List<String>> headerMap = con.getHeaderFields();
@@ -156,8 +139,55 @@ public class HttpUrlConnectionResource extends WebResource {
             }
             retryCount--;
         } while (retryCount > 0);
-        url = null;
         return result;
+    }
+
+    private HttpURLConnection configConnectionAndSend(Request request, URL url, String __host) throws IOException {
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod(request.getMethod().name());
+        con.setDoInput(true);
+        con.setUseCaches(false);
+        con.setInstanceFollowRedirects(config.isFollowRedirects());
+        if (null != request.getConnectionTimeout()) {
+            con.setConnectTimeout(request.getConnectionTimeout());
+        } else {
+            con.setConnectTimeout(config.getConnectionTimeout());
+        }
+        if (null != request.getReadTimeout()) {
+            con.setReadTimeout(request.getReadTimeout());
+        } else {
+            con.setReadTimeout(config.getSocketTimeout());
+        }
+        Map<String, String> default_headers = request.getHeaderMap();
+        for (Map.Entry<String, String> entry : default_headers.entrySet()) {
+            if (WebConst.COOKIE.equals(entry.getKey())) {
+                con.setRequestProperty(entry.getKey(), entry.getValue());
+            } else {
+                con.addRequestProperty(entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (StringUtils.isNotBlank(__host)) {
+            con.setRequestProperty("Host", __host);
+        }
+
+        if (con instanceof HttpsURLConnection) {
+            if (null == sslSocketFactory) {
+                throw new SSLException("SSLSocketFactory 没有被初始化!!!");
+            }
+            ((HttpsURLConnection) con).setSSLSocketFactory(sslSocketFactory);
+        }
+
+        setCookie(con);
+
+        if (Request.Method.POST.equals(request.getMethod()) && null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
+            con.setDoOutput(true);
+            con.getOutputStream().write(RequestUtil.buildGetParameter(request.getRequestParam()).getBytes("utf-8"));
+        } else {
+            con.setDoOutput(false);
+            con.connect();
+        }
+        return con;
     }
 
 
