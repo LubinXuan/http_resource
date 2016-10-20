@@ -58,20 +58,33 @@ public class DnsPreFetchUtils {
             if (updateInfo.createTime > System.currentTimeMillis() - UPDATE_REQUIRE_TIME / 2) {
                 return DnsCache.getCacheDns(updateInfo.domain);
             }
-            for (String nameServer : NAME_SERVERS) {
-                List<String> resultList = DNSService.search(nameServer, 2000, "A", updateInfo.domain);
-                if (!resultList.isEmpty()) {
-                    InetAddress[] inetAddresses = new InetAddress[resultList.size()];
-                    for (int i = 0; i < resultList.size(); i++) {
-                        try {
-                            inetAddresses[i] = InetAddress.getByName(resultList.get(i));
-                        } catch (UnknownHostException ignore) {
+
+            try {
+                for (String nameServer : NAME_SERVERS) {
+                    List<String> resultList = DNSService.search(nameServer, 2000, "A", updateInfo.domain);
+                    if (!resultList.isEmpty()) {
+                        InetAddress[] addresses = new InetAddress[resultList.size()];
+                        for (int i = 0; i < resultList.size(); i++) {
+                            try {
+                                addresses[i] = InetAddress.getByName(resultList.get(i));
+                            } catch (UnknownHostException ignore) {
+                            }
                         }
+                        updateInfo.createTime = System.currentTimeMillis();
+                        DnsCache.cacheDns(updateInfo.domain, addresses);
+
+                        return addresses;
                     }
-                    updateInfo.createTime = System.currentTimeMillis();
-                    DnsCache.cacheDns(updateInfo.domain, inetAddresses);
-                    return inetAddresses;
                 }
+
+                InetAddress[] addresses = InetAddress.getAllByName(updateInfo.domain);
+
+                if (null != addresses) {
+                    updateInfo.createTime = System.currentTimeMillis();
+                    DnsCache.cacheDns(updateInfo.domain, addresses);
+                    return addresses;
+                }
+            } catch (Exception ignore) {
             }
 
             logger.error("Can't get dns info of [{}]", updateInfo.domain);
