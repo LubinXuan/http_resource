@@ -19,6 +19,7 @@ public class ConnectionAbortUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionAbortUtils.class);
 
+    //利用DNS服务检测网络是否可用
     private static final String ip = System.getProperty("network.check.ip", "114.114.114.114");
 
     private static final AtomicBoolean checkNetwork = new AtomicBoolean(false);
