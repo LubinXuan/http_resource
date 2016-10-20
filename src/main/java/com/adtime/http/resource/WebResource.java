@@ -87,7 +87,9 @@ public abstract class WebResource {
 
     private Result getResult(final String requestUrl, final Request request, ResultConsumer resultConsumer) {
 
-        //检查网络是否正常
+        //判断是否网络断开
+        ConnectionAbortUtils.isNetworkOut();
+
         long start = System.currentTimeMillis();
         if (null != resultConsumer && async) {
             AsyncHttpClient asyncHttpClient = (AsyncHttpClient) this;
@@ -117,10 +119,7 @@ public abstract class WebResource {
 
             while (true) {
 
-                //判断是否网络断开
-
-                ConnectionAbortUtils.isNetworkOut(request);
-
+                request.setHttpExecStartTime(System.currentTimeMillis());
                 result = request(_requestUrl, request.getOrigUrl(), request);
 
                 //判断是否网络断开

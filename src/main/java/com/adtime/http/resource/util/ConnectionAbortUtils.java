@@ -72,7 +72,7 @@ public class ConnectionAbortUtils {
                 new Thread(checkNetworkRunnable).start();
             }
 
-            isNetworkOut(request);
+            isNetworkOut();
             return true;
         }
 
@@ -86,7 +86,7 @@ public class ConnectionAbortUtils {
     }
 
 
-    public static void isNetworkOut(Request request) {
+    public static void isNetworkOut() {
         if (checkNetwork.get()) {
             logger.warn("Network is unreachable wait it stable");
             synchronized (checkNetwork) {
@@ -99,6 +99,5 @@ public class ConnectionAbortUtils {
                 }
             }
         }
-        request.setHttpExecStartTime(System.currentTimeMillis());
     }
 }
