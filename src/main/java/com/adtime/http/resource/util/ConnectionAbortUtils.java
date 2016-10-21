@@ -6,6 +6,8 @@ import com.adtime.http.resource.WebConst;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,6 +34,20 @@ public class ConnectionAbortUtils {
     private static long lastInActive = -1;
 
     static {
+
+        SignalHandler handler = new SignalHandler() {
+            @Override
+            public void handle(Signal signal) {
+                if (StringUtils.equalsIgnoreCase(signal.getName(), "RTMAX-1")) {
+                    logger.warn("接收到RTMAX-2 信号");
+                }else if(StringUtils.equalsIgnoreCase(signal.getName(), "RTMAX-2")){
+                    logger.warn("接收到RTMAX-2 信号");
+                }
+            }
+        };
+
+        Signal.handle(new Signal("RTMAX-1"), handler);
+        Signal.handle(new Signal("RTMAX-2"), handler);
 
         String networkMonitorFile = System.getProperty("network.monitor.file", "C:\\adsl");
 
