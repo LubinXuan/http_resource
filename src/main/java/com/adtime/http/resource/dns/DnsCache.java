@@ -21,11 +21,11 @@ public class DnsCache {
 
     private static final Map<String, InetAddress[]> hostDomainCache = new ConcurrentHashMap<>();
 
-    public static void cacheDns(String domain, InetAddress[] inetAddresses) {
-        if (null == inetAddresses) {
+    public static void cacheDns(String domain, InetAddress[] addresses) {
+        if (null == addresses || addresses.length == 0) {
             return;
         }
-        hostDomainCache.put(domain.toLowerCase(), inetAddresses);
+        hostDomainCache.put(domain.toLowerCase(), addresses);
     }
 
     public static InetAddress[] getCacheDns(String host) {
@@ -40,6 +40,10 @@ public class DnsCache {
     }
 
     public static InetAddress random(String host) {
+        return random(host, false);
+    }
+
+    public static InetAddress random(String host, boolean sync) {
         if (IPAddressUtil.isIPv4LiteralAddress(host)) {
             try {
                 return InetAddress.getByName(host);
@@ -48,6 +52,16 @@ public class DnsCache {
             }
         }
         InetAddress[] addresses = getCacheDns(host);
+
+        if (null == addresses && sync) {
+            try {
+                addresses = InetAddress.getAllByName(host.toLowerCase());
+                cacheDns(host, addresses);
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         if (null == addresses || addresses.length == 0) {
             return null;
         } else if (addresses.length == 1) {
@@ -55,6 +69,18 @@ public class DnsCache {
         } else {
             shuffle(addresses);
             return addresses[0];
+        }
+    }
+
+    public static InetAddress randomSync(String host) throws UnknownHostException {
+        try {
+            return random(host, true);
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof UnknownHostException) {
+                throw (UnknownHostException) e.getCause();
+            } else {
+                throw e;
+            }
         }
     }
 

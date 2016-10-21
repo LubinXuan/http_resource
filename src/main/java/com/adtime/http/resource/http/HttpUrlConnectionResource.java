@@ -5,6 +5,7 @@ import com.adtime.http.resource.dns.DnsCache;
 import com.adtime.http.resource.exception.DownloadStreamException;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.url.URLCanonicalizer;
+import com.adtime.http.resource.url.URLInetAddress;
 import com.adtime.http.resource.util.HttpUtil;
 import com.adtime.http.resource.util.SSLSocketUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -73,32 +74,24 @@ public class HttpUrlConnectionResource extends WebResource {
 
     public Result doRequest(String targetUrl, String oUrl, CrawlConfig config, Request request) {
         int retryCount = config.getRetryCount();
-        String __host = null;
-
-        URL url;
 
         try {
-            url = new URL(targetUrl);
-            InetAddress inetAddress = DnsCache.random(url.getHost());
-            if (null != inetAddress && !StringUtils.equalsIgnoreCase(inetAddress.getHostAddress(), url.getHost())) {
-                __host = url.getHost();
-                url = new URL(url.getProtocol(), inetAddress.getHostAddress(), url.getPort(), url.getFile());
-            }
+            URL url = URLInetAddress.create(targetUrl);
+            return __send(request, url, targetUrl, oUrl, retryCount);
         } catch (Exception e) {
             handException(e, targetUrl, oUrl);
             return new Result(targetUrl, WebConst.HTTP_ERROR, e.toString());
         }
 
-        return __send(request, url, __host, targetUrl, oUrl, retryCount);
     }
 
-    private Result __send(Request request, URL url, String __host, String targetUrl, String oUrl, int retryCount) {
+    private Result __send(Request request, URL url, String targetUrl, String oUrl, int retryCount) {
         Result result;
         do {
             boolean isTimeOut = false;
             HttpURLConnection con = null;
             try {
-                con = configConnectionAndSend(request, url, __host);
+                con = configConnectionAndSend(request, url);
 
                 int sts = con.getResponseCode();
 
@@ -138,7 +131,7 @@ public class HttpUrlConnectionResource extends WebResource {
         return result;
     }
 
-    private HttpURLConnection configConnectionAndSend(Request request, URL url, String __host) throws IOException {
+    private HttpURLConnection configConnectionAndSend(Request request, URL url) throws IOException {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod(request.getMethod().name());
         con.setDoInput(true);
@@ -163,9 +156,9 @@ public class HttpUrlConnectionResource extends WebResource {
             }
         }
 
-        if (StringUtils.isNotBlank(__host)) {
-            con.setRequestProperty("Host", __host);
-        }
+        //if (StringUtils.isNotBlank(__host)) {
+        //    con.setRequestProperty("Host", __host);
+        //}
 
         if (con instanceof HttpsURLConnection) {
             if (null == sslSocketFactory) {

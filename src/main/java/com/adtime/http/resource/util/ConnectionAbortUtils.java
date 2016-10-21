@@ -27,7 +27,7 @@ public class ConnectionAbortUtils {
 
     private static final AtomicBoolean checkNetwork = new AtomicBoolean(false);
 
-    private static WatchKey watchKey = null;
+    private static WatchService watcher = null;
 
     private static long lastInActive = -1;
 
@@ -39,7 +39,7 @@ public class ConnectionAbortUtils {
             try {
                 WatchService watcher = FileSystems.getDefault().newWatchService();
                 Path path = Paths.get(networkMonitorFile);
-                watchKey = path.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY);
+                path.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY);
             } catch (IOException e) {
                 logger.warn("网络监听文件监听注册失败", e);
             }
@@ -94,16 +94,20 @@ public class ConnectionAbortUtils {
 
         boolean isNetworkOut = StringUtils.contains(result.getMessage(), "Network is unreachable");
 
-        if (!isNetworkOut && null != watchKey) {
-            List<WatchEvent<?>> watchEventList = watchKey.pollEvents();
-            for (WatchEvent event : watchEventList) {
-                if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
-                    continue;
+        if (!isNetworkOut && null != watcher) {
+            WatchKey watchKey = watcher.poll();
+            if (null != watchKey) {
+                List<WatchEvent<?>> watchEventList = watchKey.pollEvents();
+                for (WatchEvent event : watchEventList) {
+                    if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
+                        continue;
+                    }
+                    if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE || event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
+                        isNetworkOut = true;
+                        break;
+                    }
                 }
-                if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE || event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
-                    isNetworkOut = true;
-                    break;
-                }
+                watchKey.reset();
             }
         }
 

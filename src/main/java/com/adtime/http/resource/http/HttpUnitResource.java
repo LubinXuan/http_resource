@@ -5,6 +5,7 @@ import com.adtime.http.resource.dns.DnsCache;
 import com.adtime.http.resource.extend.DynamicProxyHttpRoutePlanner;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.http.htmlunit.HttpWebConnectionWrap;
+import com.adtime.http.resource.url.URLInetAddress;
 import com.adtime.http.resource.util.HttpUtil;
 import com.gargoylesoftware.htmlunit.*;
 import com.gargoylesoftware.htmlunit.CookieManager;
@@ -92,17 +93,22 @@ public class HttpUnitResource extends WebResource {
         WebClient webClient = build(config, request);
         try {
 
-            URL __url = UrlUtils.toUrlUnsafe(url);
+            URL __url;
 
-            String host = null, cookie_host = __url.getHost();
+            String cookie_host;
 
             if (GAEUtils.isGaeMode()) {
-                InetAddress inetAddress = DnsCache.random(__url.getHost());
-                if (null != inetAddress && !StringUtils.equalsIgnoreCase(inetAddress.getHostAddress(), __url.getHost())) {
-                    host = __url.getHost();
-                    __url = new URL(__url.getProtocol(), inetAddress.getHostAddress(), __url.getPort(), __url.getFile());
+                try {
+                    __url = URLInetAddress.create(url);
+                } catch (Exception e) {
+                    handException(e, url, oUrl);
+                    return new Result(url, WebConst.HTTP_ERROR, e.toString());
                 }
+            } else {
+                __url = UrlUtils.toUrlUnsafe(url);
             }
+
+            cookie_host = __url.getHost();
 
             WebRequest webRequest;
 
@@ -119,9 +125,7 @@ public class HttpUnitResource extends WebResource {
                 }
             }
 
-            if (StringUtils.isNotBlank(host)) {
-                webRequest.setAdditionalHeader("Host", host);
-            }
+            webRequest.setAdditionalHeader("Host",cookie_host);
             webRequest.setAdditionalHeader("Connection", "close");
 
             Map<String, String> _headers = request.getHeaderMap();
