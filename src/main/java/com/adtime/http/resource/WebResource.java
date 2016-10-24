@@ -5,7 +5,6 @@ import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.url.format.FormatUrl;
 import com.adtime.http.resource.url.invalid.InvalidUrl;
-import com.adtime.http.resource.util.ConnectionAbortUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +35,7 @@ public abstract class WebResource {
 
     static {
         System.setProperty("jsse.enableSNIExtension", "false");
+        ConnectionAbortUtils.init();
     }
 
     private boolean async = this instanceof AsyncHttpClient;

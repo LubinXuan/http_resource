@@ -1,21 +1,18 @@
-package com.adtime.http.resource.util;
+package com.adtime.http.resource;
 
-import com.adtime.http.resource.Request;
-import com.adtime.http.resource.Result;
-import com.adtime.http.resource.WebConst;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.*;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 
 /**
  * Created by xuanlubin on 2016/10/20.
@@ -27,35 +24,58 @@ public class ConnectionAbortUtils {
     //利用DNS服务检测网络是否可用
     private static final String ip = System.getProperty("network.check.ip", "114.114.114.114");
 
-    private static final AtomicBoolean checkNetwork = new AtomicBoolean(false);
+    private static final AtomicBoolean networkDown = new AtomicBoolean(false);
 
-    private static WatchService watcher = null;
+    private static final AtomicBoolean init = new AtomicBoolean(false);
 
     private static long lastInActive = -1;
 
-    static {
+    protected static void init() {
 
-        SignalHandler handler = new SignalHandler() {
-            @Override
-            public void handle(Signal signal) {
-                if (StringUtils.equalsIgnoreCase(signal.getName(), "RTMAX-1")) {
-                    logger.warn("接收到RTMAX-2 信号");
-                }else if(StringUtils.equalsIgnoreCase(signal.getName(), "RTMAX-2")){
-                    logger.warn("接收到RTMAX-2 信号");
-                }
-            }
-        };
+        if (!init.compareAndSet(false, true)) {
+            return;
+        }
 
-        Signal.handle(new Signal("RTMAX-1"), handler);
-        Signal.handle(new Signal("RTMAX-2"), handler);
-
-        String networkMonitorFile = System.getProperty("network.monitor.file", "C:\\adsl");
+        String networkMonitorFile = System.getProperty("network.monitor.file", "/tmp");
 
         if (StringUtils.isNotBlank(networkMonitorFile)) {
             try {
                 WatchService watcher = FileSystems.getDefault().newWatchService();
                 Path path = Paths.get(networkMonitorFile);
-                path.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY);
+                path.register(watcher, ENTRY_CREATE, ENTRY_DELETE);
+                Thread thread = new Thread(() -> {
+                    while (true) {
+                        WatchKey watchKey = null;
+                        try {
+                            watchKey = watcher.take();
+                        } catch (InterruptedException e) {
+                            continue;
+                        }
+
+                        for (WatchEvent event : watchKey.pollEvents()) {
+                            Object context = event.context();
+                            if (context instanceof Path) {
+                                String fileName = ((Path) context).toFile().getName();
+                                if (StringUtils.equalsIgnoreCase(fileName, "network_reboot_signal")) {
+                                    logger.warn("监听到网络变化信息!!!!  {}", event.kind());
+                                    if (event.kind().equals(ENTRY_CREATE)) {
+                                        networkDown.set(true);
+                                        //更新上次网络故障时间
+                                        lastInActive = System.currentTimeMillis();
+                                    } else if (event.kind().equals(ENTRY_DELETE)) {
+                                        networkDown.set(false);
+                                        synchronized (networkDown) {
+                                            networkDown.notifyAll();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        watchKey.reset();
+                    }
+                });
+                thread.setName("NetworkChangeMonitorThread");
+                thread.start();
             } catch (IOException e) {
                 logger.warn("网络监听文件监听注册失败", e);
             }
@@ -64,8 +84,11 @@ public class ConnectionAbortUtils {
 
     private static final Runnable checkNetworkRunnable = () -> {
 
-        logger.warn("Start Network Check Thread");
+        if (!networkDown.get()) {
+            return;
+        }
 
+        logger.warn("Start Network Check Thread");
 
         //更新上次网络故障时间
         lastInActive = System.currentTimeMillis();
@@ -76,10 +99,10 @@ public class ConnectionAbortUtils {
                 socket.connect(new InetSocketAddress(ip, 53));
                 socket.close();
 
-                checkNetwork.set(false);
+                networkDown.set(false);
 
-                synchronized (checkNetwork) {
-                    checkNetwork.notifyAll();
+                synchronized (networkDown) {
+                    networkDown.notifyAll();
 
                 }
                 logger.warn("Network stable");
@@ -110,25 +133,8 @@ public class ConnectionAbortUtils {
 
         boolean isNetworkOut = StringUtils.contains(result.getMessage(), "Network is unreachable");
 
-        if (!isNetworkOut && null != watcher) {
-            WatchKey watchKey = watcher.poll();
-            if (null != watchKey) {
-                List<WatchEvent<?>> watchEventList = watchKey.pollEvents();
-                for (WatchEvent event : watchEventList) {
-                    if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
-                        continue;
-                    }
-                    if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE || event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
-                        isNetworkOut = true;
-                        break;
-                    }
-                }
-                watchKey.reset();
-            }
-        }
-
         if (isNetworkOut) {
-            if (checkNetwork.compareAndSet(false, true)) {
+            if (networkDown.compareAndSet(false, true)) {
                 new Thread(checkNetworkRunnable).start();
             }
             checkNetworkStatus();
@@ -151,12 +157,12 @@ public class ConnectionAbortUtils {
      * 判定网络状态，如果网络不可用，线程进入等待状态
      */
     public static boolean checkNetworkStatus() {
-        if (checkNetwork.get()) {
+        if (networkDown.get()) {
             logger.warn("Network is unreachable wait it stable");
-            synchronized (checkNetwork) {
-                if (checkNetwork.get()) {
+            synchronized (networkDown) {
+                if (networkDown.get()) {
                     try {
-                        checkNetwork.wait();
+                        networkDown.wait();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -176,6 +182,6 @@ public class ConnectionAbortUtils {
      * @return
      */
     public static boolean isNetworkOut(long readStartTime) {
-        return readStartTime < lastInActive || checkNetwork.get();
+        return readStartTime < lastInActive || networkDown.get();
     }
 }

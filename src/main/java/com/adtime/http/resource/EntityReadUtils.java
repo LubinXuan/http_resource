@@ -1,7 +1,6 @@
 package com.adtime.http.resource;
 
 import com.adtime.http.resource.util.CharsetUtils;
-import com.adtime.http.resource.util.ConnectionAbortUtils;
 import com.gargoylesoftware.htmlunit.WebResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
