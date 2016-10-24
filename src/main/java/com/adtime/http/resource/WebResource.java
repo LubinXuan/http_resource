@@ -200,14 +200,10 @@ public abstract class WebResource {
 
     public abstract void registerCookie(String domain, String name, String value);
 
-    protected boolean handException(Throwable e, String url, String oUrl) {
+    protected boolean handException(Throwable e, String address, String url, String oUrl) {
         boolean isTimeOut = e instanceof SocketTimeoutException;
-        if (!_handException(e, url, oUrl)) {
-            logger.error("", e);
-        }
-
-        logger.error("读取页面异常URL:" + url + " - " + oUrl, e);
-
+        _handException(e, url, oUrl);
+        logger.error("读取页面异常URL:[{}] {} {} {}", address, url, oUrl, e);
         return isTimeOut;
     }
 

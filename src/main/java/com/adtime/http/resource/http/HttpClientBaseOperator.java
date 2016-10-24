@@ -2,6 +2,7 @@ package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
 import com.adtime.http.resource.url.URLCanonicalizer;
+import com.adtime.http.resource.url.URLInetAddress;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -15,9 +16,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.*;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,13 +49,21 @@ public abstract class HttpClientBaseOperator extends WebResource {
     }
 
     protected HttpRequestBase create(String requestUrl, Request request) throws MalformedURLException, URISyntaxException {
+        URL url;
+        try {
+            url = URLInetAddress.create(requestUrl);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         HttpRequestBase requestBase;
         URI requestUri;
         try {
-            requestUri = URI.create(requestUrl);
+            requestUri = url.toURI();
         } catch (IllegalArgumentException e) {
-            URL url = new URL(requestUrl);
-            requestUri = new URI(url.getProtocol(),url.getUserInfo(), url.getHost(),url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+            requestUri = new URI(url.getProtocol(), url.getUserInfo(), url.getAuthority(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         if (Request.Method.GET.equals(request.getMethod())) {
             requestBase = new HttpGet(requestUri);
@@ -76,6 +83,9 @@ public abstract class HttpClientBaseOperator extends WebResource {
             } else {
                 requestBase.addHeader(entry.getKey(), entry.getValue());
             }
+        }
+        if (!_headers.containsKey("Host")) {
+            requestBase.addHeader("Host", url.getHost());
         }
         return requestBase;
     }

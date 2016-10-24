@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestMain extends BaseTest {
 
     static {
-        System.setProperty("http.proxyHost", "192.168.100.50");
-        System.setProperty("http.proxyPort", "8888");
+        //System.setProperty("http.proxyHost", "192.168.100.50");
+        //System.setProperty("http.proxyPort", "8888");
         //System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
 

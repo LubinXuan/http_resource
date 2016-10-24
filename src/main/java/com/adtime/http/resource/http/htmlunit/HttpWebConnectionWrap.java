@@ -34,7 +34,6 @@ public class HttpWebConnectionWrap implements WebConnection {
         this.webConnection = webConnection;
         try {
             HttpClientBuilder builder = (HttpClientBuilder) getHttpClientBuilder.invoke(this.webConnection);
-            builder.setDnsResolver(HttpClientHelper.randomDns());
             builder.setRoutePlanner(routePlanner);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);

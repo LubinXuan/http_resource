@@ -64,7 +64,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
         try {
             requestBase = create(url, request);
         } catch (Throwable e) {
-            handException(e, url, oUrl);
+            handException(e, null, url, oUrl);
             resultConsumer.accept(new Result(url, WebConst.HTTP_ERROR, e.toString()));
             return;
         }
@@ -113,7 +113,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
             @Override
             public void failed(Exception e) {
                 request.setHttpExecStartTime((long) httpClientContext.getAttribute(HostCookieAdapterHttpRequestInterceptor.HTTP_EXEC_TIME));
-                handException(e, url, oUrl);
+                handException(e, requestBase.getURI().getAuthority(), url, oUrl);
                 Result result;
                 if (e instanceof DownloadStreamException) {
                     result = new Result(url, WebConst.DOWNLOAD_STREAM, e.toString());

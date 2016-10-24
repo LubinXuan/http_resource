@@ -1,7 +1,6 @@
 package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
-import com.adtime.http.resource.dns.DnsCache;
 import com.adtime.http.resource.extend.DynamicProxyHttpRoutePlanner;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.http.htmlunit.HttpWebConnectionWrap;
@@ -12,11 +11,9 @@ import com.gargoylesoftware.htmlunit.CookieManager;
 import com.gargoylesoftware.htmlunit.gae.GAEUtils;
 import com.gargoylesoftware.htmlunit.util.Cookie;
 import com.gargoylesoftware.htmlunit.util.NameValuePair;
-import com.gargoylesoftware.htmlunit.util.UrlUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
-import sun.net.util.IPAddressUtil;
 
 import javax.annotation.PostConstruct;
 import java.net.*;
@@ -90,25 +87,20 @@ public class HttpUnitResource extends WebResource {
 
     @Override
     public Result request(String url, String oUrl, Request request) {
+
+        URL __url;
+
+        try {
+            __url = URLInetAddress.create(url);
+        } catch (Exception e) {
+            handException(e, null, url, oUrl);
+            return new Result(url, WebConst.HTTP_ERROR, e.toString());
+        }
+
         WebClient webClient = build(config, request);
         try {
 
-            URL __url;
-
-            String cookie_host;
-
-            if (GAEUtils.isGaeMode()) {
-                try {
-                    __url = URLInetAddress.create(url);
-                } catch (Exception e) {
-                    handException(e, url, oUrl);
-                    return new Result(url, WebConst.HTTP_ERROR, e.toString());
-                }
-            } else {
-                __url = UrlUtils.toUrlUnsafe(url);
-            }
-
-            cookie_host = __url.getHost();
+            String cookie_host = __url.getHost();
 
             WebRequest webRequest;
 
@@ -125,7 +117,7 @@ public class HttpUnitResource extends WebResource {
                 }
             }
 
-            webRequest.setAdditionalHeader("Host",cookie_host);
+            webRequest.setAdditionalHeader("Host", cookie_host);
             webRequest.setAdditionalHeader("Connection", "close");
 
             Map<String, String> _headers = request.getHeaderMap();
@@ -183,10 +175,10 @@ public class HttpUnitResource extends WebResource {
             }
             return result.withHeader(headerMap);
         } catch (RuntimeException e) {
-            handException(e, url, oUrl);
+            handException(e, __url.getAuthority(), url, oUrl);
             return new Result(oUrl, WebConst.HTTP_ERROR, e.toString());
         } catch (Exception e) {
-            handException(e, url, oUrl);
+            handException(e, __url.getAuthority(), url, oUrl);
             return new Result(oUrl, WebConst.HTTP_ERROR, e.toString());
         } finally {
             webClient.close();

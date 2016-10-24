@@ -174,7 +174,7 @@ public class Clients435 extends HttpClientHelper {
                     logger.error("Https Registry Fail : {}", e.toString());
                 }
             }
-            connectionManager = new PoolingHttpClientConnectionManager(registryBuilder.build(), randomDns());
+            connectionManager = new PoolingHttpClientConnectionManager(registryBuilder.build());
             connectionManager.setDefaultConnectionConfig(connectionConfig);
             connectionManager.setMaxTotal(config.getMaxTotalConnections());
             connectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
@@ -218,7 +218,7 @@ public class Clients435 extends HttpClientHelper {
                     logger.error("Https Registry Fail : {}", e.toString());
                 }
             }
-            nHttpClientConnectionManager = new PoolingNHttpClientConnectionManager(ioReactor, null, registryBuilder.build(), randomDns());
+            nHttpClientConnectionManager = new PoolingNHttpClientConnectionManager(ioReactor, null, registryBuilder.build());
             nHttpClientConnectionManager.setMaxTotal(config.getMaxTotalConnections());
             nHttpClientConnectionManager.setDefaultMaxPerRoute(config.getMaxConnectionsPerHost());
             nHttpClientConnectionManager.setDefaultConnectionConfig(connectionConfig);

@@ -11,6 +11,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
@@ -34,10 +36,15 @@ public class HttpClientResource extends HttpClientBaseOperator {
     }
 
     private Result doRequest(String url, String oUrl, HttpClient client, Request request) {
-        HttpRequestBase requestBase = null;
-        HttpResponse response = null;
+        HttpRequestBase requestBase;
         try {
             requestBase = create(url, request);
+        } catch (MalformedURLException | URISyntaxException e) {
+            return new Result(url, WebConst.HTTP_ERROR, e.toString());
+        }
+
+        HttpResponse response = null;
+        try {
             requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
             response = client.execute(requestBase);
             Map<String, List<String>> headerMap = readHeader(request, response);
@@ -58,7 +65,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
                 }
             }
         } catch (Throwable e) {
-            handException(e, url, oUrl);
+            handException(e, requestBase.getURI().getAuthority(), url, oUrl);
             if (e instanceof DownloadStreamException) {
                 return new Result(url, WebConst.DOWNLOAD_STREAM, e.toString());
             }

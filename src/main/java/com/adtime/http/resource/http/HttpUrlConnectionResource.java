@@ -1,7 +1,6 @@
 package com.adtime.http.resource.http;
 
 import com.adtime.http.resource.*;
-import com.adtime.http.resource.dns.DnsCache;
 import com.adtime.http.resource.exception.DownloadStreamException;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.url.URLCanonicalizer;
@@ -9,7 +8,6 @@ import com.adtime.http.resource.url.URLInetAddress;
 import com.adtime.http.resource.util.HttpUtil;
 import com.adtime.http.resource.util.SSLSocketUtil;
 import org.apache.commons.lang3.StringUtils;
-import sun.net.util.IPAddressUtil;
 
 import javax.annotation.PostConstruct;
 import javax.net.ssl.HttpsURLConnection;
@@ -17,7 +15,8 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.*;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Lubin.Xuan on 2015/6/2.
@@ -79,7 +78,7 @@ public class HttpUrlConnectionResource extends WebResource {
             URL url = URLInetAddress.create(targetUrl);
             return __send(request, url, targetUrl, oUrl, retryCount);
         } catch (Exception e) {
-            handException(e, targetUrl, oUrl);
+            handException(e, null, targetUrl, oUrl);
             return new Result(targetUrl, WebConst.HTTP_ERROR, e.toString());
         }
 
@@ -118,7 +117,7 @@ public class HttpUrlConnectionResource extends WebResource {
                 if (e instanceof DownloadStreamException) {
                     return new Result(targetUrl, WebConst.DOWNLOAD_STREAM, e.toString());
                 }
-                isTimeOut = handException(e, targetUrl, oUrl);
+                isTimeOut = handException(e, url.getAuthority(), targetUrl, oUrl);
                 result = new Result(targetUrl, WebConst.HTTP_ERROR, e.toString());
             } finally {
                 closeHttpURLConnection(con);
