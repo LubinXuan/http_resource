@@ -13,6 +13,7 @@ import java.util.concurrent.*;
 
 /**
  * Created by xuanlubin on 2016/9/8.
+ *
  */
 public class DnsPreFetchUtils {
 
@@ -35,9 +36,12 @@ public class DnsPreFetchUtils {
 
     static {
 
-        String dnsServers = System.getProperty("dns.server", "114.114.114.114");
+        String dnsServers = System.getProperty("dns.server", "114.114.114.114,8.8.8.8");
         String[] _dnsServers = dnsServers.split(",");
         Collections.addAll(NAME_SERVERS, _dnsServers);
+
+
+        DNSService.init(_dnsServers, 2000);
 
         new Timer("DnsInfoUpdate").schedule(new TimerTask() {
             @Override
@@ -50,6 +54,7 @@ public class DnsPreFetchUtils {
                 }
             }
         }, 5000, 5000);
+
     }
 
     private static InetAddress[] updateDnsInfo(DnsUpdateInfo updateInfo, boolean sync) {
@@ -60,21 +65,20 @@ public class DnsPreFetchUtils {
             }
 
             try {
-                for (String nameServer : NAME_SERVERS) {
-                    List<String> resultList = DNSService.search(nameServer, 2000, "A", updateInfo.domain);
-                    if (!resultList.isEmpty()) {
-                        InetAddress[] addresses = new InetAddress[resultList.size()];
-                        for (int i = 0; i < resultList.size(); i++) {
-                            try {
-                                addresses[i] = InetAddress.getByName(resultList.get(i));
-                            } catch (UnknownHostException ignore) {
-                            }
-                        }
-                        updateInfo.createTime = System.currentTimeMillis();
-                        DnsCache.cacheDns(updateInfo.domain, addresses);
 
-                        return addresses;
+
+                List<String> resultList = DNSService.search("A", updateInfo.domain);
+                if (!resultList.isEmpty()) {
+                    InetAddress[] addresses = new InetAddress[resultList.size()];
+                    for (int i = 0; i < resultList.size(); i++) {
+                        try {
+                            addresses[i] = InetAddress.getByName(resultList.get(i));
+                        } catch (UnknownHostException ignore) {
+                        }
                     }
+                    updateInfo.createTime = System.currentTimeMillis();
+                    DnsCache.cacheDns(updateInfo.domain, addresses);
+                    return addresses;
                 }
 
                 InetAddress[] addresses = InetAddress.getAllByName(updateInfo.domain);
@@ -83,13 +87,15 @@ public class DnsPreFetchUtils {
                     updateInfo.createTime = System.currentTimeMillis();
                     DnsCache.cacheDns(updateInfo.domain, addresses);
                     return addresses;
+                } else {
+                    logger.error("Can't get dns info of [{}]", updateInfo.domain);
+                    return null;
                 }
             } catch (Exception ignore) {
+                logger.warn("DNS 信息获取异常 {}", ignore.toString());
+                return null;
             }
 
-            logger.error("Can't get dns info of [{}]", updateInfo.domain);
-
-            return null;
         };
 
         Future<InetAddress[]> future = SERVICE.submit(runnable);
