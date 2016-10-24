@@ -13,7 +13,6 @@ import java.util.concurrent.*;
 
 /**
  * Created by xuanlubin on 2016/9/8.
- *
  */
 public class DnsPreFetchUtils {
 
@@ -24,8 +23,6 @@ public class DnsPreFetchUtils {
     private static final List<DnsUpdateInfo> DOMAIN_FETCH_QUEUE = new ArrayList<>(65535);
 
     private static final ExecutorService SERVICE = Executors.newFixedThreadPool(3);
-
-    private static List<String> NAME_SERVERS = new ArrayList<>();
 
     private static final long UPDATE_REQUIRE_TIME = 60000;
 
@@ -38,7 +35,6 @@ public class DnsPreFetchUtils {
 
         String dnsServers = System.getProperty("dns.server", "114.114.114.114,8.8.8.8");
         String[] _dnsServers = dnsServers.split(",");
-        Collections.addAll(NAME_SERVERS, _dnsServers);
 
 
         DNSService.init(_dnsServers, 2000);
@@ -63,10 +59,7 @@ public class DnsPreFetchUtils {
             if (updateInfo.createTime > System.currentTimeMillis() - UPDATE_REQUIRE_TIME / 2) {
                 return DnsCache.getCacheDns(updateInfo.domain);
             }
-
             try {
-
-
                 List<String> resultList = DNSService.search("A", updateInfo.domain);
                 if (!resultList.isEmpty()) {
                     InetAddress[] addresses = new InetAddress[resultList.size()];
@@ -79,23 +72,19 @@ public class DnsPreFetchUtils {
                     updateInfo.createTime = System.currentTimeMillis();
                     DnsCache.cacheDns(updateInfo.domain, addresses);
                     return addresses;
-                }
-
-                InetAddress[] addresses = InetAddress.getAllByName(updateInfo.domain);
-
-                if (null != addresses) {
-                    updateInfo.createTime = System.currentTimeMillis();
-                    DnsCache.cacheDns(updateInfo.domain, addresses);
-                    return addresses;
                 } else {
-                    logger.error("Can't get dns info of [{}]", updateInfo.domain);
-                    return null;
+                    InetAddress[] addresses = InetAddress.getAllByName(updateInfo.domain);
+                    if (null != addresses) {
+                        updateInfo.createTime = System.currentTimeMillis();
+                        DnsCache.cacheDns(updateInfo.domain, addresses);
+                        return addresses;
+                    }
                 }
+                logger.error("Can't get dns info of [{}]", updateInfo.domain);
             } catch (Exception ignore) {
                 logger.warn("DNS 信息获取异常 {}", ignore.toString());
-                return null;
             }
-
+            return null;
         };
 
         Future<InetAddress[]> future = SERVICE.submit(runnable);
