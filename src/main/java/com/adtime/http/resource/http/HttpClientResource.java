@@ -41,6 +41,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
         try {
             requestBase = create(url, request);
         } catch (MalformedURLException | UnknownHostException | URISyntaxException e) {
+            handException(e, null, url, oUrl);
             return new Result(url, WebConst.HTTP_ERROR, e.toString());
         }
 
