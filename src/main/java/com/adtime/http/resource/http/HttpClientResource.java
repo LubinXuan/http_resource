@@ -13,6 +13,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
         HttpRequestBase requestBase;
         try {
             requestBase = create(url, request);
-        } catch (MalformedURLException | URISyntaxException e) {
+        } catch (MalformedURLException | UnknownHostException | URISyntaxException e) {
             return new Result(url, WebConst.HTTP_ERROR, e.toString());
         }
 

@@ -14,6 +14,9 @@ import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.nio.reactor.IOReactorException;
 
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -63,7 +66,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
         HttpRequestBase requestBase;
         try {
             requestBase = create(url, request);
-        } catch (Throwable e) {
+        } catch (UnknownHostException | URISyntaxException | MalformedURLException e) {
             handException(e, null, url, oUrl);
             resultConsumer.accept(new Result(url, WebConst.HTTP_ERROR, e.toString()));
             return;

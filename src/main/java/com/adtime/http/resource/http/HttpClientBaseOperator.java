@@ -48,14 +48,8 @@ public abstract class HttpClientBaseOperator extends WebResource {
                 e instanceof TruncatedChunkException;
     }
 
-    protected HttpRequestBase create(String requestUrl, Request request) throws MalformedURLException, URISyntaxException {
-        URL url;
-        try {
-            url = URLInetAddress.create(requestUrl);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
+    protected HttpRequestBase create(String requestUrl, Request request) throws MalformedURLException, URISyntaxException, UnknownHostException {
+        URL url = URLInetAddress.create(requestUrl);
         HttpRequestBase requestBase;
         URI requestUri;
         try {
