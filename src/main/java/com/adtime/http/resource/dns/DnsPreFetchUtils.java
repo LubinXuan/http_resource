@@ -59,32 +59,11 @@ public class DnsPreFetchUtils {
             if (updateInfo.createTime > System.currentTimeMillis() - UPDATE_REQUIRE_TIME / 2) {
                 return DnsCache.getCacheDns(updateInfo.domain);
             }
-            try {
-                List<String> resultList = DNSService.search("A", updateInfo.domain);
-                if (!resultList.isEmpty()) {
-                    InetAddress[] addresses = new InetAddress[resultList.size()];
-                    for (int i = 0; i < resultList.size(); i++) {
-                        try {
-                            addresses[i] = InetAddress.getByName(resultList.get(i));
-                        } catch (UnknownHostException ignore) {
-                        }
-                    }
-                    updateInfo.createTime = System.currentTimeMillis();
-                    DnsCache.cacheDns(updateInfo.domain, addresses);
-                    return addresses;
-                } else {
-                    InetAddress[] addresses = InetAddress.getAllByName(updateInfo.domain);
-                    if (null != addresses) {
-                        updateInfo.createTime = System.currentTimeMillis();
-                        DnsCache.cacheDns(updateInfo.domain, addresses);
-                        return addresses;
-                    }
-                }
-                logger.error("Can't get dns info of [{}]", updateInfo.domain);
-            } catch (Exception ignore) {
-                logger.warn("DNS 信息获取异常 {}", ignore.toString());
+            InetAddress[] addresses = queryDns(updateInfo.domain);
+            if (null != addresses && addresses.length > 0) {
+                updateInfo.createTime = System.currentTimeMillis();
             }
-            return null;
+            return addresses;
         };
 
         Future<InetAddress[]> future = SERVICE.submit(runnable);
@@ -95,6 +74,45 @@ public class DnsPreFetchUtils {
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
+        }
+        return null;
+    }
+
+
+    public static InetAddress[] queryDns(String host) {
+
+        if (IPAddressUtil.isIPv4LiteralAddress(host)) {
+            try {
+                return InetAddress.getAllByName(host);
+            } catch (UnknownHostException e) {
+                return null;
+            }
+        }
+
+        host = host.toLowerCase();
+
+        try {
+            List<String> resultList = DNSService.search("A", host);
+            if (!resultList.isEmpty()) {
+                InetAddress[] addresses = new InetAddress[resultList.size()];
+                for (int i = 0; i < resultList.size(); i++) {
+                    try {
+                        addresses[i] = InetAddress.getByName(resultList.get(i));
+                    } catch (UnknownHostException ignore) {
+                    }
+                }
+                DnsCache.cacheDns(host, addresses);
+                return addresses;
+            } else {
+                InetAddress[] addresses = InetAddress.getAllByName(host);
+                if (null != addresses) {
+                    DnsCache.cacheDns(host, addresses);
+                    return addresses;
+                }
+            }
+            logger.error("Can't get dns info of [{}]", host);
+        } catch (Exception ignore) {
+            logger.warn("DNS 信息获取异常 {}", ignore.toString());
         }
         return null;
     }

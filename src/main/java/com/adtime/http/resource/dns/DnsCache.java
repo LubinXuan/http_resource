@@ -39,31 +39,32 @@ public class DnsCache {
         return hostDomainCache.containsKey(host.toLowerCase());
     }
 
-    public static InetAddress random(String host) {
+    public static InetAddress random(String host) throws UnknownHostException {
         return random(host, false);
     }
 
-    public static InetAddress random(String host, boolean sync) {
+    private static final Map<String, Object> DNS_FETCH_LOCK = new ConcurrentHashMap<>();
+
+    public static InetAddress random(String host, boolean sync) throws UnknownHostException {
         if (IPAddressUtil.isIPv4LiteralAddress(host)) {
-            try {
-                return InetAddress.getByName(host);
-            } catch (UnknownHostException e) {
-                throw new RuntimeException(e);
-            }
+            return InetAddress.getByName(host);
         }
+
         InetAddress[] addresses = getCacheDns(host);
 
         if (null == addresses && sync) {
-            try {
-                addresses = InetAddress.getAllByName(host.toLowerCase());
-                cacheDns(host, addresses);
-            } catch (UnknownHostException e) {
-                throw new RuntimeException(e);
+            final Object lock = DNS_FETCH_LOCK.computeIfAbsent(host, k -> new Object());
+            synchronized (lock) {
+                if (contains(host)) {
+                    addresses = getCacheDns(host);
+                } else {
+                    addresses = DnsPreFetchUtils.queryDns(host);
+                }
             }
         }
 
         if (null == addresses || addresses.length == 0) {
-            return null;
+            throw new UnknownHostException(host);
         } else if (addresses.length == 1) {
             return addresses[0];
         } else {
@@ -73,15 +74,7 @@ public class DnsCache {
     }
 
     public static InetAddress randomSync(String host) throws UnknownHostException {
-        try {
-            return random(host, true);
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof UnknownHostException) {
-                throw (UnknownHostException) e.getCause();
-            } else {
-                throw e;
-            }
-        }
+        return random(host, true);
     }
 
 
