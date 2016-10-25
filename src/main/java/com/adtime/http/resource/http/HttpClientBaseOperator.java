@@ -79,7 +79,7 @@ public abstract class HttpClientBaseOperator extends WebResource {
             }
         }
         if (!_headers.containsKey("Host")) {
-            requestBase.addHeader("Host", url.getHost());
+            requestBase.setHeader("Host", url.getHost());
         }
         return requestBase;
     }
