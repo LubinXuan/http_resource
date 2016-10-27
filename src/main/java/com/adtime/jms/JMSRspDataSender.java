@@ -26,7 +26,7 @@ public class JMSRspDataSender {
 
     private File dir = new File("./crawled_store");
 
-    private final BlockingQueue<RspData> ecTaskRspBlockingQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<RspData> rspBlockingQueue = new LinkedBlockingQueue<>();
 
     public JMSRspDataSender(String folder, JMSDataHandler jmsDataHandler) {
         dir = new File(folder);
@@ -49,7 +49,11 @@ public class JMSRspDataSender {
     }
 
     public void send(Object data, String destination) {
-        ecTaskRspBlockingQueue.offer(new RspData(destination, data));
+        rspBlockingQueue.offer(new RspData(destination, data));
+    }
+
+    public int pending(){
+        return rspBlockingQueue.size();
     }
 
     private void startFileWriteThread() {
@@ -59,7 +63,7 @@ public class JMSRspDataSender {
             String fileName = null;
             int count = 0;
             while (true) {
-                RspData taskRsp = ecTaskRspBlockingQueue.poll();
+                RspData taskRsp = rspBlockingQueue.poll();
                 if (null != taskRsp) {
                     if (null == fos) {
                         fileName = Long.toString(System.currentTimeMillis());
@@ -70,7 +74,7 @@ public class JMSRspDataSender {
                         IOUtils.write(taskRsp.getDestination() + ":" + JSON.toJSONString(taskRsp) + "\r\n", fos, "utf-8");
                     } catch (Throwable e) {
                         logger.warn("数据写入文件异常!!! {}", e);
-                        ecTaskRspBlockingQueue.offer(taskRsp);
+                        rspBlockingQueue.offer(taskRsp);
                     }
 
                     count++;
