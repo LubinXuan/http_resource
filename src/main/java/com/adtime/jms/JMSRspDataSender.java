@@ -45,14 +45,22 @@ public class JMSRspDataSender {
         }
 
         startFileWriteThread();
-        startJmsSendThread(jmsDataHandler);
+        if (null == jmsDataHandler) {
+            logger.warn("数据只写出文件,未启动发送线程!! 文件输出目录:{}", dir.getAbsolutePath());
+        } else {
+            startJmsSendThread(jmsDataHandler);
+        }
+    }
+
+    public JMSRspDataSender(String folder) {
+        this(folder, null);
     }
 
     public void send(Object data, String destination) {
         rspBlockingQueue.offer(new RspData(destination, data));
     }
 
-    public int pending(){
+    public int pending() {
         return rspBlockingQueue.size();
     }
 
@@ -106,6 +114,9 @@ public class JMSRspDataSender {
 
     private void startJmsSendThread(JMSDataHandler jmsDataHandler) {
         Runnable jmsSendRunnable = () -> {
+
+            logger.info("JMS发送线程启动");
+
             while (true) {
                 List<String> stringList = null;
                 File file = null;
