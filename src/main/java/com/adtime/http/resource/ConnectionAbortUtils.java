@@ -1,6 +1,7 @@
 package com.adtime.http.resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.*;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,6 +31,16 @@ public class ConnectionAbortUtils {
     private static final AtomicBoolean init = new AtomicBoolean(false);
 
     private static long lastInActive = -1;
+
+    private static final Set<ConnectionAbort> CONNECTION_ABORT_SET = new ConcurrentHashSet<>();
+
+    public static void register(ConnectionAbort connectionAbort) {
+        CONNECTION_ABORT_SET.add(connectionAbort);
+    }
+
+    public static void unRegister(ConnectionAbort connectionAbort) {
+        CONNECTION_ABORT_SET.remove(connectionAbort);
+    }
 
     protected static void init() {
 
@@ -62,11 +74,15 @@ public class ConnectionAbortUtils {
                                         networkDown.set(true);
                                         //更新上次网络故障时间
                                         lastInActive = System.currentTimeMillis();
+
+                                        CONNECTION_ABORT_SET.forEach(ConnectionAbort::onAbort);
+
                                     } else if (event.kind().equals(ENTRY_DELETE)) {
                                         networkDown.set(false);
                                         synchronized (networkDown) {
                                             networkDown.notifyAll();
                                         }
+                                        CONNECTION_ABORT_SET.forEach(ConnectionAbort::onStable);
                                     }
                                 }
                             }
@@ -183,5 +199,21 @@ public class ConnectionAbortUtils {
      */
     public static boolean isNetworkOut(long readStartTime) {
         return readStartTime < lastInActive || networkDown.get();
+    }
+
+    /**
+     * 网络监听
+     */
+    public interface ConnectionAbort {
+
+        /**
+         * 通知网络断开
+         */
+        void onAbort();
+
+        /**
+         * 通知网络恢复
+         */
+        void onStable();
     }
 }
