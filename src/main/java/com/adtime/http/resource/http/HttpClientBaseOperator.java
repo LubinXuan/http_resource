@@ -10,6 +10,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicNameValuePair;
@@ -78,6 +79,7 @@ public abstract class HttpClientBaseOperator extends WebResource {
                 requestBase.addHeader(entry.getKey(), entry.getValue());
             }
         }
+        requestBase.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(url.getHost(), url.getPort(), url.getProtocol()));
         if (!_headers.containsKey("Host")) {
             requestBase.setHeader("Host", url.getHost());
         }

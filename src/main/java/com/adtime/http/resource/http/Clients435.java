@@ -226,7 +226,8 @@ public class Clients435 extends HttpClientHelper {
         HttpAsyncClientBuilder asyncClientBuilder = HttpAsyncClients.custom();
         asyncClientBuilder.setDefaultRequestConfig(defaultRequestConfig)
                 .setUserAgent(config.getUserAgentString())
-                .setDefaultCookieStore(cookieStore);
+                .setDefaultCookieStore(cookieStore)
+                .disableCookieManagement();
 
         asyncClientBuilder.setConnectionManager(nHttpClientConnectionManager);
         asyncClientBuilder.addInterceptorLast(new HostCookieAdapterHttpRequestInterceptor(webResource));
