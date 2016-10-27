@@ -24,7 +24,7 @@ public class JMSRspDataSender {
 
     private static final Logger logger = LoggerFactory.getLogger(JMSRspDataSender.class);
 
-    private File dir = new File("./crawled_store");
+    private File dir;
 
     private final BlockingQueue<RspData> rspBlockingQueue = new LinkedBlockingQueue<>();
 
