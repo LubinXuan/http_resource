@@ -82,7 +82,7 @@ public abstract class HttpClientBaseOperator extends WebResource {
 
         HttpContext context = new BasicHttpContext();
         context.setAttribute(HTTP_REAL_HOST, url.getHost());
-        return new RequestWrap(new HttpHost(url.getAuthority(), url.getPort(), url.getProtocol()), requestBase, context);
+        return new RequestWrap(new HttpHost(StringUtils.substringBefore(url.getAuthority(), ":"), url.getPort(), url.getProtocol()), requestBase, context);
     }
 
     class RequestWrap {
