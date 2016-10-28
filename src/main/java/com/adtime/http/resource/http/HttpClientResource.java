@@ -48,7 +48,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
         HttpResponse response = null;
         try {
             requestBase.request.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
-            response = client.execute(requestBase.target, requestBase.request,requestBase.context);
+            response = client.execute(requestBase.target, requestBase.request, requestBase.context);
             Map<String, List<String>> headerMap = readHeader(request, response);
             int sts = response.getStatusLine().getStatusCode();
             if (HttpUtil.isRedirect(sts)) {
@@ -67,7 +67,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
                 }
             }
         } catch (Throwable e) {
-            handException(e, requestBase.request.getURI().getAuthority(), url, oUrl);
+            handException(e, requestBase.target.getHostName(), url, oUrl);
             if (e instanceof DownloadStreamException) {
                 return new Result(url, WebConst.DOWNLOAD_STREAM, e.toString());
             }

@@ -76,7 +76,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
 
         HttpClientContext httpClientContext = HttpClientContext.create();
 
-        httpAsyncClient.execute(requestBase.target, requestBase.request,requestBase.context, new FutureCallback<HttpResponse>() {
+        httpAsyncClient.execute(requestBase.target, requestBase.request, requestBase.context, new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse response) {
                 request.setHttpExecStartTime((long) httpClientContext.getAttribute(HostCookieAdapterHttpRequestInterceptor.HTTP_EXEC_TIME));
@@ -116,7 +116,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
             @Override
             public void failed(Exception e) {
                 request.setHttpExecStartTime((long) httpClientContext.getAttribute(HostCookieAdapterHttpRequestInterceptor.HTTP_EXEC_TIME));
-                handException(e, requestBase.request.getURI().getAuthority(), url, oUrl);
+                handException(e, requestBase.target.getHostName(), url, oUrl);
                 Result result;
                 if (e instanceof DownloadStreamException) {
                     result = new Result(url, WebConst.DOWNLOAD_STREAM, e.toString());
