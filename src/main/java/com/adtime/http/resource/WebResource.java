@@ -9,7 +9,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -203,7 +207,15 @@ public abstract class WebResource {
     protected boolean handException(Throwable e, String address, String url, String oUrl) {
         boolean isTimeOut = e instanceof SocketTimeoutException;
         _handException(e, url, oUrl);
-        logger.error("读取页面异常URL:[{}] {} {} {}", address, url, oUrl, e);
+        if (e instanceof UnknownHostException) {
+            StringWriter writer = new StringWriter();
+            PrintWriter printWriter = new PrintWriter(writer);
+            e.printStackTrace(printWriter);
+            logger.error("读取页面异常URL:[{}] {} {} {}", address, url, oUrl, writer.toString());
+            printWriter.close();
+        } else {
+            logger.error("读取页面异常URL:[{}] {} {} {}", address, url, oUrl, e);
+        }
         return isTimeOut;
     }
 
