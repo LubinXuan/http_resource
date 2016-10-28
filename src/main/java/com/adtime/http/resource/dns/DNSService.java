@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by xuanlubin on 2016/9/11.
@@ -18,7 +19,11 @@ import java.util.List;
  */
 public class DNSService {
 
-    private static InitialDirContext context = null;
+    private static final int CONTEXT_SIZE = 10;
+
+    private static InitialDirContext[] contexts = new InitialDirContext[CONTEXT_SIZE];
+
+    private static AtomicInteger id = new AtomicInteger(0);
 
     public static void init(String[] dnsServer, int timeout) {
         Hashtable<String, String> env = new Hashtable<String, String>();
@@ -26,17 +31,17 @@ public class DNSService {
         env.put("java.naming.provider.url", "dns://" + StringUtils.join(dnsServer, " dns://"));
         env.put("com.sun.jndi.ldap.read.timeout", String.valueOf(timeout));
         try {
-            context = new InitialDirContext(env);
+            for (int i = 0; i < CONTEXT_SIZE; i++) {
+                contexts[i] = new InitialDirContext(env);
+            }
         } catch (NamingException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
     public static List<String> search(String type, String address) {
 
-        if (null == context) {
-            return Collections.emptyList();
-        }
+        InitialDirContext context = contexts[Math.abs(id.getAndIncrement() % CONTEXT_SIZE)];
 
         List<String> resultList = new ArrayList<String>();
         try {
