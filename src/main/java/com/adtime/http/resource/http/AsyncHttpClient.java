@@ -63,7 +63,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
     }
 
     public void async(String url, String oUrl, int redirect, Request request, ResultConsumer resultConsumer) {
-        HttpRequestBase requestBase;
+        RequestWrap requestBase;
         try {
             requestBase = create(url, request);
         } catch (UnknownHostException | URISyntaxException | MalformedURLException e) {
@@ -72,11 +72,11 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
             return;
         }
 
-        requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
+        requestBase.request.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
 
         HttpClientContext httpClientContext = HttpClientContext.create();
 
-        httpAsyncClient.execute(requestBase, httpClientContext, new FutureCallback<HttpResponse>() {
+        httpAsyncClient.execute(requestBase.target, requestBase.request,requestBase.context, new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse response) {
                 request.setHttpExecStartTime((long) httpClientContext.getAttribute(HostCookieAdapterHttpRequestInterceptor.HTTP_EXEC_TIME));
@@ -109,14 +109,14 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
                 } catch (Exception e) {
                     failed(e);
                 } finally {
-                    close(response, requestBase);
+                    close(response, requestBase.request);
                 }
             }
 
             @Override
             public void failed(Exception e) {
                 request.setHttpExecStartTime((long) httpClientContext.getAttribute(HostCookieAdapterHttpRequestInterceptor.HTTP_EXEC_TIME));
-                handException(e, requestBase.getURI().getAuthority(), url, oUrl);
+                handException(e, requestBase.request.getURI().getAuthority(), url, oUrl);
                 Result result;
                 if (e instanceof DownloadStreamException) {
                     result = new Result(url, WebConst.DOWNLOAD_STREAM, e.toString());
@@ -125,7 +125,7 @@ public class AsyncHttpClient extends HttpClientBaseOperator {
                 }
                 result.setRedirectCount(redirect);
                 resultConsumer.accept(result);
-                close(null, requestBase);
+                close(null, requestBase.request);
             }
 
             @Override

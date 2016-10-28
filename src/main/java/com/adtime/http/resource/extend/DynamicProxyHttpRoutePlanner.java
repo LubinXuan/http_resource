@@ -1,13 +1,16 @@
 package com.adtime.http.resource.extend;
 
+import com.adtime.http.resource.http.HttpClientBaseOperator;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.proxy.ProxyCreator;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.impl.conn.DefaultRoutePlanner;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +44,8 @@ public class DynamicProxyHttpRoutePlanner extends DefaultRoutePlanner {
 
     @Override
     protected HttpHost determineProxy(HttpHost target, HttpRequest request, HttpContext context) throws HttpException {
-        return proxyProvider.acquireProxy(target.getHostName(), "https".equalsIgnoreCase(target.getSchemeName()), PROXY_CREATOR);
+        String targetHost = (String) context.getAttribute(HttpClientBaseOperator.HTTP_REAL_HOST);
+        String trueHost = null == targetHost ? target.getHostName() : targetHost;
+        return proxyProvider.acquireProxy(trueHost, "https".equalsIgnoreCase(target.getSchemeName()), PROXY_CREATOR);
     }
 }

@@ -10,10 +10,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.params.ClientPNames;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
  * ie.
  */
 public abstract class HttpClientBaseOperator extends WebResource {
+
+    public static final String HTTP_REAL_HOST = "http.remote.host.name";
 
     protected HttpClientHelper httpClientHelper;
 
@@ -49,17 +53,10 @@ public abstract class HttpClientBaseOperator extends WebResource {
                 e instanceof TruncatedChunkException;
     }
 
-    protected HttpRequestBase create(String requestUrl, Request request) throws MalformedURLException, URISyntaxException, UnknownHostException {
+    protected RequestWrap create(String requestUrl, Request request) throws MalformedURLException, URISyntaxException, UnknownHostException {
         URL url = URLInetAddress.create(requestUrl);
         HttpRequestBase requestBase;
-        URI requestUri;
-        try {
-            requestUri = url.toURI();
-        } catch (IllegalArgumentException e) {
-            requestUri = new URI(url.getProtocol(), url.getUserInfo(), url.getAuthority(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        URI requestUri = new URI(null, url.getUserInfo(), null, url.getPort(), url.getPath(), url.getQuery(), url.getRef());
         if (Request.Method.GET.equals(request.getMethod())) {
             requestBase = new HttpGet(requestUri);
         } else if (Request.Method.HEAD.equals(request.getMethod())) {
@@ -79,11 +76,25 @@ public abstract class HttpClientBaseOperator extends WebResource {
                 requestBase.addHeader(entry.getKey(), entry.getValue());
             }
         }
-        requestBase.getParams().setParameter(ClientPNames.VIRTUAL_HOST, new HttpHost(url.getHost(), url.getPort(), url.getProtocol()));
         if (!_headers.containsKey("Host")) {
             requestBase.setHeader("Host", url.getHost());
         }
-        return requestBase;
+
+        HttpContext context = new BasicHttpContext();
+        context.setAttribute(HTTP_REAL_HOST, url.getHost());
+        return new RequestWrap(new HttpHost(url.getAuthority(), url.getPort(), url.getProtocol()), requestBase, context);
+    }
+
+    class RequestWrap {
+        final HttpHost target;
+        final HttpRequestBase request;
+        final HttpContext context;
+
+        private RequestWrap(HttpHost target, HttpRequestBase request, HttpContext context) {
+            this.target = target;
+            this.request = request;
+            this.context = context;
+        }
     }
 
     public void close(HttpResponse response, HttpRequestBase request) {

@@ -37,7 +37,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
     }
 
     private Result doRequest(String url, String oUrl, HttpClient client, Request request) {
-        HttpRequestBase requestBase;
+        RequestWrap requestBase;
         try {
             requestBase = create(url, request);
         } catch (MalformedURLException | UnknownHostException | URISyntaxException e) {
@@ -47,8 +47,8 @@ public class HttpClientResource extends HttpClientBaseOperator {
 
         HttpResponse response = null;
         try {
-            requestBase.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
-            response = client.execute(requestBase);
+            requestBase.request.setConfig(httpClientHelper.requestConfig(request.getConnectionTimeout(), request.getReadTimeout()));
+            response = client.execute(requestBase.target, requestBase.request,requestBase.context);
             Map<String, List<String>> headerMap = readHeader(request, response);
             int sts = response.getStatusLine().getStatusCode();
             if (HttpUtil.isRedirect(sts)) {
@@ -67,13 +67,13 @@ public class HttpClientResource extends HttpClientBaseOperator {
                 }
             }
         } catch (Throwable e) {
-            handException(e, requestBase.getURI().getAuthority(), url, oUrl);
+            handException(e, requestBase.request.getURI().getAuthority(), url, oUrl);
             if (e instanceof DownloadStreamException) {
                 return new Result(url, WebConst.DOWNLOAD_STREAM, e.toString());
             }
             return new Result(url, WebConst.HTTP_ERROR, e.toString());
         } finally {
-            close(response, requestBase);
+            close(response, requestBase.request);
         }
     }
 
