@@ -56,7 +56,7 @@ public class JMSRspDataSender {
         this(folder, null);
     }
 
-    public void send(Object data, String destination) {
+    public void send(String data, String destination) {
         rspBlockingQueue.offer(new RspData(destination, data));
     }
 
@@ -79,7 +79,7 @@ public class JMSRspDataSender {
                     }
 
                     try {
-                        IOUtils.write(taskRsp.getDestination() + ":" + JSON.toJSONString(taskRsp) + "\r\n", fos, "utf-8");
+                        IOUtils.write(taskRsp.getDestination() + ":" + taskRsp.getData() + "\r\n", fos, "utf-8");
                     } catch (Throwable e) {
                         logger.warn("数据写入文件异常!!! {}", e);
                         rspBlockingQueue.offer(taskRsp);
@@ -194,9 +194,9 @@ public class JMSRspDataSender {
     private static class RspData {
         private String destination;
 
-        private Object data;
+        private String data;
 
-        public RspData(String destination, Object data) {
+        public RspData(String destination, String data) {
             this.destination = destination;
             this.data = data;
         }
@@ -205,7 +205,7 @@ public class JMSRspDataSender {
             return destination;
         }
 
-        public Object getData() {
+        public String getData() {
             return data;
         }
     }
