@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class JMSRspDataSender {
 
-    private final BlockingQueue<File> fileQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<File> fileQueue;
 
     private static final Logger logger = LoggerFactory.getLogger(JMSRspDataSender.class);
 
@@ -37,17 +37,17 @@ public class JMSRspDataSender {
             }
         }
 
-        File[] files = dir.listFiles(file -> file.isFile() && file.getName().endsWith(".txt"));
-
-        if (null != files && files.length > 0) {
-            Collections.addAll(fileQueue, files);
-        }
-
         startFileWriteThread();
         if (null == jmsDataHandler) {
             logger.warn("数据只写出文件,未启动发送线程!! 文件输出目录:{}", dir.getAbsolutePath());
+            fileQueue = null;
         } else {
-            startJmsSendThread(jmsDataHandler);
+            fileQueue = new LinkedBlockingQueue<>();
+            File[] files = dir.listFiles(file -> file.isFile() && file.getName().endsWith(".txt"));
+            if (null != files && files.length > 0) {
+                Collections.addAll(fileQueue, files);
+            }
+            startJmsSendThread(jmsDataHandler, fileQueue);
         }
     }
 
@@ -111,7 +111,7 @@ public class JMSRspDataSender {
         fileWriteThread.start();
     }
 
-    private void startJmsSendThread(JMSDataHandler jmsDataHandler) {
+    private void startJmsSendThread(JMSDataHandler jmsDataHandler, final BlockingQueue<File> _fileQueue) {
         Runnable jmsSendRunnable = () -> {
 
             logger.info("JMS发送线程启动");
@@ -120,7 +120,7 @@ public class JMSRspDataSender {
                 List<String> stringList = null;
                 File file = null;
                 try {
-                    file = fileQueue.take();
+                    file = _fileQueue.take();
                 } catch (InterruptedException e) {
                     continue;
                 }
@@ -128,7 +128,7 @@ public class JMSRspDataSender {
                 try {
                     stringList = FileUtils.readLines(file, "utf-8");
                 } catch (IOException e) {
-                    fileQueue.offer(file);
+                    _fileQueue.offer(file);
                     continue;
                 }
 
@@ -187,7 +187,9 @@ public class JMSRspDataSender {
 
     private void renameFile(FileOutputStream fos, File dir, String fileName) {
         IOUtils.closeQuietly(fos);
-        fileQueue.offer(new File(dir, fileName + ".txt"));
+        if (null != fileQueue) {
+            fileQueue.offer(new File(dir, fileName + ".txt"));
+        }
     }
 
     private static class RspData {
