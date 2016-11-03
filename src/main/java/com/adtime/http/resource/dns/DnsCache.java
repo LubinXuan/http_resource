@@ -32,7 +32,7 @@ public class DnsCache {
 
     private static final AtomicBoolean update = new AtomicBoolean(false);
 
-    protected static void init() {
+    static void init() {
         try {
             List<String> hostIpLines = FileUtils.readLines(DNS_CACHE_STORE_FILE, "utf-8");
             for (String hostIp : hostIpLines) {
@@ -53,7 +53,7 @@ public class DnsCache {
         }
     }
 
-    public static void storeDnsCacheAsFile() throws IOException {
+    static void storeDnsCacheAsFile() throws IOException {
         if (hostDomainCache.isEmpty()) {
             return;
         }

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by xuanlubin on 2016/9/11.
  * Dns 查询服务
  */
-public class DNSService {
+class DNSService {
 
     private static final int CONTEXT_SIZE = 10;
 
@@ -25,7 +25,7 @@ public class DNSService {
 
     private static AtomicInteger id = new AtomicInteger(0);
 
-    protected static void init(String[] dnsServer, int timeout) {
+    static void init(String[] dnsServer, int timeout) {
         Hashtable<String, String> env = new Hashtable<String, String>();
         env.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
         env.put("java.naming.provider.url", "dns://" + StringUtils.join(dnsServer, " dns://"));
@@ -39,7 +39,7 @@ public class DNSService {
         }
     }
 
-    public static List<String> search(String type, String address) {
+    static List<String> search(String type, String address) {
 
         InitialDirContext context = contexts[Math.abs(id.getAndIncrement() % CONTEXT_SIZE)];
 
