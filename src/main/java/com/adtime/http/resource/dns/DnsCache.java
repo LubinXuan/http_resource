@@ -1,13 +1,20 @@
 package com.adtime.http.resource.dns;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.net.util.IPAddressUtil;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by xuanlubin on 2016/10/18.
@@ -19,20 +26,74 @@ public class DnsCache {
 
     private static final Logger logger = LoggerFactory.getLogger(DnsCache.class);
 
-    private static final Map<String, InetAddress[]> hostDomainCache = new ConcurrentHashMap<>();
+    private static final Map<String, DnsWrap> hostDomainCache = new ConcurrentHashMap<>();
+
+    private static final File DNS_CACHE_STORE_FILE = new File("./dns_local_store.cache");
+
+    private static final AtomicBoolean update = new AtomicBoolean(false);
+
+    static {
+        try {
+            List<String> hostIpLines = FileUtils.readLines(DNS_CACHE_STORE_FILE, "utf-8");
+            for (String hostIp : hostIpLines) {
+                String[] spilt = StringUtils.split(hostIp, "\t|,");
+                if (spilt.length > 1) {
+                    InetAddress[] addresses = new InetAddress[spilt.length - 2];
+                    for (int i = 1; i < spilt.length - 1; i++) {
+                        addresses[i - 1] = InetAddress.getByName(spilt[i]);
+                    }
+                    DnsWrap dnsWrap = new DnsWrap(addresses, Long.parseLong(spilt[spilt.length - 1]));
+                    hostDomainCache.put(spilt[0], dnsWrap);
+                    DnsPreFetchUtils.addDnsUpdateTask(spilt[0],dnsWrap.update);
+                }
+            }
+        } catch (IOException e) {
+            logger.warn("DNS缓存获取失败!!!");
+        }
+    }
+
+    public static void storeDnsCacheAsFile() throws IOException {
+        if (hostDomainCache.isEmpty()) {
+            return;
+        }
+
+        if (update.compareAndSet(true, false)) {
+
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, DnsWrap> entry : hostDomainCache.entrySet()) {
+                if (sb.length() > 0) {
+                    sb.append("\n");
+                }
+                sb.append(entry.getKey()).append("\t");
+                DnsWrap dnsWrap = entry.getValue();
+                for (int i = 0; i < dnsWrap.addresses.length; i++) {
+                    sb.append(dnsWrap.addresses[i].getHostAddress());
+                    if (i + 1 != dnsWrap.addresses.length) {
+                        sb.append(",");
+                    }
+                }
+                sb.append("\t").append(dnsWrap.update);
+            }
+
+            FileUtils.write(DNS_CACHE_STORE_FILE, sb.toString(), "utf-8");
+        }
+    }
+
 
     public static void cacheDns(String domain, InetAddress[] addresses) {
         if (null == addresses || addresses.length == 0) {
             return;
         }
-        hostDomainCache.put(domain.toLowerCase(), addresses);
+        hostDomainCache.put(domain.toLowerCase(), new DnsWrap(addresses, System.currentTimeMillis()));
+        update.set(true);
     }
 
     public static InetAddress[] getCacheDns(String host) {
-        return hostDomainCache.computeIfPresent(host.toLowerCase(), (s, address) -> {
+        DnsWrap dnsWrap = hostDomainCache.computeIfPresent(host.toLowerCase(), (s, address) -> {
             logger.info("hit dns from cache :::{}", s);
             return address;
         });
+        return null != dnsWrap ? dnsWrap.addresses : null;
     }
 
     public static boolean contains(String host) {
@@ -90,5 +151,23 @@ public class DnsCache {
         Object var3 = var0[var1];
         var0[var1] = var0[var2];
         var0[var2] = var3;
+    }
+
+    static class DnsWrap {
+        private InetAddress[] addresses;
+        private long update;
+
+        DnsWrap(InetAddress[] addresses, long update) {
+            this.addresses = addresses;
+            this.update = update;
+        }
+
+        public InetAddress[] getAddresses() {
+            return addresses;
+        }
+
+        public long getUpdate() {
+            return update;
+        }
     }
 }

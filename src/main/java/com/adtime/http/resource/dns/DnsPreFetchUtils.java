@@ -6,10 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.net.util.IPAddressUtil;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by xuanlubin on 2016/9/8.
@@ -24,7 +26,7 @@ public class DnsPreFetchUtils {
 
     private static final ExecutorService SERVICE = Executors.newFixedThreadPool(3);
 
-    private static final long UPDATE_REQUIRE_TIME = 60000;
+    private static final long UPDATE_REQUIRE_TIME = 900000;
 
     private static class DnsUpdateInfo {
         private String domain;
@@ -39,6 +41,8 @@ public class DnsPreFetchUtils {
 
         DNSService.init(_dnsServers, 2000);
 
+        AtomicInteger count = new AtomicInteger(0);
+
         new Timer("DnsInfoUpdate").schedule(new TimerTask() {
             @Override
             public void run() {
@@ -47,6 +51,16 @@ public class DnsPreFetchUtils {
                     if (updateInfo.createTime < System.currentTimeMillis() - UPDATE_REQUIRE_TIME) {
                         updateDnsInfo(updateInfo, false);
                     }
+                }
+
+                if (count.compareAndSet(10, 0)) {
+                    try {
+                        DnsCache.storeDnsCacheAsFile();
+                    } catch (IOException e) {
+                        logger.error("DNS缓存文件化异常", e);
+                    }
+                } else {
+                    count.incrementAndGet();
                 }
             }
         }, 5000, 5000);
@@ -144,6 +158,20 @@ public class DnsPreFetchUtils {
             return updateDnsInfo(dnsUpdateInfo, sync);
         } else {
             return DnsCache.getCacheDns(domain);
+        }
+    }
+
+    public static void addDnsUpdateTask(String host, Long lastUpdateTime) {
+
+        if (IPAddressUtil.isIPv4LiteralAddress(host)) {
+            return;
+        }
+
+        if (DOMAIN_FILTER.add(host.toLowerCase())) {
+            DnsUpdateInfo dnsUpdateInfo = new DnsUpdateInfo();
+            dnsUpdateInfo.domain = host;
+            dnsUpdateInfo.createTime = null == lastUpdateTime ? -1 : lastUpdateTime;
+            DOMAIN_FETCH_QUEUE.add(dnsUpdateInfo);
         }
     }
 
