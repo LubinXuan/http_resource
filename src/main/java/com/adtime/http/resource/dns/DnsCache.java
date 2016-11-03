@@ -32,7 +32,7 @@ public class DnsCache {
 
     private static final AtomicBoolean update = new AtomicBoolean(false);
 
-    static {
+    protected static void init() {
         try {
             List<String> hostIpLines = FileUtils.readLines(DNS_CACHE_STORE_FILE, "utf-8");
             for (String hostIp : hostIpLines) {
@@ -44,9 +44,10 @@ public class DnsCache {
                     }
                     DnsWrap dnsWrap = new DnsWrap(addresses, Long.parseLong(spilt[spilt.length - 1]));
                     hostDomainCache.put(spilt[0], dnsWrap);
-                    DnsPreFetchUtils.addDnsUpdateTask(spilt[0],dnsWrap.update);
+                    DnsPreFetchUtils.addDnsUpdateTask(spilt[0], dnsWrap.update);
                 }
             }
+            logger.warn("DNS信息加载完成:{}", hostIpLines.size());
         } catch (IOException e) {
             logger.warn("DNS缓存获取失败!!!");
         }

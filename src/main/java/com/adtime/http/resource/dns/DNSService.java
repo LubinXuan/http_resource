@@ -25,7 +25,7 @@ public class DNSService {
 
     private static AtomicInteger id = new AtomicInteger(0);
 
-    public static void init(String[] dnsServer, int timeout) {
+    protected static void init(String[] dnsServer, int timeout) {
         Hashtable<String, String> env = new Hashtable<String, String>();
         env.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
         env.put("java.naming.provider.url", "dns://" + StringUtils.join(dnsServer, " dns://"));

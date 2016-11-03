@@ -39,6 +39,8 @@ public class DnsPreFetchUtils {
         String[] _dnsServers = dnsServers.split(",");
 
 
+        DnsCache.init();
+
         DNSService.init(_dnsServers, 2000);
 
         AtomicInteger count = new AtomicInteger(0);
