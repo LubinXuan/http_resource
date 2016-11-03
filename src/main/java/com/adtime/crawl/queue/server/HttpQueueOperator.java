@@ -44,7 +44,7 @@ public class HttpQueueOperator {
 
     public HttpQueueOperator(String fileStoreDir, String server) {
         this.fileStoreDir = new File(fileStoreDir);
-        if (!this.fileStoreDir.exists() || this.fileStoreDir.isDirectory()) {
+        if (!this.fileStoreDir.exists() || !this.fileStoreDir.isDirectory()) {
             if (!this.fileStoreDir.mkdir()) {
                 throw new RuntimeException("本地存储目录创建失败:" + this.fileStoreDir.getAbsolutePath());
             }
@@ -69,7 +69,7 @@ public class HttpQueueOperator {
                     try {
                         content = FileUtils.readLines(file, "utf-8");
                     } catch (IOException e) {
-                        logger.error("资源释放请求文件读取异常", e);
+                        logger.error("Http请求文件读取异常", e);
                         fileBlockingQueue.offer(file);
                         continue;
                     }
@@ -79,15 +79,15 @@ public class HttpQueueOperator {
                         continue;
                     }
 
-                    boolean success;
+                    HttpRsp rsp;
 
                     if (content.size() > 1) {
-                        success = (boolean) _send(content.get(0), content.get(1))[0];
+                        rsp = _send(content.get(0), content.get(1));
                     } else {
-                        success = (boolean) _send(content.get(0), null)[0];
+                        rsp = _send(content.get(0), null);
                     }
 
-                    if (!success) {
+                    if (rsp.status != 200) {
                         fileBlockingQueue.offer(file);
                         try {
                             TimeUnit.SECONDS.sleep(10);
@@ -97,18 +97,22 @@ public class HttpQueueOperator {
                         FileUtils.deleteQuietly(file);
                     }
                 } catch (InterruptedException e) {
-                    logger.error("资源释放线程异常!!", e);
+                    logger.error("Http线程异常!!", e);
                 }
             }
         });
-        taskSendThread.setName("HttpTaskSendThread");
+        taskSendThread.setName("HttpTaskSendThread-" + fileStoreDir);
         taskSendThread.start();
 
     }
 
-    protected String send(String request, String jsonData, boolean saveOnFail) {
-        Object ret[] = _send(request, jsonData);
-        boolean success = (boolean) ret[0];
+    public HttpRsp send(String request, String jsonData) {
+        return send(request, jsonData, false);
+    }
+
+    public HttpRsp send(String request, String jsonData, boolean saveOnFail) {
+        HttpRsp httpRsp = _send(request, jsonData);
+        boolean success = 200 == httpRsp.status;
         if (!success && saveOnFail) {
             try {
                 File out = new File(fileStoreDir, System.currentTimeMillis() + "-" + id.incrementAndGet() + ".txt");
@@ -118,13 +122,15 @@ public class HttpQueueOperator {
                 logger.error("Http请求文件写出失败", e);
             }
         }
-        return (String) ret[1];
+        return httpRsp;
     }
 
-    private Object[] _send(String request, String jsonData) {
+    public HttpRsp _send(String request, String jsonData) {
+
+        HttpRsp httpRsp = new HttpRsp();
 
         if (StringUtils.isBlank(request)) {
-            return new Object[]{true, null};
+            return httpRsp;
         }
 
         HttpRequestBase httpRequest;
@@ -135,21 +141,35 @@ public class HttpQueueOperator {
             httpRequest = new HttpGet(request);
         }
 
-        Object[] ret = new Object[]{true, null};
 
         try {
             HttpResponse response = client.execute(serverHost, httpRequest);
-            ret[0] = 200 == response.getStatusLine().getStatusCode();
-            ret[1] = EntityUtils.toString(response.getEntity());
+            httpRsp.status = response.getStatusLine().getStatusCode();
+            if (200 == httpRsp.status) {
+                httpRsp.content = EntityUtils.toString(response.getEntity(), "utf-8");
+                logger.info("Http请求成功 {} {}", request, jsonData);
+            }
             EntityUtils.consumeQuietly(response.getEntity());
-            return ret;
         } catch (Exception e) {
             logger.error("Http执行异常:" + request, e);
-            ret[0] = false;
+            httpRsp.status = -1;
         } finally {
             httpRequest.releaseConnection();
         }
-        return ret;
+        return httpRsp;
+    }
+
+    public class HttpRsp {
+        private int status = 200;
+        private String content = null;
+
+        public int getStatus() {
+            return status;
+        }
+
+        public String getContent() {
+            return content;
+        }
     }
 
 }
