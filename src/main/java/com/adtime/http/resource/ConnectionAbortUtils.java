@@ -57,10 +57,15 @@ public class ConnectionAbortUtils {
                 path.register(watcher, ENTRY_CREATE, ENTRY_DELETE);
                 Thread thread = new Thread(() -> {
                     while (true) {
-                        WatchKey watchKey = null;
-                        try {
-                            watchKey = watcher.take();
-                        } catch (InterruptedException e) {
+                        WatchKey watchKey = watcher.poll();
+
+                        if (null == watchKey) {
+                            checkNetworkRunnable.run();
+                            try {
+                                TimeUnit.SECONDS.sleep(1);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                             continue;
                         }
 
@@ -109,30 +114,34 @@ public class ConnectionAbortUtils {
         //更新上次网络故障时间
         lastInActive = System.currentTimeMillis();
 
+        testNetworkStatus();
+
+        networkDown.set(false);
+
+        synchronized (networkDown) {
+            networkDown.notifyAll();
+        }
+    };
+
+    private static void testNetworkStatus() {
         while (true) {
             Socket socket = new Socket();
             try {
+                socket.setSoTimeout(1000);
                 socket.connect(new InetSocketAddress(ip, 53));
                 socket.close();
-
-                networkDown.set(false);
-
-                synchronized (networkDown) {
-                    networkDown.notifyAll();
-
-                }
                 logger.warn("Network stable");
-
                 break;
             } catch (IOException e) {
                 try {
-                    TimeUnit.SECONDS.sleep(1);
+                    TimeUnit.SECONDS.sleep(2);
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
             }
         }
-    };
+    }
+
 
     /**
      * 根据请求返回的状态以及错误信息判断是否网络中断导致本次请求异常
