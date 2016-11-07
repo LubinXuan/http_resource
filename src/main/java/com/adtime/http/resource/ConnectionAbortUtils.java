@@ -127,7 +127,7 @@ public class ConnectionAbortUtils {
         while (true) {
             Socket socket = new Socket();
             try {
-                socket.setSoTimeout(1000);
+                socket.setSoTimeout(5000);
                 socket.connect(new InetSocketAddress(ip, 53));
                 socket.close();
                 logger.warn("Network stable");
