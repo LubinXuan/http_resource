@@ -25,7 +25,7 @@ public class ConnectionAbortUtils {
     //利用DNS服务检测网络是否可用
     private static final String ip = System.getProperty("network.check.ip", "114.114.114.114");
 
-    private static final String MULTI_CAST_IP = "228.6.7.8";
+    private static final String MULTI_CAST_IP = "228.7.8.9";
 
     private static final AtomicBoolean networkDown = new AtomicBoolean(false);
 
