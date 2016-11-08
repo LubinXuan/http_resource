@@ -1,5 +1,6 @@
 package com.adtime.http.resource.dns;
 
+import com.adtime.http.resource.ConnectionAbortUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,10 +47,27 @@ public class DnsPreFetchUtils {
 
         AtomicInteger count = new AtomicInteger(0);
 
+        AtomicBoolean block = new AtomicBoolean(false);
+
+        ConnectionAbortUtils.register(new ConnectionAbortUtils.ConnectionAbort() {
+            @Override
+            public void onAbort() {
+                block.set(true);
+            }
+
+            @Override
+            public void onStable() {
+                block.set(false);
+            }
+        });
+
         new Timer("DnsInfoUpdate").schedule(new TimerTask() {
             @Override
             public void run() {
                 for (Iterator<DnsUpdateInfo> iterator = DOMAIN_FETCH_QUEUE.iterator(); iterator.hasNext(); ) {
+                    if (block.get()) {
+                        break;
+                    }
                     DnsUpdateInfo updateInfo = iterator.next();
                     if (updateInfo.createTime < System.currentTimeMillis() - UPDATE_REQUIRE_TIME) {
                         updateDnsInfo(updateInfo, false);
