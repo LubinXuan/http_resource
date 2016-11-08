@@ -6,8 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.net.*;
 import java.nio.file.*;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +24,8 @@ public class ConnectionAbortUtils {
 
     //利用DNS服务检测网络是否可用
     private static final String ip = System.getProperty("network.check.ip", "114.114.114.114");
+
+    private static final String MULTI_CAST_IP = "228.6.7.8";
 
     private static final AtomicBoolean networkDown = new AtomicBoolean(false);
 
@@ -48,58 +49,41 @@ public class ConnectionAbortUtils {
             return;
         }
 
-        String networkMonitorFile = System.getProperty("network.monitor.file", "/tmp");
-
-        if (StringUtils.isNotBlank(networkMonitorFile)) {
-            try {
-                WatchService watcher = FileSystems.getDefault().newWatchService();
-                Path path = Paths.get(networkMonitorFile);
-                path.register(watcher, ENTRY_CREATE, ENTRY_DELETE);
-                Thread thread = new Thread(() -> {
-                    while (true) {
-                        WatchKey watchKey = watcher.poll();
-
-                        if (null == watchKey) {
-                            checkNetworkRunnable.run();
-                            try {
-                                TimeUnit.SECONDS.sleep(1);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            continue;
-                        }
-
-                        for (WatchEvent event : watchKey.pollEvents()) {
-                            Object context = event.context();
-                            if (context instanceof Path) {
-                                String fileName = ((Path) context).toFile().getName();
-                                if (StringUtils.equalsIgnoreCase(fileName, "network_reboot_signal")) {
-                                    logger.warn("监听到网络变化信息!!!!  {}", event.kind());
-                                    if (event.kind().equals(ENTRY_CREATE)) {
-                                        networkDown.set(true);
-                                        //更新上次网络故障时间
-                                        lastInActive = System.currentTimeMillis();
-
-                                        CONNECTION_ABORT_SET.forEach(ConnectionAbort::onAbort);
-
-                                    } else if (event.kind().equals(ENTRY_DELETE)) {
-                                        networkDown.set(false);
-                                        synchronized (networkDown) {
-                                            networkDown.notifyAll();
-                                        }
-                                        CONNECTION_ABORT_SET.forEach(ConnectionAbort::onStable);
-                                    }
-                                }
-                            }
-                        }
-                        watchKey.reset();
+        try {
+            InetAddress ip = InetAddress.getByName(MULTI_CAST_IP);
+            MulticastSocket s = new MulticastSocket(6789);
+            s.joinGroup(ip);
+            Thread thread = new Thread(() -> {
+                byte[] arb = new byte[1];
+                while (true) {
+                    DatagramPacket datagramPacket = new DatagramPacket(arb, arb.length);
+                    try {
+                        s.receive(datagramPacket);
+                    } catch (IOException e) {
+                        logger.error("消息读取异常!!!", e);
+                        continue;
                     }
-                });
-                thread.setName("NetworkChangeMonitorThread");
-                thread.start();
-            } catch (IOException e) {
-                logger.warn("网络监听文件监听注册失败", e);
-            }
+                    String command = new String(arb).trim();
+                    arb = new byte[1];
+                    logger.warn("监听到网络变化信息!!!!  {}", command);
+                    if ("0".equals(command)) {
+                        networkDown.set(true);
+                        //更新上次网络故障时间
+                        lastInActive = System.currentTimeMillis();
+                        CONNECTION_ABORT_SET.forEach(ConnectionAbort::onAbort);
+                    } else {
+                        networkDown.set(false);
+                        synchronized (networkDown) {
+                            networkDown.notifyAll();
+                        }
+                        CONNECTION_ABORT_SET.forEach(ConnectionAbort::onStable);
+                    }
+                }
+            });
+            thread.setName("NetworkChangeMonitorThread");
+            thread.start();
+        } catch (IOException e) {
+            logger.error("网络状态变更监听广播注册失败", e);
         }
     }
 
@@ -127,7 +111,7 @@ public class ConnectionAbortUtils {
         while (true) {
             Socket socket = new Socket();
             try {
-                socket.setSoTimeout(5000);
+                socket.setSoTimeout(1000);
                 socket.connect(new InetSocketAddress(ip, 53));
                 socket.close();
                 logger.warn("Network stable");
