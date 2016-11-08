@@ -52,7 +52,7 @@ public class HttpQueueOperator {
 
         serverHost = HttpHost.create("http://" + server);
 
-        RequestConfig config = RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(60000).build();
+        RequestConfig config = RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(120000).build();
         client = HttpClients.custom().setDefaultRequestConfig(config).build();
 
         File[] files = this.fileStoreDir.listFiles(file -> file.isFile() && file.getName().endsWith(".txt"));
