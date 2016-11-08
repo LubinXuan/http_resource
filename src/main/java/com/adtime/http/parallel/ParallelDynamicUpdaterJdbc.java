@@ -3,6 +3,8 @@ package com.adtime.http.parallel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,15 +22,28 @@ public class ParallelDynamicUpdaterJdbc extends ParallelDynamicUpdaterEmpty {
 
     private DataSource dataSource;
 
-    public ParallelDynamicUpdaterJdbc(DataSource dataSource) {
-        this.dataSource = dataSource;
-        if (null != this.dataSource) {
-            this.init();
-        }
+    private Timer timer;
+
+    @Resource
+    public void setDataSource(DataSource dataSource) {
+        this.init(dataSource);
     }
 
-    private void init() {
-        new Timer("domain_parallel_updater").schedule(new TimerTask() {
+    public void init(DataSource dataSource) {
+
+        if (dataSource == this.dataSource) {
+            return;
+        }
+
+        this.dataSource = dataSource;
+
+        if (null != timer) {
+            return;
+        }
+
+        timer = new Timer("domain_parallel_updater");
+
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 try {
@@ -51,6 +66,11 @@ public class ParallelDynamicUpdaterJdbc extends ParallelDynamicUpdaterEmpty {
     private static final String SQL = "select * from parallel_controller";
 
     private void updateAllParallelInfo() throws SQLException {
+
+        if (null == this.dataSource) {
+            return;
+        }
+
         Connection connection = null;
         PreparedStatement psmt = null;
         ResultSet rst = null;
