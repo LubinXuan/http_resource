@@ -61,7 +61,7 @@ public class ConnectionAbortUtils {
     private static final ConnectionAbort CONNECTION_ABORT = new ConnectionAbort() {
         @Override
         public void onAbort() {
-            if (networkDown.get()) {
+            if (!networkDown.get()) {
                 logger.warn("网络中断了");
                 networkDown.set(true);
                 //更新上次网络故障时间
@@ -72,7 +72,7 @@ public class ConnectionAbortUtils {
 
         @Override
         public void onStable() {
-            if (!networkDown.get()) {
+            if (networkDown.get()) {
                 logger.warn("网络恢复了");
                 networkDown.set(false);
                 synchronized (networkDown) {
