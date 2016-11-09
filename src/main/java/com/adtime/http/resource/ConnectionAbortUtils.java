@@ -61,21 +61,25 @@ public class ConnectionAbortUtils {
     private static final ConnectionAbort CONNECTION_ABORT = new ConnectionAbort() {
         @Override
         public void onAbort() {
-            logger.warn("网络中断了");
-            networkDown.set(true);
-            //更新上次网络故障时间
-            lastInActive = System.currentTimeMillis();
-            CONNECTION_ABORT_SET.forEach(ConnectionAbort::onAbort);
+            if (networkDown.get()) {
+                logger.warn("网络中断了");
+                networkDown.set(true);
+                //更新上次网络故障时间
+                lastInActive = System.currentTimeMillis();
+                CONNECTION_ABORT_SET.forEach(ConnectionAbort::onAbort);
+            }
         }
 
         @Override
         public void onStable() {
-            logger.warn("网络恢复了");
-            networkDown.set(false);
-            synchronized (networkDown) {
-                networkDown.notifyAll();
+            if (!networkDown.get()) {
+                logger.warn("网络恢复了");
+                networkDown.set(false);
+                synchronized (networkDown) {
+                    networkDown.notifyAll();
+                }
+                CONNECTION_ABORT_SET.forEach(ConnectionAbort::onStable);
             }
-            CONNECTION_ABORT_SET.forEach(ConnectionAbort::onStable);
         }
     };
 
