@@ -40,9 +40,9 @@ public abstract class WebResource {
     static {
         System.setProperty("jsse.enableSNIExtension", "false");
         if (StringUtils.equalsIgnoreCase("multicast", System.getProperty("networkMonitor"))) {
-            ConnectionAbortUtils.init(NetworkMonitor::fileMonitor);
-        } else {
             ConnectionAbortUtils.init(NetworkMonitor::multicastMonitor);
+        } else {
+            ConnectionAbortUtils.init(NetworkMonitor::fileMonitor);
         }
     }
 
