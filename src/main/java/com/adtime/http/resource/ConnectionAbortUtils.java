@@ -46,8 +46,6 @@ public class ConnectionAbortUtils {
         if (!init.compareAndSet(false, true)) {
             return;
         }
-
-        abortConsumer.accept(CONNECTION_ABORT);
         new Timer("NetworkStatusCheck").schedule(new TimerTask() {
             @Override
             public void run() {
@@ -57,6 +55,7 @@ public class ConnectionAbortUtils {
                 }
             }
         }, 0, 5000);
+        abortConsumer.accept(CONNECTION_ABORT);
     }
 
     private static final ConnectionAbort CONNECTION_ABORT = new ConnectionAbort() {
