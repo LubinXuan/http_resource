@@ -83,26 +83,6 @@ public class ConnectionAbortUtils {
         }
     };
 
-    private static final Runnable checkNetworkRunnable = () -> {
-
-        if (!networkDown.get()) {
-            return;
-        }
-
-        logger.warn("Start Network Check Thread");
-
-        //更新上次网络故障时间
-        lastInActive = System.currentTimeMillis();
-
-        testNetworkStatus();
-
-        networkDown.set(false);
-
-        synchronized (networkDown) {
-            networkDown.notifyAll();
-        }
-    };
-
     private static void testNetworkStatus() {
         while (true) {
             Socket socket = new Socket();
@@ -139,9 +119,7 @@ public class ConnectionAbortUtils {
         boolean isNetworkOut = StringUtils.contains(result.getMessage(), "Network is unreachable");
 
         if (isNetworkOut) {
-            if (networkDown.compareAndSet(false, true)) {
-                new Thread(checkNetworkRunnable).start();
-            }
+            networkDown.set(true);
             checkNetworkStatus();
             return true;
         } else if (checkNetworkStatus()) {
