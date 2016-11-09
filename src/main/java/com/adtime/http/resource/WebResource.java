@@ -39,7 +39,11 @@ public abstract class WebResource {
 
     static {
         System.setProperty("jsse.enableSNIExtension", "false");
-        ConnectionAbortUtils.init();
+        if (StringUtils.equalsIgnoreCase("multicast", System.getProperty("networkMonitor"))) {
+            ConnectionAbortUtils.init(NetworkMonitor::fileMonitor);
+        } else {
+            ConnectionAbortUtils.init(NetworkMonitor::multicastMonitor);
+        }
     }
 
     private boolean async = this instanceof AsyncHttpClient;

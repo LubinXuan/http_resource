@@ -7,9 +7,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.*;
+import java.nio.file.*;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 
 /**
  * Created by xuanlubin on 2016/10/20.
@@ -20,8 +25,6 @@ public class ConnectionAbortUtils {
 
     //利用DNS服务检测网络是否可用
     private static final String ip = System.getProperty("network.check.ip", "114.114.114.114");
-
-    private static final String MULTI_CAST_IP = "228.7.8.9";
 
     private static final AtomicBoolean networkDown = new AtomicBoolean(false);
 
@@ -39,49 +42,33 @@ public class ConnectionAbortUtils {
         CONNECTION_ABORT_SET.remove(connectionAbort);
     }
 
-    protected static void init() {
+    protected static void init(Consumer<ConnectionAbort> abortConsumer) {
 
         if (!init.compareAndSet(false, true)) {
             return;
         }
 
-        try {
-            InetAddress ip = InetAddress.getByName(MULTI_CAST_IP);
-            MulticastSocket s = new MulticastSocket(6789);
-            s.joinGroup(ip);
-            Thread thread = new Thread(() -> {
-                byte[] arb = new byte[1];
-                while (true) {
-                    DatagramPacket datagramPacket = new DatagramPacket(arb, arb.length);
-                    try {
-                        s.receive(datagramPacket);
-                    } catch (IOException e) {
-                        logger.error("消息读取异常!!!", e);
-                        continue;
-                    }
-                    String command = new String(arb).trim();
-                    arb = new byte[1];
-                    logger.warn("监听到网络变化信息!!!!  {}", command);
-                    if ("0".equals(command)) {
-                        networkDown.set(true);
-                        //更新上次网络故障时间
-                        lastInActive = System.currentTimeMillis();
-                        CONNECTION_ABORT_SET.forEach(ConnectionAbort::onAbort);
-                    } else {
-                        networkDown.set(false);
-                        synchronized (networkDown) {
-                            networkDown.notifyAll();
-                        }
-                        CONNECTION_ABORT_SET.forEach(ConnectionAbort::onStable);
-                    }
-                }
-            });
-            thread.setName("NetworkChangeMonitorThread");
-            thread.start();
-        } catch (IOException e) {
-            logger.error("网络状态变更监听广播注册失败", e);
-        }
+        abortConsumer.accept(CONNECTION_ABORT);
     }
+
+    private static final ConnectionAbort CONNECTION_ABORT = new ConnectionAbort() {
+        @Override
+        public void onAbort() {
+            networkDown.set(true);
+            //更新上次网络故障时间
+            lastInActive = System.currentTimeMillis();
+            CONNECTION_ABORT_SET.forEach(ConnectionAbort::onAbort);
+        }
+
+        @Override
+        public void onStable() {
+            networkDown.set(false);
+            synchronized (networkDown) {
+                networkDown.notifyAll();
+            }
+            CONNECTION_ABORT_SET.forEach(ConnectionAbort::onStable);
+        }
+    };
 
     private static final Runnable checkNetworkRunnable = () -> {
 
@@ -205,4 +192,5 @@ public class ConnectionAbortUtils {
          */
         void onStable();
     }
+
 }
