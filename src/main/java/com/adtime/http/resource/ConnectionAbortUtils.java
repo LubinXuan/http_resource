@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Calendar;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
