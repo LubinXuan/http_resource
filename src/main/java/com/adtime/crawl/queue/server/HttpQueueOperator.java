@@ -50,60 +50,61 @@ public class HttpQueueOperator {
             }
         }
 
-        serverHost = HttpHost.create("http://" + server);
-
-        RequestConfig config = RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(120000).build();
-        client = HttpClients.custom().setDefaultRequestConfig(config).build();
-
-        File[] files = this.fileStoreDir.listFiles(file -> file.isFile() && file.getName().endsWith(".txt"));
-
-        if (null != files) {
-            Collections.addAll(fileBlockingQueue, files);
-        }
-
-        Thread taskSendThread = new Thread(() -> {
-            while (true) {
-                try {
-                    File file = fileBlockingQueue.take();
-                    List<String> content;
-                    try {
-                        content = FileUtils.readLines(file, "utf-8");
-                    } catch (IOException e) {
-                        logger.error("Http请求文件读取异常", e);
-                        fileBlockingQueue.offer(file);
-                        continue;
-                    }
-
-                    if (content.isEmpty()) {
-                        FileUtils.deleteQuietly(file);
-                        continue;
-                    }
-
-                    HttpRsp rsp;
-
-                    if (content.size() > 1) {
-                        rsp = _send(content.get(0), content.get(1));
-                    } else {
-                        rsp = _send(content.get(0), null);
-                    }
-
-                    if (rsp.status != 200) {
-                        fileBlockingQueue.offer(file);
-                        try {
-                            TimeUnit.SECONDS.sleep(10);
-                        } catch (InterruptedException ignore) {
-                        }
-                    } else {
-                        FileUtils.deleteQuietly(file);
-                    }
-                } catch (InterruptedException e) {
-                    logger.error("Http线程异常!!", e);
-                }
+        if (StringUtils.isBlank(server)) {
+            client = null;
+            serverHost = null;
+            logger.warn("没有指定服务器IP地址");
+        } else {
+            serverHost = HttpHost.create("http://" + server);
+            RequestConfig config = RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(120000).build();
+            client = HttpClients.custom().setDefaultRequestConfig(config).build();
+            File[] files = this.fileStoreDir.listFiles(file -> file.isFile() && file.getName().endsWith(".txt"));
+            if (null != files) {
+                Collections.addAll(fileBlockingQueue, files);
             }
-        });
-        taskSendThread.setName("HttpTaskSendThread-" + fileStoreDir);
-        taskSendThread.start();
+            Thread taskSendThread = new Thread(() -> {
+                while (true) {
+                    try {
+                        File file = fileBlockingQueue.take();
+                        List<String> content;
+                        try {
+                            content = FileUtils.readLines(file, "utf-8");
+                        } catch (IOException e) {
+                            logger.error("Http请求文件读取异常", e);
+                            fileBlockingQueue.offer(file);
+                            continue;
+                        }
 
+                        if (content.isEmpty()) {
+                            FileUtils.deleteQuietly(file);
+                            continue;
+                        }
+
+                        HttpRsp rsp;
+
+                        if (content.size() > 1) {
+                            rsp = _send(content.get(0), content.get(1));
+                        } else {
+                            rsp = _send(content.get(0), null);
+                        }
+
+                        if (rsp.status != 200) {
+                            fileBlockingQueue.offer(file);
+                            try {
+                                TimeUnit.SECONDS.sleep(10);
+                            } catch (InterruptedException ignore) {
+                            }
+                        } else {
+                            FileUtils.deleteQuietly(file);
+                        }
+                    } catch (InterruptedException e) {
+                        logger.error("Http线程异常!!", e);
+                    }
+                }
+            });
+            taskSendThread.setName("HttpTaskSendThread-" + fileStoreDir);
+            taskSendThread.start();
+        }
     }
 
     public HttpRsp send(String request, String jsonData) {
@@ -128,6 +129,11 @@ public class HttpQueueOperator {
     public HttpRsp _send(String request, String jsonData) {
 
         HttpRsp httpRsp = new HttpRsp();
+
+        if (null == serverHost || null == client) {
+            httpRsp.status = -1;
+            return httpRsp;
+        }
 
         if (StringUtils.isBlank(request)) {
             return httpRsp;
