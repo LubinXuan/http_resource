@@ -96,7 +96,7 @@ public class HttpUrlConnectionResource extends WebResource {
 
                 Map<String, List<String>> headerMap = con.getHeaderFields();
 
-                saveCookie(con);
+                saveCookie(con, url);
 
                 if (HttpUtil.isRedirect(sts)) {
                     return handleRedirect(con, targetUrl).withHeader(headerMap);
@@ -131,7 +131,7 @@ public class HttpUrlConnectionResource extends WebResource {
     }
 
     private HttpURLConnection configConnectionAndSend(Request request, URL url) throws IOException {
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        HttpURLConnection con = (HttpURLConnection) new URL(url.getProtocol(), url.getAuthority(), url.getPort(), url.getPath()).openConnection();
         con.setRequestMethod(request.getMethod().name());
         con.setDoInput(true);
         con.setUseCaches(false);
@@ -155,9 +155,7 @@ public class HttpUrlConnectionResource extends WebResource {
             }
         }
 
-        //if (StringUtils.isNotBlank(__host)) {
-        //    con.setRequestProperty("Host", __host);
-        //}
+        con.setRequestProperty("Host", url.getHost());
 
         if (con instanceof HttpsURLConnection) {
             if (null == sslSocketFactory) {
@@ -166,7 +164,7 @@ public class HttpUrlConnectionResource extends WebResource {
             ((HttpsURLConnection) con).setSSLSocketFactory(sslSocketFactory);
         }
 
-        setCookie(con);
+        setCookie(con, url);
 
         if (Request.Method.POST.equals(request.getMethod()) && null != request.getRequestParam() && !request.getRequestParam().isEmpty()) {
             con.setDoOutput(true);
@@ -260,9 +258,7 @@ public class HttpUrlConnectionResource extends WebResource {
         return result;
     }
 
-    private void setCookie(HttpURLConnection connection) {
-
-        URL url = connection.getURL();
+    private void setCookie(HttpURLConnection connection, URL url) {
 
         if (cookieDisableHost.contains(url.getHost())) {
             return;
@@ -303,9 +299,8 @@ public class HttpUrlConnectionResource extends WebResource {
         }
     }
 
-    private void saveCookie(HttpURLConnection connection) {
+    private void saveCookie(HttpURLConnection connection, URL url) {
         try {
-            URL url = connection.getURL();
             URI uri = new URI(url.getProtocol(), url.getHost(), null, null, null);
             List<String> newCookies = connection.getHeaderFields().get("Set-Cookie");
             if (null != newCookies) {
