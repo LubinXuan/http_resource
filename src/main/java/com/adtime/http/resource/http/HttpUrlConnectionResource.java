@@ -131,7 +131,7 @@ public class HttpUrlConnectionResource extends WebResource {
     }
 
     private HttpURLConnection configConnectionAndSend(Request request, URL url) throws IOException {
-        HttpURLConnection con = (HttpURLConnection) new URL(url.getProtocol(), url.getAuthority(), url.getPort(), url.getPath()).openConnection();
+        HttpURLConnection con = (HttpURLConnection) new URL(url.toExternalForm()).openConnection();
         con.setRequestMethod(request.getMethod().name());
         con.setDoInput(true);
         con.setUseCaches(false);
