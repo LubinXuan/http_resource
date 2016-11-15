@@ -4,7 +4,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class URLCanonicalizer {
 
@@ -132,10 +134,10 @@ public class URLCanonicalizer {
     }
 
     public static String getCanonicalURL(String href, String context) {
-        return getCanonicalURL(href, context,null);
+        return getCanonicalURL(href, context, null);
     }
 
-    public static String getCanonicalURL(String href, String context,Set<String> excludeParameter) {
+    public static String getCanonicalURL(String href, String context, Set<String> excludeParameter) {
 
         try {
             URL canonicalURL = new URL(UrlResolver.resolveUrl(context == null ? "" : context, href));
@@ -176,7 +178,7 @@ public class URLCanonicalizer {
 			 */
             path = path.trim();
 
-            final SortedMap<String, String> params = createParameterMap(canonicalURL.getQuery(),excludeParameter);
+            final List<String[]> params = createParameterMap(canonicalURL.getQuery(), excludeParameter);
             final String queryString;
 
             if (params != null && params.size() > 0) {
@@ -215,18 +217,19 @@ public class URLCanonicalizer {
     }
 
     /**
-     * Takes a query string, separates the constituent name-value pairs, and
-     * stores them in a SortedMap ordered by lexicographical order.
+     * Takes a query string, separates the constituent name-value pairs
      *
      * @return Null if there is no query string.
      */
-    private static SortedMap<String, String> createParameterMap(final String queryString,final Set<String> excludeParameter) {
+    private static List<String[]> createParameterMap(final String queryString, final Set<String> excludeParameter) {
+
         if (queryString == null || queryString.isEmpty()) {
             return null;
         }
 
         final String[] pairs = queryString.split("&");
-        final Map<String, String> params = new HashMap<>(pairs.length);
+        List<String[]> pairList = new ArrayList<>(pairs.length);
+
 
         for (final String pair : pairs) {
             if (pair.length() == 0) {
@@ -237,25 +240,25 @@ public class URLCanonicalizer {
             switch (tokens.length) {
                 case 1:
                     if (pair.charAt(0) == '=') {
-                        params.put("", tokens[0]);
+                        pairList.add(new String[]{"", tokens[0]});
                     } else {
-                        if(null!=excludeParameter&&excludeParameter.contains(tokens[0])){
+                        if (null != excludeParameter && excludeParameter.contains(tokens[0])) {
                             continue;
                         }
-                        params.put(tokens[0], "");
+                        pairList.add(new String[]{tokens[0], ""});
                     }
                     break;
                 case 2:
-                    if(null!=excludeParameter&&excludeParameter.contains(tokens[0])){
+                    if (null != excludeParameter && excludeParameter.contains(tokens[0])) {
                         continue;
                     }
-                    params.put(tokens[0], tokens[1]);
+                    pairList.add(new String[]{tokens[0], tokens[1]});
                     break;
                 default:
                     break;
             }
         }
-        return new TreeMap<>(params);
+        return pairList;
     }
 
     /**
@@ -264,24 +267,24 @@ public class URLCanonicalizer {
      * @param sortedParamMap Parameter name-value pairs in lexicographical order.
      * @return Canonical form of query string.
      */
-    private static String canonicalize(final SortedMap<String, String> sortedParamMap) {
+    private static String canonicalize(final List<String[]> sortedParamMap) {
         if (sortedParamMap == null || sortedParamMap.isEmpty()) {
             return "";
         }
 
-        final StringBuffer sb = new StringBuffer(100);
-        for (Map.Entry<String, String> pair : sortedParamMap.entrySet()) {
-            final String key = pair.getKey().toLowerCase();
+        final StringBuilder sb = new StringBuilder(100);
+        for (String[] pair : sortedParamMap) {
+            final String key = pair[0].toLowerCase();
             if (key.equals("jsessionid") || key.equals("phpsessid") || key.equals("aspsessionid")) {
                 continue;
             }
             if (sb.length() > 0) {
                 sb.append('&');
             }
-            sb.append(percentEncodeRfc3986(pair.getKey()));
-            if (!pair.getValue().isEmpty()) {
+            sb.append(percentEncodeRfc3986(pair[0]));
+            if (!pair[1].isEmpty()) {
                 sb.append('=');
-                sb.append(percentEncodeRfc3986(pair.getValue()));
+                sb.append(percentEncodeRfc3986(pair[1]));
             }
         }
         return sb.toString();
