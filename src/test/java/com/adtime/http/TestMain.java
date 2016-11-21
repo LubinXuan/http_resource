@@ -36,8 +36,8 @@ import java.util.regex.Pattern;
 public class TestMain extends BaseTest {
 
     static {
-        //System.setProperty("http.proxyHost", "192.168.100.50");
-        //System.setProperty("http.proxyPort", "8888");
+        System.setProperty("http.proxyHost", "192.168.168.125");
+        System.setProperty("http.proxyPort", "3128");
         //System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
 
@@ -121,7 +121,7 @@ public class TestMain extends BaseTest {
 
     @Test
     public void testAsync() throws IOReactorException, InterruptedException {
-        dynamicProxyProvider.updateProxy(new String[]{"https:172.16.8.23:3128", "https:192.168.168.103:3128", "https:172.16.8.28:3128"});
+        dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.132:3128"});
         CountDownLatch latch = new CountDownLatch(1000);
         long start = System.currentTimeMillis();
         for (int i = 0; i < 1000; i++) {

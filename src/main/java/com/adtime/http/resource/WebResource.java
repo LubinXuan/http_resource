@@ -1,11 +1,13 @@
 package com.adtime.http.resource;
 
+import com.adtime.http.resource.connection.HttpRetryHandler;
 import com.adtime.http.resource.http.AsyncHttpClient;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.url.format.FormatUrl;
 import com.adtime.http.resource.url.invalid.InvalidUrl;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,8 @@ public abstract class WebResource {
 
     protected final static Logger logger = LoggerFactory.getLogger(WebResource.class);
 
+    private final static Set<HttpRetryHandler> HTTP_RETRY_HANDLER_SET = new HashSet<>();
+
     private InvalidUrl invalidUrl;
 
     private FormatUrl formatUrl;
@@ -47,6 +51,10 @@ public abstract class WebResource {
     }
 
     private boolean async = this instanceof AsyncHttpClient;
+
+    public static void addHttpRetryHandler(HttpRetryHandler httpRetryHandler) {
+        HTTP_RETRY_HANDLER_SET.add(httpRetryHandler);
+    }
 
     public static void enableLite() {
         System.setProperty("icu.lite", "true");
@@ -102,8 +110,7 @@ public abstract class WebResource {
         if (null != resultConsumer && async) {
             AsyncHttpClient asyncHttpClient = (AsyncHttpClient) this;
             asyncHttpClient.async(requestUrl, request.getOrigUrl(), 0, request, result -> {
-                //判断是否网络断开
-                if (ConnectionAbortUtils.isNetworkOut(result, request)) {
+                if (isRetryAble(result, request)) {
                     asyncHttpClient.async(result.getUrl(), result.getUrl(), result.getRedirectCount(), request, resultConsumer);
                 } else if (result.isRedirect() && result.getRedirectCount() < request.getMaxRedirect() && null != result.getMoveToUrl()) {
                     asyncHttpClient.async(result.getMoveToUrl(), result.getMoveToUrl(), result.getRedirectCount(), request, resultConsumer);
@@ -130,8 +137,7 @@ public abstract class WebResource {
                 request.setHttpExecStartTime(System.currentTimeMillis());
                 result = request(_requestUrl, request.getOrigUrl(), request);
 
-                //判断是否网络断开
-                if (ConnectionAbortUtils.isNetworkOut(result, request)) {
+                if (isRetryAble(result, request)) {
                     continue;
                 }
 
@@ -158,6 +164,22 @@ public abstract class WebResource {
 
             return result;
         }
+    }
+
+    private boolean isRetryAble(Result result, Request request) {
+
+        boolean networkDown = ConnectionAbortUtils.isNetworkOut(result, request);
+
+        if (networkDown) {
+            return true;
+        }
+
+        for (HttpRetryHandler retryHandler : HTTP_RETRY_HANDLER_SET) {
+            if (retryHandler.isRetryAble(result)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Result fetchPage(String url, String charSet, Map<String, String> headers, boolean trust, ResultConsumer... resultConsumer) {
