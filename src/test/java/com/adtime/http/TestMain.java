@@ -4,6 +4,7 @@ import com.adtime.http.resource.*;
 import com.adtime.http.resource.http.AsyncHttpClient;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import javafx.application.Application;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.reactor.IOReactorException;
 import org.jsoup.Jsoup;
@@ -20,10 +21,13 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Lubin.Xuan on 2015/6/2.
@@ -106,13 +110,12 @@ public class TestMain extends BaseTest {
     @Test
     public void testPage() {
         //dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.103:3128","https:172.16.8.23:3128", "https:172.16.8.28:3128","https:172.16.8.40:3128"});
-        dynamicProxyProvider.updateProxy(new String[]{"https:192.168.100.50:60003"});
+        //dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.125:3128"});
         for (int i = 0; i < 10; i++) {
             Result result = webResource.fetchPage("http://www.51upay.com/");
             System.out.println("==================================");
             System.out.println(result);
         }
-
     }
 
 
@@ -158,8 +161,6 @@ public class TestMain extends BaseTest {
                 logger.info("访问耗时:{} {}", var1.getRequestTime(), var1.getStatus());
             });
         }
-
-
 
 
     }
@@ -284,6 +285,28 @@ public class TestMain extends BaseTest {
 
         JFXHtmlUtils.init();
         Application.launch(JFXJDSearch.class, "--views=1");
+    }
+
+    @Test
+    public void testAdslConnect() throws IOException, InterruptedException {
+
+        Pattern pattern = Pattern.compile("您的IP是：\\[(.*)\\] 来自");
+
+        while (true) {
+            System.out.println("开始拨号");
+            Process process = Runtime.getRuntime().exec("rasdial njdx 02512128421 320123");
+            List<String> lines = IOUtils.readLines(process.getInputStream(), "utf-8");
+
+            Result result = webResource.fetchPage("http://1212.ip138.com/ic.asp");
+            Matcher matcher = pattern.matcher(result.getHtml());
+            if (matcher.find()) {
+                System.out.println(matcher.group(1));
+            }
+            TimeUnit.SECONDS.sleep(10);
+            System.out.println("断开拨号");
+            Runtime.getRuntime().exec("rasdial njdx /disconnect");
+            TimeUnit.SECONDS.sleep(3);
+        }
     }
 
 }

@@ -14,6 +14,7 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Created by xuanlubin on 2016/10/20.
@@ -33,12 +34,18 @@ public class ConnectionAbortUtils {
 
     private static final Set<ConnectionAbort> CONNECTION_ABORT_SET = new ConcurrentHashSet<>();
 
+    private static final Set<Predicate<Result>> PREDICATE_SET = new ConcurrentHashSet<>();
+
     public static void register(ConnectionAbort connectionAbort) {
         CONNECTION_ABORT_SET.add(connectionAbort);
     }
 
     public static void unRegister(ConnectionAbort connectionAbort) {
         CONNECTION_ABORT_SET.remove(connectionAbort);
+    }
+
+    public static void addConnectionTest(Predicate<Result> predicate) {
+        PREDICATE_SET.add(predicate);
     }
 
     protected static void init(Consumer<ConnectionAbort> abortConsumer) {
@@ -56,6 +63,7 @@ public class ConnectionAbortUtils {
             }
         }, 0, 5000);
         abortConsumer.accept(CONNECTION_ABORT);
+        PREDICATE_SET.add(result -> StringUtils.contains(result.getMessage(), "Network is unreachable"));
     }
 
     private static final ConnectionAbort CONNECTION_ABORT = new ConnectionAbort() {
@@ -116,7 +124,14 @@ public class ConnectionAbortUtils {
             return false;
         }
 
-        boolean isNetworkOut = StringUtils.contains(result.getMessage(), "Network is unreachable");
+        boolean isNetworkOut = false;
+
+        for (Predicate<Result> predicate : PREDICATE_SET) {
+            isNetworkOut = predicate.test(result);
+            if (isNetworkOut) {
+                break;
+            }
+        }
 
         if (isNetworkOut) {
             networkDown.set(true);
