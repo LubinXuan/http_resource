@@ -3,6 +3,7 @@ package com.adtime.http;
 import com.adtime.http.resource.*;
 import com.adtime.http.resource.http.AsyncHttpClient;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
+import com.adtime.http.resource.url.URLInetAddress;
 import javafx.application.Application;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,8 +37,8 @@ import java.util.regex.Pattern;
 public class TestMain extends BaseTest {
 
     static {
-        System.setProperty("http.proxyHost", "192.168.168.125");
-        System.setProperty("http.proxyPort", "3128");
+        //System.setProperty("http.proxyHost", "192.168.168.122");
+        //System.setProperty("http.proxyPort", "3128");
         //System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
 
@@ -45,9 +46,9 @@ public class TestMain extends BaseTest {
 
     @Resource(name = "asyncHttpClient")
     private WebResource asyncHttpClient;
-    //@Resource(name = "webResourceUrlConnection")
+    @Resource(name = "webResourceUrlConnection")
     //@Resource(name = "webResourceHtmlUnit")
-    @Resource(name = "webResourceHttpClient")
+    //@Resource(name = "webResourceHttpClient")
     private WebResource webResource;
 
 
@@ -110,9 +111,10 @@ public class TestMain extends BaseTest {
     @Test
     public void testPage() {
         //dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.103:3128","https:172.16.8.23:3128", "https:172.16.8.28:3128","https:172.16.8.40:3128"});
-        //dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.125:3128"});
+        URLInetAddress.disableHostReplace();
+        dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.125:3128"});
         for (int i = 0; i < 10; i++) {
-            Result result = webResource.fetchPage("http://www.51upay.com/");
+            Result result = webResource.fetchPage("http://yq007.adt100.com/");
             System.out.println("==================================");
             System.out.println(result);
         }

@@ -16,6 +16,8 @@ public class URLInetAddress {
 
     private static Field URL_AUTHORITY_FIELD = null;
 
+    private static boolean HOST_REPLACE = true;
+
     static {
         try {
             URL_AUTHORITY_FIELD = URL.class.getDeclaredField("authority");
@@ -25,17 +27,25 @@ public class URLInetAddress {
         }
     }
 
+    public static void disableHostReplace() {
+        HOST_REPLACE = false;
+    }
+
     //protocol://hist:port/path?query#hash
     public static URL create(String targetUrl) throws MalformedURLException, UnknownHostException {
         URL url = new URL(targetUrl);
-        InetAddress inetAddress = DnsCache.randomSync(url.getHost());
-        if (null != inetAddress && !StringUtils.equalsIgnoreCase(inetAddress.getHostAddress(), url.getHost())) {
-            try {
-                URL_AUTHORITY_FIELD.set(url, inetAddress.getHostAddress());
-            } catch (Exception ignore) {
+        if (HOST_REPLACE) {
+            InetAddress inetAddress = DnsCache.randomSync(url.getHost());
+            if (null != inetAddress && !StringUtils.equalsIgnoreCase(inetAddress.getHostAddress(), url.getHost())) {
+                try {
+                    URL_AUTHORITY_FIELD.set(url, inetAddress.getHostAddress());
+                } catch (Exception ignore) {
 
+                }
             }
         }
         return url;
     }
+
+
 }
