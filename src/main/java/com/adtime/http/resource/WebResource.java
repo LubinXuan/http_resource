@@ -27,7 +27,7 @@ public abstract class WebResource {
 
     private static final boolean INDEX_DEFAULT_ACCESS = true;
 
-    public final Logger logger = LoggerFactory.getLogger(WebResource.this.getClass());
+    public final static Logger logger = LoggerFactory.getLogger(WebResource.class);
 
     private final static Set<HttpRetryHandler> HTTP_RETRY_HANDLER_SET = new HashSet<>();
 
