@@ -115,7 +115,7 @@ public class TestMain extends BaseTest {
         dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.125:3128"});
         for (int i = 0; i < 10; i++) {
             Result result = webResource.fetchPage("http://yq007.adt100.com/");
-            System.out.println("==================================");
+            System.out.println("=================================="+result.getHeadersMap().get("X-Cache-Lookup"));
             System.out.println(result);
         }
     }
