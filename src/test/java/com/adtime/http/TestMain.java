@@ -37,8 +37,8 @@ import java.util.regex.Pattern;
 public class TestMain extends BaseTest {
 
     static {
-        //System.setProperty("http.proxyHost", "192.168.168.122");
-        //System.setProperty("http.proxyPort", "3128");
+        System.setProperty("http.proxyHost", "192.168.168.125");
+        System.setProperty("http.proxyPort", "3128");
         //System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
 
@@ -112,7 +112,7 @@ public class TestMain extends BaseTest {
     public void testPage() {
         //dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.103:3128","https:172.16.8.23:3128", "https:172.16.8.28:3128","https:172.16.8.40:3128"});
         URLInetAddress.disableHostReplace();
-        dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.125:3128"});
+        //dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.125:3128"});
         for (int i = 0; i < 10; i++) {
             Result result = webResource.fetchPage("http://yq007.adt100.com/");
             System.out.println("=================================="+result.getHeadersMap().get("X-Cache-Lookup"));

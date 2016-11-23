@@ -1,6 +1,8 @@
 package com.adtime.crawl.queue.center;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.net.util.IPAddressUtil;
 
 import java.io.BufferedReader;
@@ -15,9 +17,10 @@ import java.util.Set;
  */
 public class DomainUtil {
 
+    private static final Logger logger = LoggerFactory.getLogger(DomainUtil.class);
+
     private static final String tldNamesFileName = "parallel.config/tld-names.txt";
     private static Set<String> tldSet;
-    private static final String[] EMPTY = new String[]{null, null};
 
 
     static {
@@ -70,7 +73,8 @@ public class DomainUtil {
             }
             return new String[]{domain, host};
         } catch (Exception var4) {
-            return EMPTY;
+            logger.warn("domain,host 解析失败  {}", urlString);
+            throw var4;
         }
     }
 

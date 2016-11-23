@@ -6,6 +6,16 @@ import com.adtime.http.resource.url.format.DefaultUrlFormat;
 import com.adtime.http.resource.url.format.FormatUrl;
 import com.adtime.http.resource.url.invalid.DefaultInvalidUrl;
 import com.adtime.http.resource.url.invalid.InvalidUrl;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -89,4 +99,28 @@ public class HttpIns {
         webResource.setInvalidUrl(INVALIDURL);
         return webResource;
     }
+
+
+    private static HttpClient client = null;
+
+    public static HttpClient global() {
+        if (null == client) {
+            RequestConfig.Builder builder = RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(120000);
+            if (StringUtils.isNotBlank(CRAWL_CONFIG.getProxyHost())) {
+                builder.setProxy(new HttpHost(CRAWL_CONFIG.getProxyHost(), CRAWL_CONFIG.getProxyPort()));
+            }
+            RequestConfig config = builder.build();
+            HttpClientBuilder clientBuilder = HttpClients.custom().setDefaultRequestConfig(config);
+            if (StringUtils.isNotBlank(CRAWL_CONFIG.getProxyUsername())) {
+                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(new AuthScope(CRAWL_CONFIG.getProxyHost(), CRAWL_CONFIG.getProxyPort()), new UsernamePasswordCredentials(CRAWL_CONFIG.getProxyUsername(), CRAWL_CONFIG.getProxyPassword()));
+                clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            }
+
+            client = clientBuilder.build();
+        }
+        return client;
+    }
+
+
 }
