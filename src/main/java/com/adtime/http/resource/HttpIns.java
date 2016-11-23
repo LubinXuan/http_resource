@@ -101,7 +101,7 @@ public class HttpIns {
     }
 
 
-    private static HttpClient client = null;
+    private static final Map<CrawlConfig, HttpClient> clientMap = new ConcurrentHashMap<>();
 
     public static HttpClient global() {
         return global(CRAWL_CONFIG);
@@ -109,22 +109,20 @@ public class HttpIns {
 
 
     public static HttpClient global(CrawlConfig crawlConfig) {
-        if (null == client) {
+        return clientMap.computeIfAbsent(crawlConfig, crawlConfig1 -> {
             RequestConfig.Builder builder = RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(120000);
-            if (StringUtils.isNotBlank(crawlConfig.getProxyHost())) {
-                builder.setProxy(new HttpHost(crawlConfig.getProxyHost(), crawlConfig.getProxyPort()));
+            if (StringUtils.isNotBlank(crawlConfig1.getProxyHost())) {
+                builder.setProxy(new HttpHost(crawlConfig1.getProxyHost(), crawlConfig1.getProxyPort()));
             }
             RequestConfig config = builder.build();
             HttpClientBuilder clientBuilder = HttpClients.custom().setDefaultRequestConfig(config);
-            if (StringUtils.isNotBlank(crawlConfig.getProxyUsername())) {
+            if (StringUtils.isNotBlank(crawlConfig1.getProxyUsername())) {
                 CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-                credentialsProvider.setCredentials(new AuthScope(crawlConfig.getProxyHost(), crawlConfig.getProxyPort()), new UsernamePasswordCredentials(crawlConfig.getProxyUsername(), crawlConfig.getProxyPassword()));
+                credentialsProvider.setCredentials(new AuthScope(crawlConfig1.getProxyHost(), crawlConfig1.getProxyPort()), new UsernamePasswordCredentials(crawlConfig1.getProxyUsername(), crawlConfig1.getProxyPassword()));
                 clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
             }
-
-            client = clientBuilder.build();
-        }
-        return client;
+            return clientBuilder.build();
+        });
     }
 
 }
