@@ -1,5 +1,6 @@
 package com.adtime.crawl.queue.server;
 
+import com.adtime.http.resource.HttpIns;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
@@ -56,8 +57,7 @@ public class HttpQueueOperator {
             logger.warn("没有指定服务器IP地址");
         } else {
             serverHost = HttpHost.create("http://" + server);
-            RequestConfig config = RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(120000).build();
-            client = HttpClients.custom().setDefaultRequestConfig(config).build();
+            client = HttpIns.global();
             File[] files = this.fileStoreDir.listFiles(file -> file.isFile() && file.getName().endsWith(".txt"));
             if (null != files) {
                 Collections.addAll(fileBlockingQueue, files);

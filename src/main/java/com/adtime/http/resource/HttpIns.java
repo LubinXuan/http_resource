@@ -104,16 +104,21 @@ public class HttpIns {
     private static HttpClient client = null;
 
     public static HttpClient global() {
+        return global(CRAWL_CONFIG);
+    }
+
+
+    public static HttpClient global(CrawlConfig crawlConfig) {
         if (null == client) {
             RequestConfig.Builder builder = RequestConfig.custom().setConnectTimeout(10000).setSocketTimeout(120000);
-            if (StringUtils.isNotBlank(CRAWL_CONFIG.getProxyHost())) {
-                builder.setProxy(new HttpHost(CRAWL_CONFIG.getProxyHost(), CRAWL_CONFIG.getProxyPort()));
+            if (StringUtils.isNotBlank(crawlConfig.getProxyHost())) {
+                builder.setProxy(new HttpHost(crawlConfig.getProxyHost(), crawlConfig.getProxyPort()));
             }
             RequestConfig config = builder.build();
             HttpClientBuilder clientBuilder = HttpClients.custom().setDefaultRequestConfig(config);
-            if (StringUtils.isNotBlank(CRAWL_CONFIG.getProxyUsername())) {
+            if (StringUtils.isNotBlank(crawlConfig.getProxyUsername())) {
                 CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-                credentialsProvider.setCredentials(new AuthScope(CRAWL_CONFIG.getProxyHost(), CRAWL_CONFIG.getProxyPort()), new UsernamePasswordCredentials(CRAWL_CONFIG.getProxyUsername(), CRAWL_CONFIG.getProxyPassword()));
+                credentialsProvider.setCredentials(new AuthScope(crawlConfig.getProxyHost(), crawlConfig.getProxyPort()), new UsernamePasswordCredentials(crawlConfig.getProxyUsername(), crawlConfig.getProxyPassword()));
                 clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
             }
 
@@ -121,6 +126,5 @@ public class HttpIns {
         }
         return client;
     }
-
 
 }
