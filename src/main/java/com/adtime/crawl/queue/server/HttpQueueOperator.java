@@ -153,7 +153,11 @@ public class HttpQueueOperator {
             httpRsp.status = response.getStatusLine().getStatusCode();
             if (200 == httpRsp.status) {
                 httpRsp.content = EntityUtils.toString(response.getEntity(), "utf-8");
-                logger.info("Http请求成功 {} {}", request, jsonData);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Http请求成功 {} {}", request, jsonData);
+                } else {
+                    logger.info("Http请求成功 {} {}", request, StringUtils.length(jsonData));
+                }
             }
             EntityUtils.consumeQuietly(response.getEntity());
         } catch (Exception e) {
