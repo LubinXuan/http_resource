@@ -56,7 +56,12 @@ public abstract class HttpClientBaseOperator extends WebResource {
     protected RequestWrap create(String requestUrl, Request request) throws MalformedURLException, URISyntaxException, UnknownHostException {
         URL url = URLInetAddress.create(requestUrl);
         HttpRequestBase requestBase;
-        URI requestUri = new URI(null, url.getUserInfo(), null, url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+        URI requestUri;
+        try {
+            requestUri = URI.create(url.getFile());
+        } catch (IllegalArgumentException e) {
+            requestUri = new URI(null, null, url.getPath(), url.getQuery(), url.getRef());
+        }
         if (Request.Method.GET.equals(request.getMethod())) {
             requestBase = new HttpGet(requestUri);
         } else if (Request.Method.HEAD.equals(request.getMethod())) {

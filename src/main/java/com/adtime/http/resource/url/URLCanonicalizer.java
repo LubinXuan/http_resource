@@ -1,5 +1,7 @@
 package com.adtime.http.resource.url;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -149,6 +151,10 @@ public class URLCanonicalizer {
             }
 
             String path = canonicalURL.getPath();
+
+            if (StringUtils.isNotBlank(path)) {
+                path = StringUtils.replace(path, " ", "%20");
+            }
 
 			/*
              * Normalize: no empty segments (i.e., "//"), no segments equal to
