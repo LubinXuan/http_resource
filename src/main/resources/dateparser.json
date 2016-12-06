@@ -1,0 +1,299 @@
+//日期格式：考虑实际情况，分格符前后都可以出现空格；前导0可省略；年可以是两位数字；中文连接符也可作为分隔符；“日”可用“号”替代
+// 1、2009/03/10
+// 2、03/10/2009
+// 3、03/10
+// 4、2009.03.10
+// 5、03.10
+// 6、2009-03-10
+// 7、03-10
+// 8、2009年03月10日
+// 9、03月10日
+// 10、当前未考虑 2009.03、2009年03月、二零零九年三月...等情况
+// 
+// 表达式：1、<num_month>\\s*<month_bias_delim><num_day>\\s*<day_bias_delim><num_full_year>
+//   2、((<num_year>|<num_full_year>)\\s*<year_delim>)?<num_month>\\s*<month_delim><num_day>
+//   3、((<num_year>|<num_full_year>)\\s*<zh_year_delim>)?<num_month>\\s*<zh_month_delim><num_day>(\\s*<zh_day_delim>)?
+//   注：1必须在2的前面，否则无法匹配上
+//
+//日期和时间之间分隔符：
+// 1、空格
+// 2、上午
+// 3、下午
+// 4、AM，大小写都可
+// 5、PM，大小写都可
+// 6、当日期以日或者号结尾时可为空
+//
+// 表达式：1、(<whitespace>|\\s*<ampm_delim>|\\s*<zh_ampm_delim>)
+//
+//
+//日期何时可以跟时间：
+// 确定到天时才可以跟时间
+//
+//
+//时间格式：考虑实际情况，分格符前后都可以出现空格;中文冒号也可作为分隔符；前导0可省略
+// 1、不出现时间
+// 2、15:07
+// 3、15:07:58
+// 4、15时
+// 5、15时07
+// 6、15时07分
+// 7、15时07分58
+// 8、15时07分58秒
+//
+// 表达式：(<num_hour><hour_delim><num_min>(<min_delim><num_sec>)?|<zh_num_hour><zh_hour_delim>(<zh_num_min>(<zh_min_delim>(<zh_num_sec>(<zh_sec_delim>)?)?)?)?)
+
+{
+    "annotated_regular_expressions":
+        [
+            "<num_month>\\s*<month_bias_delim><num_day>\\s*<day_bias_delim><num_full_year>((<whitespace>|\\s*<ampm_delim>|\\s*<zh_ampm_delim>|T)?(<num_hour><hour_delim><num_min>(<min_delim><num_sec>)?|<zh_num_hour><zh_hour_delim>(<zh_num_min>(<zh_min_delim>(<zh_num_sec>(<zh_sec_delim>)?)?)?)?))?.*",
+            "((<num_year>|<num_full_year>)\\s*<year_delim>)?<num_month>\\s*<month_delim><num_day>((<whitespace>|\\s*<ampm_delim>|\\s*<zh_ampm_delim>|T)?(<num_hour><hour_delim><num_min>(<min_delim><num_sec>)?|<zh_num_hour><zh_hour_delim>(<zh_num_min>(<zh_min_delim>(<zh_num_sec>(<zh_sec_delim>)?)?)?)?))?.*",
+            "((<num_year>|<num_full_year>)\\s*<zh_year_delim>)?<num_month>\\s*<zh_month_delim><num_day>(\\s*<zh_day_delim>)?((<whitespace>|\\s*<ampm_delim>|\\s*<zh_ampm_delim>|T)?(<num_hour><hour_delim><num_min>(<min_delim><num_sec>)?|<zh_num_hour><zh_hour_delim>(<zh_num_min>(<zh_min_delim>(<zh_num_sec>(<zh_sec_delim>)?)?)?)?))?.*",
+            "(<num_hour><hour_delim><num_min>(<min_delim><num_sec>)?|<zh_num_hour><zh_hour_delim>(<zh_num_min>(<zh_min_delim>(<zh_num_sec>(<zh_sec_delim>)?)?)?)?)",
+            "<num_full_year>(<year_delim>)?<num_full_month>(<month_delim>)?<num_full_day><num_full_hour>:<num_full_min>:<num_full_sec>"
+        ],
+
+    "annotated_regular_expression_bindings":
+        [
+            {
+                "binding_name" : "whitespace",
+                "binding_value": "\\s+"
+            },
+
+            {
+                "binding_name"  : "num_year",
+                "binding_value" : "\\d{2}",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.YearComponentNumericParser",
+                "callback_arguments" : { "type" : "year" }
+            },
+
+            {
+                "binding_name"  : "num_full_year",
+                "binding_value" : "\\d{4}",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.YearComponentNumericParser",
+                "callback_arguments" : { "type" : "year" }
+            },
+
+            {
+                "binding_name"  : "num_month",
+                "binding_value" : "\\d{1,2}",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "month" }
+            },
+
+            {
+                "binding_name"  : "num_full_month",
+                "binding_value" : "\\d{2}",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "month" }
+            },
+
+            {
+                "binding_name"  : "num_day",
+                "binding_value" : "\\d{1,2}",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "day" }
+            },
+
+            {
+                "binding_name"  : "num_full_day",
+                "binding_value" : "\\d{2}",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "day" }
+            },
+
+            {
+                "binding_name"  : "year_delim",
+                "binding_value" : "(/|-|\\.|\\uff0d)\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_year" }
+            },
+
+            {
+                "binding_name"  : "month_delim",
+                "binding_value" : "(/|-|\\.|\\uff0d)\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_month" }
+            },
+
+            {
+                "binding_name"  : "day_bias_delim",
+                "binding_value" : "/\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_day" }
+            },
+
+            {
+                "binding_name"  : "month_bias_delim",
+                "binding_value" : "/\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_month" }
+            },
+
+            {
+                "binding_name"  : "zh_year_delim",
+                "binding_value" : "\\u5e74\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_year" }
+            },
+
+            {
+                "binding_name"  : "zh_month_delim",
+                "binding_value" : "\\u6708\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_month" }
+            },
+
+            {
+                "binding_name"  : "zh_day_delim",
+                "binding_value" : "(\\u65e5|\\u53f7)\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_day" }
+            },
+
+            {
+                "binding_name"  : "ampm_delim",
+                "binding_value" : "([Aa]|[Pp])[Mm]\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.AMComponentParser",
+                "callback_arguments" : { "type" : "am" }
+            },
+
+            {
+                "binding_name"  : "zh_ampm_delim",
+                "binding_value" : "(\\u4e0a|\\u4e0b)\\u5348\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.AMComponentParser",
+                "callback_arguments" : { "type" : "am" }
+            },
+
+            {
+                "binding_name"  : "num_hour",
+                "binding_value" : "\\d{1,2}\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "hour" }
+            },
+
+            {
+                "binding_name"  : "num_full_hour",
+                "binding_value" : "\\d{2}\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "hour" }
+            },
+
+            {
+                "binding_name"  : "num_min",
+                "binding_value" : "\\d{1,2}\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "minute" }
+            },
+
+            {
+                "binding_name"  : "num_full_min",
+                "binding_value" : "\\d{2}\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "minute" }
+            },
+
+            {
+                "binding_name"  : "num_sec",
+                "binding_value" : "\\d{1,2}\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "second" }
+            },
+
+            {
+                "binding_name"  : "num_full_sec",
+                "binding_value" : "\\d{2}\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "second" }
+            },
+
+            {
+                "binding_name"  : "zh_num_hour",
+                "binding_value" : "\\d{1,2}\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "hour" }
+            },
+
+            {
+                "binding_name"  : "zh_num_min",
+                "binding_value" : "\\d{1,2}\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "minute" }
+            },
+
+            {
+                "binding_name"  : "zh_num_sec",
+                "binding_value" : "\\d{1,2}\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.NumericComponentParser",
+                "callback_arguments" : { "type" : "second" }
+            },
+
+            {
+                "binding_name"  : "hour_delim",
+                "binding_value" : "(:|\\uff1a)\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_hour" }
+            },
+
+            {
+                "binding_name"  : "min_delim",
+                "binding_value" : "(:|\\uff1a)\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_minute" }
+            },
+
+            {
+                "binding_name"  : "zh_hour_delim",
+                "binding_value" : "\\u65f6\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_hour" }
+            },
+
+            {
+                "binding_name"  : "zh_min_delim",
+                "binding_value" : "\\u5206\\s*",
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_minute" }
+            },
+
+            {
+                "binding_name"  : "zh_sec_delim",
+                "binding_value" : "\\u79d2\\s*" ,
+                "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
+                "callback_arguments" : { "type" : "delim_second" }
+            }
+        ],
+
+    "context" :
+    {
+        "context_class" : "com.adtime.common.date.extrator.dateparser.DateParsingContext",
+        "context_class_args":
+        {
+            "year"    : 2008,
+            "month"   : 1,
+            "day"     : 1,
+            "hour"    : 0,
+            "minute"  : 0,
+            "second"  : 0,
+            "timezone": 8,
+            "am"      : 0
+        }
+    },
+    "date_off_prefix_handler": [
+        {
+            "binding_name": "today",
+            "off": 0,
+            "binding_value": ".{0,2000}?(\\u4eca(\\u5929|\\u65e5))"
+        },
+        {
+            "binding_name": "yesterday",
+            "off": -1,
+            "binding_value": ".{0,2000}?(\\u6628(\\u5929|\\u65e5))"
+        },
+        {
+            "binding_name": "yesterday_plus",
+            "off": -2,
+            "binding_value": ".{0,2000}?(\\u524d(\\u5929|\\u65e5))"
+        }
+    ]
+
+}

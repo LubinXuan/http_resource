@@ -1,0 +1,75 @@
+{
+  "patternList": [
+    {
+      "pattern": ".*?(\\d+?|[\u4e00-\u9fa5])\\s{0,10}(分钟|天|小时|年)\\s{0,10}(\\d+?|[\u4e00-\u9fa5])\\s{0,10}(分钟|秒|小时)前?.*?",
+      "idx": [
+        {
+          "off": 1,
+          "type": 2
+        }
+        ,{
+          "off": 3,
+          "type": 4
+        }
+      ]
+    },
+    {
+      "pattern": ".*?(\\d+?|[\u4e00-\u9fa5])\\s{0,10}个?(分钟|秒|天|小时|年|周|月)前?.*?",
+      "idx": [
+        {
+          "off": 1,
+          "type": 2
+        }
+      ]
+    }
+  ],
+  "type": {
+    "分钟": {
+      "field":"MINUTE",
+      "matrix":60,
+      "matrixField":"SECOND"
+    },
+    "秒": {
+      "field":"SECOND",
+      "matrix":1,
+      "matrixField":"SECOND"
+    },
+    "天": {
+      "field":"DATE",
+      "matrix":24,
+      "matrixField":"HOUR"
+    },
+    "小时": {
+      "field":"HOUR",
+      "matrix":60,
+      "matrixField":"MINUTE"
+    },
+    "年": {
+      "field":"YEAR",
+      "matrix":1,
+      "matrixField":"YEAR"
+    },
+    "月": {
+      "field":"MONTH",
+      "matrix":1,
+      "matrixField":"MONTH"
+    },
+    "周": {
+      "field":"WEEK",
+      "matrix":7,
+      "matrixField":"DATE"
+    }
+  },
+  "specific": {
+    "半": 0.5,
+    "一": 1,
+    "二": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9
+  }
+}

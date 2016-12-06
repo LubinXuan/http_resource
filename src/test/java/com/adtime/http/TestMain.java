@@ -114,7 +114,7 @@ public class TestMain extends BaseTest {
         URLInetAddress.disableHostReplace();
         //dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.125:3128"});
         for (int i = 0; i < 10; i++) {
-            Result result = webResource.fetchPage("http://yq007.adt100.com/");
+            Result result = webResource.fetchPage("http://www.che101.com/biaozhi407 coupe(jinkou)/");
             System.out.println("=================================="+result.getHeadersMap().get("X-Cache-Lookup"));
             System.out.println(result);
         }
