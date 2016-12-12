@@ -1,8 +1,7 @@
 package com.adtime.crawl.queue.center.jvm;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -15,21 +14,23 @@ public class DNode<T> implements Serializable {
     private int inQueue = 0;
     private int total = 0;
     private int complete = 0;
-    private DNode nxt;
 
     private int parallelLimit = 1;
 
     private String domain;
 
-    private BlockingQueue<T> queue = new LinkedBlockingQueue<>();
+    private Queue<T> queue;
 
 
-    protected DNode() {
-        this.nxt = this;
+    protected DNode(Queue<T> queue) {
+        if (null == queue) {
+            throw new IllegalArgumentException("队列不允许为null");
+        }
+        this.queue = queue;
     }
 
-    protected DNode(String domain) {
-        this();
+    protected DNode(String domain, Queue<T> queue) {
+        this(queue);
         this.domain = domain;
     }
 
@@ -38,8 +39,8 @@ public class DNode<T> implements Serializable {
         total++;
         queue.offer(t);
         if (inQueue < this.parallelLimit) {
-            List<T> tmpList = new ArrayList<>();
-            inQueue += queue.drainTo(tmpList, this.parallelLimit - inQueue);
+            List<T> tmpList = takeFromQueue(this.parallelLimit - inQueue);
+            inQueue += tmpList.size();
             return tmpList;
         } else {
             return null;
@@ -56,7 +57,8 @@ public class DNode<T> implements Serializable {
         List<T> tmpList = new ArrayList<>();
         inQueue--;
         if (inQueue < this.parallelLimit) {
-            inQueue += queue.drainTo(tmpList, this.parallelLimit - inQueue);
+            tmpList = takeFromQueue(this.parallelLimit - inQueue);
+            inQueue += tmpList.size();
         }
         if (running > 0) {
             running--;
@@ -66,12 +68,19 @@ public class DNode<T> implements Serializable {
         return tmpList;
     }
 
-    public DNode next() {
-        return nxt;
-    }
-
-    protected void next(DNode nxt) {
-        this.nxt = nxt;
+    private List<T> takeFromQueue(int size) {
+        if (size <= 0) {
+            return Collections.emptyList();
+        }
+        List<T> tmpList = new ArrayList<>();
+        while (size-- > 0) {
+            T taskFromQueue = queue.poll();
+            if (null == taskFromQueue) {
+                break;
+            }
+            tmpList.add(taskFromQueue);
+        }
+        return tmpList;
     }
 
     public int getTotal() {

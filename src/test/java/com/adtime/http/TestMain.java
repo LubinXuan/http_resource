@@ -1,10 +1,13 @@
 package com.adtime.http;
 
+import com.adtime.AdslReboot;
+import com.adtime.common.date.util.FileUtil;
 import com.adtime.http.resource.*;
 import com.adtime.http.resource.http.AsyncHttpClient;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLInetAddress;
 import javafx.application.Application;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.nio.reactor.IOReactorException;
@@ -18,13 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -37,8 +38,10 @@ import java.util.regex.Pattern;
 public class TestMain extends BaseTest {
 
     static {
-        System.setProperty("http.proxyHost", "192.168.168.125");
-        System.setProperty("http.proxyPort", "3128");
+        //System.setProperty("http.proxyHost","49.74.216.165");
+        //System.setProperty("http.proxyPort","20121");
+        //System.setProperty("http.proxyHost", "192.168.168.125");
+        //System.setProperty("http.proxyPort", "3128");
         //System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
     }
 
@@ -115,7 +118,7 @@ public class TestMain extends BaseTest {
         //dynamicProxyProvider.updateProxy(new String[]{"https:192.168.168.125:3128"});
         for (int i = 0; i < 10; i++) {
             Result result = webResource.fetchPage("http://www.che101.com/biaozhi407 coupe(jinkou)/");
-            System.out.println("=================================="+result.getHeadersMap().get("X-Cache-Lookup"));
+            System.out.println("==================================" + result.getHeadersMap().get("X-Cache-Lookup"));
             System.out.println(result);
         }
     }
@@ -266,13 +269,13 @@ public class TestMain extends BaseTest {
     WebResource webResourceHtmlUnit;
 
     static {
-        /*System.setProperty("http.proxyHost","140.246.19.86");
-        System.setProperty("http.proxyPort","8888");*/
+        System.setProperty("http.proxyHost","49.74.216.165");
+        System.setProperty("http.proxyPort","20121");
     }
 
     @Test
     public void testProxy() {
-        Request request = RequestBuilder.buildRequest("http://www.ctex.cn/j/web/project.jsp?catEname=/zrxx/jsxm&infoId=20140900039427");
+        Request request = RequestBuilder.buildRequest("");
         request.setMaxRedirect(20);
         Result result = webResourceHtmlUnit.fetchPage(request);
 
@@ -292,22 +295,21 @@ public class TestMain extends BaseTest {
     @Test
     public void testAdslConnect() throws IOException, InterruptedException {
 
-        Pattern pattern = Pattern.compile("您的IP是：\\[(.*)\\] 来自");
+        //File file = new File("./ip.txt");
 
         while (true) {
-            System.out.println("开始拨号");
-            Process process = Runtime.getRuntime().exec("rasdial njdx 02512128421 320123");
-            List<String> lines = IOUtils.readLines(process.getInputStream(), "utf-8");
+            //AdslReboot.connect();
 
-            Result result = webResource.fetchPage("http://1212.ip138.com/ic.asp");
-            Matcher matcher = pattern.matcher(result.getHtml());
-            if (matcher.find()) {
-                System.out.println(matcher.group(1));
+            Result result = webResource.fetchPage("http://yq007.adt100.com/getRealIp");
+            if (result.getStatus() == 200) {
+                String ip = result.getHtml();
+                System.out.println(ip);
+                //FileUtils.write(file, ip + "\n", "utf-8", true);
             }
+
             TimeUnit.SECONDS.sleep(10);
-            System.out.println("断开拨号");
-            Runtime.getRuntime().exec("rasdial njdx /disconnect");
-            TimeUnit.SECONDS.sleep(3);
+            //AdslReboot.disconnect();
+            TimeUnit.SECONDS.sleep(1);
         }
     }
 

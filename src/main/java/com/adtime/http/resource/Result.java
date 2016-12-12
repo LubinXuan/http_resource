@@ -169,6 +169,10 @@ public class Result implements Serializable {
         return this;
     }
 
+    public String actualUrl() {
+        return StringUtils.isNotBlank(this.moveToUrl) ? this.moveToUrl : this.url;
+    }
+
     @Override
     public String toString() {
         return "Result{" +

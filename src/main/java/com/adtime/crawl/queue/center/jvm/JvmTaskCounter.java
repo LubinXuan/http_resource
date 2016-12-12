@@ -6,9 +6,7 @@ import com.adtime.crawl.queue.center.TaskCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,24 +19,19 @@ public class JvmTaskCounter<P, T extends Identity<P>> extends TaskCounter<P, T> 
 
     private final Map<String, DNode<T>> DOMAIN_COUNTER = new ConcurrentHashMap<>();
 
-    private final DNode<T> root = new DNode<>("root");
-
-    private DNode<T> tail = root;
-
     private final Map<String, ParallelService<T>> schedulerMap = new ConcurrentHashMap<>();
 
     private ParallelService<T> parallelService;
+
+    private boolean usePriorityQueue = false;
 
     public void registerParallelService(String queueName, ParallelService<T> parallelService) {
         schedulerMap.putIfAbsent(queueName, parallelService);
     }
 
     private DNode<T> newDNode(String domain) {
-        DNode<T> node = new DNode<>(domain);
-        tail.next(node);
-        node.next(root);
-        tail = node;
-        return node;
+        Queue<T> queue = this.usePriorityQueue ? QueueFactory.createPriorityQueue() : QueueFactory.createBlockingQueue();
+        return new DNode<>(domain, queue);
     }
 
     public void release(String domain) {
@@ -132,8 +125,8 @@ public class JvmTaskCounter<P, T extends Identity<P>> extends TaskCounter<P, T> 
         return DOMAIN_COUNTER.get(parallelKey);
     }
 
-    public DNode<T> head() {
-        return root;
+    public Collection<DNode> nodeList() {
+        return Collections.unmodifiableCollection(DOMAIN_COUNTER.values());
     }
 
     @Override
@@ -147,5 +140,9 @@ public class JvmTaskCounter<P, T extends Identity<P>> extends TaskCounter<P, T> 
 
     public void setParallelService(ParallelService<T> parallelService) {
         this.parallelService = parallelService;
+    }
+
+    public void setUsePriorityQueue(boolean usePriorityQueue) {
+        this.usePriorityQueue = usePriorityQueue;
     }
 }
