@@ -292,7 +292,7 @@ public class HttpUrlConnectionResource extends WebResource {
                     cookie = sb.toString();
                 }
                 connection.addRequestProperty("Cookie", cookie);
-                logger.debug("url:{} cookie:{}", connection.getURL(), cookie);
+                logger.debug("host:{} path:{} cookie:{}", url.getHost(), url.getPath(), cookie);
             }
         } catch (Throwable e) {
             e.printStackTrace();
