@@ -243,7 +243,7 @@
 
             {
                 "binding_name"  : "zh_hour_delim",
-                "binding_value" : "\\u65f6\\s*",
+                "binding_value" : "(\\u65f6|\\u70b9)\\s*",
                 "callback"      : "com.adtime.common.date.extrator.dateparser.DateComponentParser",
                 "callback_arguments" : { "type" : "delim_hour" }
             },

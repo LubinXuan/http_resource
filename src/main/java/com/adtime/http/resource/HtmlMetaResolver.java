@@ -23,7 +23,7 @@ public class HtmlMetaResolver {
         if (null == html) {
             return "";
         }
-        Elements meta = html.select("meta");
+        Elements meta = html.select("head>meta");
         Optional<Element> elementOptional = meta.parallelStream().filter(m -> key.equalsIgnoreCase(m.attr(field))).findFirst();
         if (elementOptional.isPresent()) {
             return elementOptional.get().attr("content");
