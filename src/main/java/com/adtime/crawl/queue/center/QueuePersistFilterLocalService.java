@@ -52,4 +52,9 @@ public class QueuePersistFilterLocalService<P, T extends Identity<P>> implements
     public boolean contains(P id) {
         return filterService.contains(id);
     }
+
+    @Override
+    public void close() {
+        persistService.close();
+    }
 }

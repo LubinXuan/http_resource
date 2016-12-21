@@ -11,4 +11,6 @@ public interface QueuePersistService<P, T extends Identity<P>> {
     List<T> listQueueTask();
 
     void deleteTask(P id);
+
+    void close();
 }

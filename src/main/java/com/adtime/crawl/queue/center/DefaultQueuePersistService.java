@@ -98,4 +98,9 @@ public class DefaultQueuePersistService<P, T extends Identity<P>> implements Que
             counter.incrementAndGet();
         }
     }
+
+    @Override
+    public void close() {
+        saveFile();
+    }
 }
