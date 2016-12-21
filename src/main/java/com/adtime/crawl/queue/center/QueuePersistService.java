@@ -5,12 +5,12 @@ import java.util.List;
 /**
  * Created by xuanlubin on 2016/8/10.
  */
-public interface QueuePersistService<P, T extends Identity<P>> {
+public interface QueuePersistService<P, T extends Identity<P>> extends AutoCloseable {
+
     void save(T task);
 
     List<T> listQueueTask();
 
     void deleteTask(P id);
 
-    void close();
 }
