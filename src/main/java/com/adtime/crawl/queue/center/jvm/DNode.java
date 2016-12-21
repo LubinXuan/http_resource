@@ -68,6 +68,10 @@ public class DNode<T> implements Serializable {
         return tmpList;
     }
 
+    public synchronized List<T> queueData() {
+        return new ArrayList<>(queue);
+    }
+
     private List<T> takeFromQueue(int size) {
         if (size <= 0) {
             return Collections.emptyList();

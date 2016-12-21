@@ -73,7 +73,6 @@ public class Clients435 extends HttpClientHelper {
     private RequestConfig.Builder requestConfigBuilder;
     private CredentialsProvider credentialsProvider = null;
     private RequestConfig defaultRequestConfig = null;
-    private CookieStore cookieStore = new BasicCookieStore();
 
     private PoolingHttpClientConnectionManager connectionManager = null;
     private PoolingNHttpClientConnectionManager nHttpClientConnectionManager = null;
@@ -87,11 +86,6 @@ public class Clients435 extends HttpClientHelper {
 
     @Autowired(required = false)
     private DynamicProxyProvider dynamicProxyProvider;
-
-    @Override
-    public void registerCookie(String domain, String name, String value) {
-        cookieStore.addCookie(newClientCookie(domain, name, value));
-    }
 
     private boolean init = false;
 

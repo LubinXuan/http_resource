@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -43,7 +44,13 @@ public class HttpQueueOperator {
 
     private static final AtomicLong id = new AtomicLong(0);
 
+    private String basicAuthInfo = null;
+
     public HttpQueueOperator(String fileStoreDir, String server) {
+        this(fileStoreDir, server, null);
+    }
+
+    public HttpQueueOperator(String fileStoreDir, String server, String auth) {
         this.fileStoreDir = new File(fileStoreDir);
         if (!this.fileStoreDir.exists() || !this.fileStoreDir.isDirectory()) {
             if (!this.fileStoreDir.mkdir()) {
@@ -105,6 +112,9 @@ public class HttpQueueOperator {
             taskSendThread.setName("HttpTaskSendThread-" + fileStoreDir);
             taskSendThread.start();
         }
+        if (StringUtils.isNotBlank(auth)) {
+            basicAuthInfo = Base64.getEncoder().encodeToString(auth.getBytes());
+        }
     }
 
     public HttpRsp send(String request, String jsonData) {
@@ -149,6 +159,11 @@ public class HttpQueueOperator {
 
 
         try {
+
+            if (StringUtils.isNotBlank(basicAuthInfo)) {
+                httpRequest.addHeader("Authorization", "Basic " + basicAuthInfo);
+            }
+
             HttpResponse response = client.execute(serverHost, httpRequest);
             httpRsp.status = response.getStatusLine().getStatusCode();
             if (200 == httpRsp.status) {

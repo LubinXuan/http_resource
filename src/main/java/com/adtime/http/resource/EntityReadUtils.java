@@ -207,7 +207,7 @@ public class EntityReadUtils {
         }
     }
 
-    private static boolean isZlibHeader(byte[] bytes) {
+    public static boolean isZlibHeader(byte[] bytes) {
         //deal with java stupidity : convert to signed int before comparison
         char byte1 = (char) (bytes[0] & 0xFF);
         char byte2 = (char) (bytes[1] & 0xFF);
@@ -215,7 +215,7 @@ public class EntityReadUtils {
         return byte1 == 0x78 && (byte2 == 0x01 || byte2 == 0x9c || byte2 == 0xDA);
     }
 
-    private static byte[] tranInflaterInputStream(byte[] encBytes) throws IOException {
+    public static byte[] tranInflaterInputStream(byte[] encBytes) throws IOException {
         Inflater inflator = new Inflater(true);
         boolean isZlibHeader = isZlibHeader(encBytes);
         inflator.setInput(encBytes, isZlibHeader ? 2 : 0, isZlibHeader ? encBytes.length - 2 : encBytes.length);

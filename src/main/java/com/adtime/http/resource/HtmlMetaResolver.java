@@ -19,14 +19,13 @@ public class HtmlMetaResolver {
         return getMetaVal(key, "http-equiv", html);
     }
 
-    private static String getMetaVal(String key, String field, Document html) {
+    private static String getMetaVal(String value, String field, Document html) {
         if (null == html) {
             return "";
         }
-        Elements meta = html.select("head>meta");
-        Optional<Element> elementOptional = meta.parallelStream().filter(m -> key.equalsIgnoreCase(m.attr(field))).findFirst();
-        if (elementOptional.isPresent()) {
-            return elementOptional.get().attr("content");
+        Elements meta = html.select("head>meta[" + field + "=" + value + "]");
+        if (!meta.isEmpty()) {
+            return meta.attr("content");
         }
         return "";
     }

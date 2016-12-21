@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Created by Lubin.Xuan on 2015/6/12.
@@ -72,6 +73,10 @@ public class CookieRegister {
         webResourceList.forEach(w -> w.registerCookie(domain, name, value));
     }
 
+    public void clearCookie() {
+        webResourceList.forEach(WebResource::clearAllCookie);
+    }
+
     public void disableHostCookie(String host) {
         _disableHostCookie(host, true);
     }
@@ -112,5 +117,9 @@ public class CookieRegister {
         } catch (IOException e) {
             logger.error("cookie禁用信息写入失败", e);
         }
+    }
+
+    public List<WebResource> webResourceList() {
+        return Collections.unmodifiableList(webResourceList);
     }
 }

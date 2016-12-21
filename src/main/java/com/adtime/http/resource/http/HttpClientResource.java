@@ -52,7 +52,7 @@ public class HttpClientResource extends HttpClientBaseOperator {
             Map<String, List<String>> headerMap = readHeader(request, response);
             int sts = response.getStatusLine().getStatusCode();
             if (HttpUtil.isRedirect(sts)) {
-                return handleRedirect(response, url);
+                return handleRedirect(response, url).withHeader(headerMap);
             } else {
                 if (Request.Method.HEAD.equals(request.getMethod())) {
                     return new Result(url, sts, "").withHeader(headerMap);

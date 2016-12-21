@@ -3,9 +3,11 @@ package com.adtime.http.resource.http;
 import com.adtime.http.resource.CrawlConfig;
 import com.adtime.http.resource.WebResource;
 import com.adtime.http.resource.dns.DnsCache;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.cookie.ClientCookie;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
@@ -23,6 +25,8 @@ public abstract class HttpClientHelper {
 
     protected CrawlConfig config;
 
+    protected CookieStore cookieStore = new BasicCookieStore();
+
     public CrawlConfig getConfig() {
         return config;
     }
@@ -35,7 +39,13 @@ public abstract class HttpClientHelper {
 
     public abstract RequestConfig requestConfig(Integer connectTimeout, Integer readTimeout);
 
-    public abstract void registerCookie(String domain, String name, String value);
+    public void registerCookie(String domain, String name, String value) {
+        cookieStore.addCookie(newClientCookie(domain, name, value));
+    }
+
+    public void clearAllCookie() {
+        cookieStore.clear();
+    }
 
     public static ClientCookie newClientCookie(String domain, String name, String value) {
         BasicClientCookie cookie = new BasicClientCookie(name, value);

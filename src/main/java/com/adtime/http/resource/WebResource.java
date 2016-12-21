@@ -7,18 +7,16 @@ import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.url.format.FormatUrl;
 import com.adtime.http.resource.url.invalid.InvalidUrl;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class WebResource {
 
@@ -30,6 +28,10 @@ public abstract class WebResource {
     public final static Logger logger = LoggerFactory.getLogger(WebResource.class);
 
     private final static Set<HttpRetryHandler> HTTP_RETRY_HANDLER_SET = new HashSet<>();
+
+    private final static Map<Long, String> CURRENT_REQUEST_URL_MAP = new ConcurrentHashMap<>();
+
+    private final static AtomicLong REQ_ID = new AtomicLong(0);
 
     private InvalidUrl invalidUrl;
 
@@ -58,6 +60,10 @@ public abstract class WebResource {
 
     public static void enableLite() {
         System.setProperty("icu.lite", "true");
+    }
+
+    public static List<String> currentReqUrlList() {
+        return new ArrayList<>(CURRENT_REQUEST_URL_MAP.values());
     }
 
     public Request buildRequest(String url, String charSet, Map<String, String> headers, boolean trust, boolean includeIndex, int maxRedirect) {
@@ -97,8 +103,13 @@ public abstract class WebResource {
             }
             return request.getResult();
         }
-
-        return getResult(requestUrl, request, resultConsumer);
+        long reqId = REQ_ID.incrementAndGet();
+        try {
+            CURRENT_REQUEST_URL_MAP.put(reqId, requestUrl);
+            return getResult(requestUrl, request, resultConsumer);
+        } finally {
+            CURRENT_REQUEST_URL_MAP.remove(reqId);
+        }
     }
 
     private Result getResult(final String requestUrl, final Request request, ResultConsumer resultConsumer) {
@@ -229,6 +240,7 @@ public abstract class WebResource {
     public abstract Result request(String url, String oUrl, Request request);
 
     public abstract void registerCookie(String domain, String name, String value);
+    public abstract void clearAllCookie();
 
     protected boolean handException(Throwable e, String address, String url, String oUrl) {
         boolean isTimeOut = e instanceof SocketTimeoutException;

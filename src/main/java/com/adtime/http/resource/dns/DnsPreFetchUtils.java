@@ -64,7 +64,8 @@ public class DnsPreFetchUtils {
         new Timer("DnsInfoUpdate").schedule(new TimerTask() {
             @Override
             public void run() {
-                for (Iterator<DnsUpdateInfo> iterator = DOMAIN_FETCH_QUEUE.iterator(); iterator.hasNext(); ) {
+                List<DnsUpdateInfo> list = new ArrayList<>(DOMAIN_FETCH_QUEUE);
+                for (Iterator<DnsUpdateInfo> iterator = list.iterator(); iterator.hasNext(); ) {
                     if (block.get()) {
                         break;
                     }

@@ -86,6 +86,11 @@ public class HttpUnitResource extends WebResource {
     }
 
     @Override
+    public void clearAllCookie() {
+        cookieManager.clearCookies();
+    }
+
+    @Override
     public Result request(String url, String oUrl, Request request) {
 
         URL __url;
@@ -174,10 +179,7 @@ public class HttpUnitResource extends WebResource {
                 }
             }
             return result.withHeader(headerMap);
-        } catch (RuntimeException e) {
-            handException(e, __url.getAuthority(), url, oUrl);
-            return new Result(oUrl, WebConst.HTTP_ERROR, e.toString());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             handException(e, __url.getAuthority(), url, oUrl);
             return new Result(oUrl, WebConst.HTTP_ERROR, e.toString());
         } finally {

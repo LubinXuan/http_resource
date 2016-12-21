@@ -50,6 +50,10 @@ public class HttpUrlConnectionResource extends WebResource {
         cookieStore.add(null, cookie);
     }
 
+    @Override
+    public void clearAllCookie() {
+        cookieStore.removeAll();
+    }
 
     @PostConstruct
     public void _init() {

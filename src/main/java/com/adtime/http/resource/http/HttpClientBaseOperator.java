@@ -44,6 +44,11 @@ public abstract class HttpClientBaseOperator extends WebResource {
     }
 
     @Override
+    public void clearAllCookie() {
+
+    }
+
+    @Override
     protected boolean _handException(Throwable e, String url, String oUrl) {
         return e instanceof SocketException ||
                 e instanceof ConnectTimeoutException ||

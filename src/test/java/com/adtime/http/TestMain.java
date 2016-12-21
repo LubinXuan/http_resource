@@ -300,16 +300,16 @@ public class TestMain extends BaseTest {
         while (true) {
             //AdslReboot.connect();
 
-            Result result = webResource.fetchPage("http://yq007.adt100.com/getRealIp");
+            Result result = webResource.fetchPage("http://cache.video.qiyi.com/jp/sdvlst/6/1300000720/201512/");
             if (result.getStatus() == 200) {
                 String ip = result.getHtml();
                 System.out.println(ip);
                 //FileUtils.write(file, ip + "\n", "utf-8", true);
             }
 
-            TimeUnit.SECONDS.sleep(10);
+            //TimeUnit.SECONDS.sleep(10);
             //AdslReboot.disconnect();
-            TimeUnit.SECONDS.sleep(1);
+            //TimeUnit.SECONDS.sleep(1);
         }
     }
 
