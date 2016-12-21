@@ -50,7 +50,7 @@ public class DefaultQueuePersistService<P, T extends Identity<P>> implements Que
         } catch (Exception e) {
             logger.error("无法从本地文件恢复任务！！！", e);
         }
-        new Timer("PersistLocalFile").schedule(new TimerTask() {
+        new Timer("FileStore" + storeName).schedule(new TimerTask() {
             @Override
             public void run() {
                 saveFile();
