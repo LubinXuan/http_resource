@@ -57,7 +57,7 @@ public class QueuePersistFilterLocalService<P, T extends Identity<P>> implements
         }, 10000, 10000);
     }
 
-    private void saveFile() {
+    protected void saveFile() {
         int update = counter.getAndSet(0);
         if (update > 0) {
             try {
