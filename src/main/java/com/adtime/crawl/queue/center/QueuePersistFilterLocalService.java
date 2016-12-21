@@ -12,11 +12,12 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 /**
  * Created by xuanlubin on 2016/8/10.
  */
-public abstract class QueuePersistFilterLocalService<P, T extends Identity<P>> implements QueuePersistService<P, T>, QueueFilterService<P> {
+public class QueuePersistFilterLocalService<P, T extends Identity<P>> implements QueuePersistService<P, T>, QueueFilterService<P> {
     private static final Logger logger = LoggerFactory.getLogger(QueuePersistFilterLocalService.class);
 
     private AtomicInteger counter = new AtomicInteger(0);
@@ -29,7 +30,7 @@ public abstract class QueuePersistFilterLocalService<P, T extends Identity<P>> i
 
     private final String storeName;
 
-    public QueuePersistFilterLocalService(String storeName) {
+    public QueuePersistFilterLocalService(String storeName, Function<String, T> tFunction) {
         this.storeName = storeName;
         storeFile = new File(storeName);
 
@@ -37,7 +38,7 @@ public abstract class QueuePersistFilterLocalService<P, T extends Identity<P>> i
             List<String> saveDataList = FileUtils.readLines(storeFile, Charset.defaultCharset());
             for (String task : saveDataList) {
                 try {
-                    T seedTask = parseTask(task);
+                    T seedTask = tFunction.apply(task);
                     concurrentHashMap.put(seedTask.getId(), seedTask);
                 } catch (Throwable e) {
                     logger.error("任务反序列化异常!!~~~", e);
@@ -55,8 +56,6 @@ public abstract class QueuePersistFilterLocalService<P, T extends Identity<P>> i
             }
         }, 10000, 10000);
     }
-
-    abstract T parseTask(String taskContent);
 
     private void saveFile() {
         int update = counter.getAndSet(0);
