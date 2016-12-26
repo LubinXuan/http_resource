@@ -62,7 +62,7 @@ public class HttpUnitResource extends WebResource {
         webClient.getOptions().setActiveXNative(false);
         webClient.getOptions().setUseInsecureSSL(true);
         webClient.getOptions().setPrintContentOnFailingStatusCode(false);
-        webClient.getOptions().setRedirectEnabled(true);
+        webClient.getOptions().setRedirectEnabled(false);
         if (null != config.getProxyHost()) {
             webClient.getOptions().setProxyConfig(new ProxyConfig(config.getProxyHost(), config.getProxyPort()));
             if (null != config.getProxyUsername()) {
@@ -142,9 +142,6 @@ public class HttpUnitResource extends WebResource {
                 }
             }
 
-            if (request.getMaxRedirect() < 1) {
-                webClient.getOptions().setRedirectEnabled(false);
-            }
             com.gargoylesoftware.htmlunit.Page page = webClient.getPage(webRequest);
 
             Map<String, List<String>> headerMap = null;

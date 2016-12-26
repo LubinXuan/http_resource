@@ -104,7 +104,7 @@ public class Clients435 extends HttpClientHelper {
         requestConfigBuilder = RequestConfig.custom()
                 .setSocketTimeout(config.getSocketTimeout())
                 .setConnectTimeout(config.getConnectionTimeout())
-                .setRedirectsEnabled(config.isFollowRedirects()).setConnectionRequestTimeout(config.getConnectionTimeout())
+                .setRedirectsEnabled(false).setConnectionRequestTimeout(config.getConnectionTimeout())
                 .setCircularRedirectsAllowed(false)
                 .setExpectContinueEnabled(false)
                 .setCookieSpec(CookieSpecs.DEFAULT);
