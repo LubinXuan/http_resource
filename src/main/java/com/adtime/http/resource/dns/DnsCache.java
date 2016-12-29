@@ -91,7 +91,7 @@ public class DnsCache {
 
     public static InetAddress[] getCacheDns(String host) {
         DnsWrap dnsWrap = hostDomainCache.computeIfPresent(host.toLowerCase(), (s, address) -> {
-            logger.info("hit dns from cache :::{}", s);
+            logger.debug("hit dns from cache :::{}", s);
             return address;
         });
         return null != dnsWrap ? dnsWrap.addresses : null;

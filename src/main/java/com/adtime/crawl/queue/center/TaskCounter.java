@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * Created by Lubin.Xuan on 2015/6/17.
@@ -31,12 +32,19 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
     private static final ExecutorService saveExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     public int revertQueue() {
+        return revertQueue(null);
+    }
+
+    public int revertQueue(Consumer<List<T>> consumer) {
         if (init.compareAndSet(false, true)) {
             if (null != queuePersistService) {
                 logger.info("开始恢复队列数据");
                 long start = System.currentTimeMillis();
                 List<T> taskList = queuePersistService.listQueueTask();
                 taskList.forEach(this::toQueueNoStore);
+                if (null != consumer) {
+                    consumer.accept(taskList);
+                }
                 logger.info("队列数据恢复完成,共恢复数据{} 耗时:", taskList.size(), System.currentTimeMillis() - start);
                 return taskList.size();
             }
@@ -81,7 +89,8 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
             if (!store) {
                 try {
                     queueFilterService.refreshFilter(task.getId());
-                }catch (Throwable ignore){}
+                } catch (Throwable ignore) {
+                }
             } else if (!queueFilterService.add(task.getId())) {
                 return false;
             }

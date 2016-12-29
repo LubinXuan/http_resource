@@ -1,21 +1,24 @@
 package com.adtime.crawl.queue.center;
 
-import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Lubin.Xuan on 2016/1/7.
  */
-public class ResourceReleaseHelper {
+public class ResourceReleaseHelper implements AutoCloseable {
 
-    private final Queue<Task> releaseQueue = new LinkedBlockingQueue<>();
+    private static final Logger logger = LoggerFactory.getLogger(ResourceReleaseHelper.class);
+
+    private final BlockingQueue<Task> releaseQueue = new LinkedBlockingQueue<>();
 
     private final TaskCounter taskCounter;
 
-    boolean enable = true;
+    private boolean enable = true;
 
     public ResourceReleaseHelper(TaskCounter taskCounter, boolean enable) {
         this.taskCounter = taskCounter;
@@ -24,22 +27,16 @@ public class ResourceReleaseHelper {
             return;
         }
         Thread thread = new Thread(() -> {
-            while (true) {
-                Task task = releaseQueue.poll();
-                if (null == task) {
-                    synchronized (releaseQueue) {
-                        try {
-                            releaseQueue.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+            while (ResourceReleaseHelper.this.enable) {
+                try {
+                    Task task = releaseQueue.take();
+                    if (task.releaseAt <= System.currentTimeMillis()) {
+                        taskCounter.release(task.key);
+                    } else {
+                        releaseQueue.offer(task);
                     }
-                    continue;
-                }
-                if (task.releaseAt <= System.currentTimeMillis()) {
-                    taskCounter.release(task.key);
-                } else {
-                    releaseQueue.offer(task);
+                } catch (InterruptedException e) {
+                    logger.warn("资源释放异常:::{}", e);
                 }
             }
         });
@@ -49,7 +46,7 @@ public class ResourceReleaseHelper {
     }
 
     public void releaseIn(String res, int val, TimeUnit unit) {
-        if(!this.enable) {
+        if (!this.enable) {
             taskCounter.release(res);
             return;
         }
@@ -58,9 +55,6 @@ public class ResourceReleaseHelper {
         } else {
             long releaseIn = System.currentTimeMillis() + unit.toMillis(val);
             releaseQueue.offer(new Task(res, releaseIn));
-            synchronized (releaseQueue) {
-                releaseQueue.notify();
-            }
         }
     }
 
@@ -92,4 +86,8 @@ public class ResourceReleaseHelper {
         helper.releaseIn(task.getParallelKey(), intervalTime, TimeUnit.SECONDS);
     }
 
+    @Override
+    public void close() throws Exception {
+        this.enable = false;
+    }
 }
