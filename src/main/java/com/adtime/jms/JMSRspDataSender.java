@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -127,6 +128,8 @@ public class JMSRspDataSender {
                 logger.info("开始发送数据:{}", file.getAbsolutePath());
                 try {
                     stringList = FileUtils.readLines(file, "utf-8");
+                } catch (FileNotFoundException e) {
+                    continue;
                 } catch (IOException e) {
                     _fileQueue.offer(file);
                     continue;

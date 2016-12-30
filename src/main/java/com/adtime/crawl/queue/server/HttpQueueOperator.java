@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Base64;
@@ -76,6 +77,8 @@ public class HttpQueueOperator {
                         List<String> content;
                         try {
                             content = FileUtils.readLines(file, "utf-8");
+                        } catch (FileNotFoundException e) {
+                            continue;
                         } catch (IOException e) {
                             logger.error("Http请求文件读取异常", e);
                             fileBlockingQueue.offer(file);
