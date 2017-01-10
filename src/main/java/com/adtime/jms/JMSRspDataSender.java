@@ -6,10 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by xuanlubin on 2016/10/27.
  */
-public class JMSRspDataSender {
+public class JMSRspDataSender implements Closeable {
 
     private final BlockingQueue<File> fileQueue;
 
@@ -27,6 +25,10 @@ public class JMSRspDataSender {
     private File dir;
 
     private final BlockingQueue<RspData> rspBlockingQueue = new LinkedBlockingQueue<>();
+
+    private boolean shutdown = false;
+
+    private boolean writeFile = false;
 
     public JMSRspDataSender(String folder, JMSDataHandler jmsDataHandler) {
         dir = new File(folder);
@@ -39,7 +41,10 @@ public class JMSRspDataSender {
         }
 
         startFileWriteThread();
-        if (null == jmsDataHandler) {
+
+        boolean jmsUpload = Boolean.parseBoolean(System.getProperty("jms.upload", "true"));
+
+        if (null == jmsDataHandler || !jmsUpload) {
             logger.warn("数据只写出文件,未启动发送线程!! 文件输出目录:{}", dir.getAbsolutePath());
             fileQueue = null;
         } else {
@@ -67,37 +72,27 @@ public class JMSRspDataSender {
     private void startFileWriteThread() {
         Runnable fileWriteRunnable = () -> {
             logger.info("爬虫结果数据文件写出线程启动");
-            FileOutputStream fos = null;
-            String fileName = null;
             int count = 0;
+            StringBuilder builder = new StringBuilder();
             while (true) {
                 RspData taskRsp = rspBlockingQueue.poll();
                 if (null != taskRsp) {
-                    if (null == fos) {
-                        fileName = Long.toString(System.currentTimeMillis());
-                        fos = createFos(dir, fileName);
-                    }
-
-                    try {
-                        IOUtils.write(taskRsp.getDestination() + ":" + taskRsp.getData() + "\r\n", fos, "utf-8");
-                    } catch (Throwable e) {
-                        logger.warn("数据写入文件异常!!! {}", e);
-                        rspBlockingQueue.offer(taskRsp);
-                    }
-
+                    builder.append(taskRsp.destination).append(":").append(taskRsp.data).append("\r\n");
                     count++;
-
                     if (count > 1000) {
-                        renameFile(fos, dir, fileName);
-                        fos = null;
+                        writeToFile(builder);
                         count = 0;
                     }
                 } else {
                     if (count != 0) {
-                        renameFile(fos, dir, fileName);
-                        fos = null;
+                        writeToFile(builder);
                         count = 0;
                     }
+
+                    if (shutdown) {
+                        break;
+                    }
+
                     try {
                         TimeUnit.SECONDS.sleep(5);
                     } catch (InterruptedException ignore) {
@@ -117,7 +112,7 @@ public class JMSRspDataSender {
 
             logger.info("JMS发送线程启动");
 
-            while (true) {
+            while (!shutdown) {
                 List<String> stringList = null;
                 File file = null;
                 try {
@@ -152,7 +147,9 @@ public class JMSRspDataSender {
                             }
                             break;
                         } catch (Exception e) {
-                            if (e instanceof IOException) {
+                            if (e instanceof FileNotFoundException) {
+                                break;
+                            } else if (e instanceof IOException) {
                                 logger.error("文件删除失败", e);
                             } else {
                                 try {
@@ -168,31 +165,41 @@ public class JMSRspDataSender {
                 } else {
                     try {
                         FileUtils.forceDelete(file);
+                    } catch (FileNotFoundException ignore) {
+
                     } catch (IOException e) {
                         logger.error("文件删除失败", e);
                     }
                 }
             }
+
+            logger.info("JMS发送线程退出!!!");
         };
         Thread jmsDataSendThread = new Thread(jmsSendRunnable);
         jmsDataSendThread.setName("JmsDataSendThread");
         jmsDataSendThread.start();
     }
 
-    private FileOutputStream createFos(File dir, String fileName) {
-        try {
-            return new FileOutputStream(new File(dir, fileName + ".txt"));
-        } catch (Exception e) {
-            logger.error("文件流获取失败", e);
-            return null;
+    private void writeToFile(StringBuilder builder) {
+        writeFile = true;
+        String fileName = Long.toString(System.currentTimeMillis());
+        File tmp = new File(dir, fileName + ".tmp");
+        while (true) {
+            try {
+                FileUtils.write(tmp, builder.toString(), Charset.forName("utf-8"));
+                FileUtils.moveFile(tmp, new File(dir, fileName + ".txt"));
+                break;
+            } catch (IOException e) {
+                try {
+                    logger.warn("文件写出异常::::等待5s 重试  {}", e);
+                    TimeUnit.SECONDS.sleep(5);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
         }
-    }
-
-    private void renameFile(FileOutputStream fos, File dir, String fileName) {
-        IOUtils.closeQuietly(fos);
-        if (null != fileQueue) {
-            fileQueue.offer(new File(dir, fileName + ".txt"));
-        }
+        builder.setLength(0);
+        writeFile = false;
     }
 
     private static class RspData {
@@ -216,5 +223,17 @@ public class JMSRspDataSender {
 
     public interface JMSDataHandler {
         boolean handle(Map<String, List<String>> dataMapList);
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.shutdown = true;
+        while (pending() > 0 || writeFile) {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException ignore) {
+
+            }
+        }
     }
 }

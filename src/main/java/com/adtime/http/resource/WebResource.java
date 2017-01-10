@@ -31,6 +31,16 @@ public abstract class WebResource {
 
     private final static Map<Long, String> CURRENT_REQUEST_URL_MAP = new ConcurrentHashMap<>();
 
+    private final static List<String> HISTORY_LIST = new ArrayList<String>(128) {
+        @Override
+        public synchronized boolean add(String s) {
+            if (this.size() >= 128) {
+                this.remove(0);
+            }
+            return super.add(s);
+        }
+    };
+
     private final static AtomicLong REQ_ID = new AtomicLong(0);
 
     private InvalidUrl invalidUrl;
@@ -64,6 +74,10 @@ public abstract class WebResource {
 
     public static List<String> currentReqUrlList() {
         return new ArrayList<>(CURRENT_REQUEST_URL_MAP.values());
+    }
+
+    public static List<String> historyReqUrlList() {
+        return new ArrayList<>(HISTORY_LIST);
     }
 
     public Request buildRequest(String url, String charSet, Map<String, String> headers, boolean trust, boolean includeIndex, int maxRedirect) {
@@ -105,6 +119,7 @@ public abstract class WebResource {
         }
         long reqId = REQ_ID.incrementAndGet();
         try {
+            HISTORY_LIST.add(requestUrl);
             CURRENT_REQUEST_URL_MAP.put(reqId, requestUrl);
             return getResult(requestUrl, request, resultConsumer);
         } finally {
@@ -124,7 +139,13 @@ public abstract class WebResource {
                 if (isRetryAble(result, request)) {
                     asyncHttpClient.async(result.getUrl(), result.getUrl(), result.getRedirectCount(), request, resultConsumer);
                 } else if (result.isRedirect() && result.getRedirectCount() < request.getMaxRedirect() && null != result.getMoveToUrl()) {
-                    asyncHttpClient.async(result.getMoveToUrl(), result.getMoveToUrl(), result.getRedirectCount(), request, resultConsumer);
+                    String _url = validUrl(result.getMoveToUrl());
+                    if (null == _url) {
+                        Result result1 = new Result(request.getOrigUrl(), WebConst.LOCAL_NOT_ACCEPTABLE, "链接406: " + request.getOrigUrl());
+                        resultConsumer.accept(result1);
+                    } else {
+                        asyncHttpClient.async(result.getMoveToUrl(), result.getMoveToUrl(), result.getRedirectCount(), request, resultConsumer);
+                    }
                 } else if (result.isRedirect()) {
                     result.setMoveToUrl(result.getUrl());
                     result.setUrl(request.getOrigUrl());
@@ -154,6 +175,11 @@ public abstract class WebResource {
 
                 if (result.isRedirect() && redirect < request.getMaxRedirect() && null != result.getMoveToUrl()) {
                     _requestUrl = result.getMoveToUrl();
+                    String _url = validUrl(_requestUrl);
+                    if (null == _url) {
+                        result = new Result(request.getOrigUrl(), WebConst.LOCAL_NOT_ACCEPTABLE, "链接406: " + request.getOrigUrl());
+                        break;
+                    }
                     redirect++;
                 } else {
                     break;
@@ -240,6 +266,7 @@ public abstract class WebResource {
     public abstract Result request(String url, String oUrl, Request request);
 
     public abstract void registerCookie(String domain, String name, String value);
+
     public abstract void clearAllCookie();
 
     protected boolean handException(Throwable e, String address, String url, String oUrl) {

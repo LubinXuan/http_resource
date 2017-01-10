@@ -3,10 +3,7 @@ package com.adtime.crawl.queue.center;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -165,6 +162,14 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
             total += queue.size();
         }
         return total;
+    }
+
+    public Map<String, Integer> readyQueue() {
+        Map<String, Integer> count = new HashMap<>();
+        for (Map.Entry<String, BlockingQueue<T>> entry : taskQueueMap.entrySet()) {
+            count.put(entry.getKey(), entry.getValue().size());
+        }
+        return count;
     }
 
     public void removeTask(String queueName, List<T> list) {

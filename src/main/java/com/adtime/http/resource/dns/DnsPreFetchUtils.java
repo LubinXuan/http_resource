@@ -24,9 +24,7 @@ public class DnsPreFetchUtils {
 
     private static final ConcurrentHashSet<String> DOMAIN_FILTER = new ConcurrentHashSet<>();
 
-    private static final List<DnsUpdateInfo> DOMAIN_FETCH_QUEUE = new ArrayList<>(65535);
-
-    private static final ExecutorService SERVICE = Executors.newFixedThreadPool(3);
+    private static final Queue<DnsUpdateInfo> DOMAIN_FETCH_QUEUE = new LinkedBlockingQueue<>(65535);
 
     private static final long UPDATE_REQUIRE_TIME = 900000;
 
@@ -49,6 +47,8 @@ public class DnsPreFetchUtils {
 
         AtomicBoolean block = new AtomicBoolean(false);
 
+        AtomicBoolean shutdown = new AtomicBoolean(false);
+
         ConnectionAbortUtils.register(new ConnectionAbortUtils.ConnectionAbort() {
             @Override
             public void onAbort() {
@@ -61,57 +61,51 @@ public class DnsPreFetchUtils {
             }
         });
 
-        new Timer("DnsInfoUpdate").schedule(new TimerTask() {
-            @Override
-            public void run() {
-                List<DnsUpdateInfo> list = new ArrayList<>(DOMAIN_FETCH_QUEUE);
-                for (Iterator<DnsUpdateInfo> iterator = list.iterator(); iterator.hasNext(); ) {
-                    if (block.get()) {
-                        break;
-                    }
-                    DnsUpdateInfo updateInfo = iterator.next();
-                    if (updateInfo.createTime < System.currentTimeMillis() - UPDATE_REQUIRE_TIME) {
-                        updateDnsInfo(updateInfo, false);
-                    }
-                }
-
-                if (count.compareAndSet(10, 0)) {
+        Thread updateDnsThread = new Thread(() -> {
+            while (!shutdown.get()) {
+                DnsUpdateInfo info = DOMAIN_FETCH_QUEUE.poll();
+                if (null == info || block.get()) {
                     try {
-                        DnsCache.storeDnsCacheAsFile();
-                    } catch (IOException e) {
-                        logger.error("DNS缓存文件化异常", e);
+                        TimeUnit.SECONDS.sleep(1);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                } else {
-                    count.incrementAndGet();
+                    continue;
+                }
+                try {
+                    updateDnsAndGet(info);
+                    if (count.compareAndSet(100, 0)) {
+                        try {
+                            DnsCache.storeDnsCacheAsFile();
+                        } catch (IOException e) {
+                            logger.error("DNS缓存文件化异常", e);
+                        }
+                    } else {
+                        count.incrementAndGet();
+                    }
+                } catch (Throwable e) {
+                    logger.warn("DNS更新异常 {}", e.toString());
+                } finally {
+                    DOMAIN_FETCH_QUEUE.offer(info);
                 }
             }
-        }, 5000, 5000);
+        });
 
+        updateDnsThread.setName("DnsInfoUpdateThread");
+        updateDnsThread.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown.set(true)));
     }
 
-    private static InetAddress[] updateDnsInfo(DnsUpdateInfo updateInfo, boolean sync) {
-
-        Callable<InetAddress[]> runnable = () -> {
-            if (updateInfo.createTime > System.currentTimeMillis() - UPDATE_REQUIRE_TIME / 2) {
-                return DnsCache.getCacheDns(updateInfo.domain);
-            }
-            InetAddress[] addresses = queryDns(updateInfo.domain);
-            if (null != addresses && addresses.length > 0) {
-                updateInfo.createTime = System.currentTimeMillis();
-            }
-            return addresses;
-        };
-
-        Future<InetAddress[]> future = SERVICE.submit(runnable);
-
-        if (sync) {
-            try {
-                return future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+    private static InetAddress[] updateDnsAndGet(DnsUpdateInfo updateInfo) {
+        if (updateInfo.createTime > System.currentTimeMillis() - UPDATE_REQUIRE_TIME / 2) {
+            return DnsCache.getCacheDns(updateInfo.domain);
         }
-        return null;
+        InetAddress[] addresses = queryDns(updateInfo.domain);
+        if (null != addresses && addresses.length > 0) {
+            updateInfo.createTime = System.currentTimeMillis();
+        }
+        return addresses;
     }
 
 
@@ -147,7 +141,7 @@ public class DnsPreFetchUtils {
                 }
             }
             logger.error("Can't get dns info of [{}]", host);
-        } catch (Exception ignore) {
+        } catch (Throwable ignore) {
             logger.warn("DNS 信息获取异常 {}", ignore.toString());
         }
         return null;
@@ -176,11 +170,12 @@ public class DnsPreFetchUtils {
             DnsUpdateInfo dnsUpdateInfo = new DnsUpdateInfo();
             dnsUpdateInfo.domain = domain;
             dnsUpdateInfo.createTime = -1;
-            DOMAIN_FETCH_QUEUE.add(dnsUpdateInfo);
-            return updateDnsInfo(dnsUpdateInfo, sync);
-        } else {
-            return DnsCache.getCacheDns(domain);
+            DOMAIN_FETCH_QUEUE.offer(dnsUpdateInfo);
+            if (sync) {
+                return updateDnsAndGet(dnsUpdateInfo);
+            }
         }
+        return DnsCache.getCacheDns(domain);
     }
 
     public static void addDnsUpdateTask(String host, Long lastUpdateTime) {
@@ -193,12 +188,8 @@ public class DnsPreFetchUtils {
             DnsUpdateInfo dnsUpdateInfo = new DnsUpdateInfo();
             dnsUpdateInfo.domain = host;
             dnsUpdateInfo.createTime = null == lastUpdateTime ? -1 : lastUpdateTime;
-            DOMAIN_FETCH_QUEUE.add(dnsUpdateInfo);
+            DOMAIN_FETCH_QUEUE.offer(dnsUpdateInfo);
         }
-    }
-
-    public static InetAddress[] preFetchSync(String domain) {
-        return _preFetch(domain, true);
     }
 
 }

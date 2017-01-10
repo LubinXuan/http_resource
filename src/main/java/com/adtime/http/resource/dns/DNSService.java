@@ -1,6 +1,8 @@
 package com.adtime.http.resource.dns;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -18,6 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Dns 查询服务
  */
 class DNSService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DNSService.class);
 
     private static final int CONTEXT_SIZE = 10;
 
@@ -54,7 +58,7 @@ class DNSService {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("获取DNS信息异常::: {}", e.getMessage());
         }
         return resultList;
     }
