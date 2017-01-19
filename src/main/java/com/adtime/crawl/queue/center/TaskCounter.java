@@ -190,7 +190,7 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
         this.comparator = comparator;
     }
 
-    public void setComparatorClass(Class<Comparator<T>> comparatorClass) throws IllegalAccessException, InstantiationException {
+    public void setComparator(Class<Comparator<T>> comparatorClass) throws IllegalAccessException, InstantiationException {
         this.comparator = comparatorClass.newInstance();
     }
 }
