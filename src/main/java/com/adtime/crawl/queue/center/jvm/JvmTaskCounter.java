@@ -23,15 +23,12 @@ public class JvmTaskCounter<P, T extends Identity<P>> extends TaskCounter<P, T> 
 
     private ParallelService<T> parallelService;
 
-    private boolean usePriorityQueue = false;
-
     public void registerParallelService(String queueName, ParallelService<T> parallelService) {
         schedulerMap.putIfAbsent(queueName, parallelService);
     }
 
     private DNode<T> newDNode(String domain) {
-        Queue<T> queue = this.usePriorityQueue ? QueueFactory.createPriorityQueue() : QueueFactory.createBlockingQueue();
-        return new DNode<>(domain, queue);
+        return new DNode<>(domain, QueueFactory.createQueue(comparator));
     }
 
     public void release(String domain) {
@@ -140,9 +137,5 @@ public class JvmTaskCounter<P, T extends Identity<P>> extends TaskCounter<P, T> 
 
     public void setParallelService(ParallelService<T> parallelService) {
         this.parallelService = parallelService;
-    }
-
-    public void setUsePriorityQueue(boolean usePriorityQueue) {
-        this.usePriorityQueue = usePriorityQueue;
     }
 }

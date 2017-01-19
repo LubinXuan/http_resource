@@ -187,7 +187,11 @@ public class JMSRspDataSender implements Closeable {
         while (true) {
             try {
                 FileUtils.write(tmp, builder.toString(), Charset.forName("utf-8"));
-                FileUtils.moveFile(tmp, new File(dir, fileName + ".txt"));
+                File file = new File(dir, fileName + ".txt");
+                FileUtils.moveFile(tmp, file);
+                if (null != fileQueue) {
+                    fileQueue.offer(file);
+                }
                 break;
             } catch (IOException e) {
                 try {

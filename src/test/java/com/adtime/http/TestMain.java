@@ -3,6 +3,7 @@ package com.adtime.http;
 import com.adtime.AdslReboot;
 import com.adtime.common.date.util.FileUtil;
 import com.adtime.http.resource.*;
+import com.adtime.http.resource.connection.HttpRetryHandler;
 import com.adtime.http.resource.http.AsyncHttpClient;
 import com.adtime.http.resource.proxy.DynamicProxyProvider;
 import com.adtime.http.resource.url.URLInetAddress;
@@ -43,6 +44,12 @@ public class TestMain extends BaseTest {
         //System.setProperty("http.proxyHost", "192.168.168.125");
         //System.setProperty("http.proxyPort", "3128");
         //System.setProperty("sun.net.spi.nameservice.provider.1", "dns,xbill");
+        WebResource.addHttpRetryHandler(new HttpRetryHandler() {
+            @Override
+            public boolean isRetryAble(Result result) {
+                return StringUtils.contains(result.getHtml(),"tb/tb4_min.js");
+            }
+        });
     }
 
     private static final Logger logger = LoggerFactory.getLogger(TestMain.class);
@@ -269,8 +276,8 @@ public class TestMain extends BaseTest {
     WebResource webResourceHtmlUnit;
 
     static {
-        System.setProperty("http.proxyHost","49.74.216.165");
-        System.setProperty("http.proxyPort","20121");
+        /*System.setProperty("http.proxyHost", "49.74.216.165");
+        System.setProperty("http.proxyPort", "20121");*/
     }
 
     @Test
@@ -297,20 +304,18 @@ public class TestMain extends BaseTest {
 
         //File file = new File("./ip.txt");
 
-        while (true) {
-            //AdslReboot.connect();
+        //AdslReboot.connect();
 
-            Result result = webResource.fetchPage("http://cache.video.qiyi.com/jp/sdvlst/6/1300000720/201512/");
-            if (result.getStatus() == 200) {
-                String ip = result.getHtml();
-                System.out.println(ip);
-                //FileUtils.write(file, ip + "\n", "utf-8", true);
-            }
-
-            //TimeUnit.SECONDS.sleep(10);
-            //AdslReboot.disconnect();
-            //TimeUnit.SECONDS.sleep(1);
+        Result result = webResource.fetchPage("http://cq.people.com.cn/n2/2017/0105/c365405-29553919.html");
+        if (result.getStatus() == 200) {
+            String ip = result.getHtml();
+            System.out.println(ip);
+            //FileUtils.write(file, ip + "\n", "utf-8", true);
         }
+
+        //TimeUnit.SECONDS.sleep(10);
+        //AdslReboot.disconnect();
+        //TimeUnit.SECONDS.sleep(1);
     }
 
 }

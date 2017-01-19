@@ -1,5 +1,6 @@
 package com.adtime.crawl.queue.center;
 
+import com.adtime.crawl.queue.center.jvm.QueueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,13 +19,15 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
 
     public static final String DEFAULT_QUEUE = "DEFAULT_QUEUE";
 
-    protected final Map<String, BlockingQueue<T>> taskQueueMap = new ConcurrentHashMap<>();
+    private final Map<String, BlockingQueue<T>> taskQueueMap = new ConcurrentHashMap<>();
 
     private final AtomicBoolean init = new AtomicBoolean(false);
 
     private QueuePersistService<P, T> queuePersistService = null;
 
     private QueueFilterService<P> queueFilterService = null;
+
+    protected Comparator<T> comparator = null;
 
     private static final ExecutorService saveExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
@@ -138,7 +141,7 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
         }
         return taskQueueMap.compute(queueName, (s, ts) -> {
             if (null == ts) {
-                ts = new LinkedBlockingQueue<>();
+                ts = QueueFactory.createQueue(comparator, 1024);
             }
             return ts;
         });
@@ -181,5 +184,13 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
 
     public void setQueueFilterService(QueueFilterService<P> queueFilterService) {
         this.queueFilterService = queueFilterService;
+    }
+
+    public void setComparator(Comparator<T> comparator) {
+        this.comparator = comparator;
+    }
+
+    public void setComparatorClass(Class<Comparator<T>> comparatorClass) throws IllegalAccessException, InstantiationException {
+        this.comparator = comparatorClass.newInstance();
     }
 }

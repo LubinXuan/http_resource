@@ -102,11 +102,7 @@ public abstract class WebResource {
             return result;
         }
 
-        String requestUrl = request.requestUrl();
-
-        if (!request.isTrust()) {
-            requestUrl = validUrl(request.requestUrl());
-        }
+        String requestUrl = validUrl(request.requestUrl(), request);
         if (null != requestUrl) {
             requestUrl = URLCanonicalizer.getCanonicalURL(requestUrl);
         }
@@ -139,7 +135,7 @@ public abstract class WebResource {
                 if (isRetryAble(result, request)) {
                     asyncHttpClient.async(result.getUrl(), result.getUrl(), result.getRedirectCount(), request, resultConsumer);
                 } else if (result.isRedirect() && result.getRedirectCount() < request.getMaxRedirect() && null != result.getMoveToUrl()) {
-                    String _url = validUrl(result.getMoveToUrl());
+                    String _url = validUrl(result.getMoveToUrl(), request);
                     if (null == _url) {
                         Result result1 = new Result(request.getOrigUrl(), WebConst.LOCAL_NOT_ACCEPTABLE, "链接406: " + request.getOrigUrl());
                         resultConsumer.accept(result1);
@@ -175,7 +171,7 @@ public abstract class WebResource {
 
                 if (result.isRedirect() && redirect < request.getMaxRedirect() && null != result.getMoveToUrl()) {
                     _requestUrl = result.getMoveToUrl();
-                    String _url = validUrl(_requestUrl);
+                    String _url = validUrl(_requestUrl, request);
                     if (null == _url) {
                         result = new Result(request.getOrigUrl(), WebConst.LOCAL_NOT_ACCEPTABLE, "链接406: " + request.getOrigUrl());
                         break;
@@ -286,7 +282,10 @@ public abstract class WebResource {
 
     abstract protected boolean _handException(Throwable e, String url, String oUrl);
 
-    protected String validUrl(String url) {
+    private String validUrl(String url, Request request) {
+        if (request.isTrust()) {
+            return url;
+        }
         if (null != formatUrl) {
             url = formatUrl.format(url);
         }
