@@ -3,8 +3,11 @@ package com.adtime.crawl.queue.worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -34,57 +37,48 @@ public class Container<T> {
 
     private boolean shutdown = false;
 
-    private final AtomicLong count = new AtomicLong(0);
-
     public Container(int threadSize, String key, Worker<T> worker) {
         this.threadSize = threadSize;
         this.key = key;
-        this.poolExecutor = Executors.newCachedThreadPool(runnable -> {
-            Thread thread = Executors.defaultThreadFactory().newThread(runnable);
-            thread.setName(key + "-" + count.incrementAndGet());
-            return thread;
-        });
-        this.runnable = new Runnable() {
-            @Override
-            public void run() {
-                while (!shutdown) {
+        this.poolExecutor = Executors.newCachedThreadPool(new NamedThreadFactory(this.key));
+        this.runnable = () -> {
+            while (!shutdown) {
 
-                    if (activeCount.get() >= threadSize) {
+                if (activeCount.get() >= threadSize) {
 
-                        logger.debug("{} thread pool is full", key);
+                    logger.debug("{} thread pool is full", key);
 
-                        try {
-                            TimeUnit.SECONDS.sleep(1);
-                        } catch (Throwable ignore) {
+                    try {
+                        TimeUnit.SECONDS.sleep(1);
+                    } catch (Throwable ignore) {
 
-                        }
-                        continue;
                     }
-
-                    T t = worker.getNextTask();
-                    if (null == t) {
-                        try {
-                            TimeUnit.MILLISECONDS.sleep(200);
-                        } catch (Throwable ignore) {
-
-                        }
-                        continue;
-                    }
-                    updateActive(true);
-                    poolExecutor.execute(() -> {
-                        try {
-                            worker.startWork(t);
-                        } catch (Throwable e) {
-                            logger.error("任务处理异常!!  --  {}", e.toString());
-                            worker.handlerThrowable(t, e);
-                        } finally {
-                            updateActive(false);
-                            worker.onFinal(t);
-                        }
-                    });
+                    continue;
                 }
-                daemon = null;
+
+                T t = worker.getNextTask();
+                if (null == t) {
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(200);
+                    } catch (Throwable ignore) {
+
+                    }
+                    continue;
+                }
+                updateActive(true);
+                poolExecutor.execute(() -> {
+                    try {
+                        worker.startWork(t);
+                    } catch (Throwable e) {
+                        logger.error("任务处理异常!!  --  {}", e.toString());
+                        worker.handlerThrowable(t, e);
+                    } finally {
+                        updateActive(false);
+                        worker.onFinal(t);
+                    }
+                });
             }
+            daemon = null;
         };
 
         startDaemon();
