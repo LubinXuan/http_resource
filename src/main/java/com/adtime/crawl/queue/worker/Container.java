@@ -42,7 +42,7 @@ public class Container<T> {
 
         this.runnable = () -> {
             while (!shutdown) {
-                if (activeCount.get() >= threadSize) {
+                if (activeCount.get() >= threadSize * 2) {
                     logger.debug("{} thread pool is full", key);
                     synchronized (resNotify) {
                         try {
