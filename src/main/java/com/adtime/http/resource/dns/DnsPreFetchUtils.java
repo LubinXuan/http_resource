@@ -1,5 +1,7 @@
 package com.adtime.http.resource.dns;
 
+import com.adtime.http.ShutdownHook;
+import com.adtime.http.ShutdownService;
 import com.adtime.http.resource.ConnectionAbortUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.ConcurrentHashSet;
@@ -10,8 +12,11 @@ import sun.net.util.IPAddressUtil;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -24,7 +29,9 @@ public class DnsPreFetchUtils {
 
     private static final ConcurrentHashSet<String> DOMAIN_FILTER = new ConcurrentHashSet<>();
 
-    private static final Queue<DnsUpdateInfo> DOMAIN_FETCH_QUEUE = new LinkedBlockingQueue<>(65535);
+    private static final BlockingQueue<DnsUpdateInfo> DOMAIN_FETCH_QUEUE = new LinkedBlockingQueue<>(65535);
+
+    private static final Map<String, AtomicInteger> ERROR_DNS_FETCH_COUNT = new ConcurrentHashMap<>();
 
     private static final long UPDATE_REQUIRE_TIME = 900000;
 
@@ -47,8 +54,6 @@ public class DnsPreFetchUtils {
 
         AtomicBoolean block = new AtomicBoolean(false);
 
-        AtomicBoolean shutdown = new AtomicBoolean(false);
-
         ConnectionAbortUtils.register(new ConnectionAbortUtils.ConnectionAbort() {
             @Override
             public void onAbort() {
@@ -61,17 +66,17 @@ public class DnsPreFetchUtils {
             }
         });
 
+        ShutdownHook shutdownHook = new ShutdownHook();
+
         Thread updateDnsThread = new Thread(() -> {
-            while (!shutdown.get()) {
-                DnsUpdateInfo info = DOMAIN_FETCH_QUEUE.poll();
-                if (null == info || block.get()) {
-                    try {
-                        TimeUnit.SECONDS.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            while (!shutdownHook.isShutdown()) {
+                DnsUpdateInfo info;
+                try {
+                    info = DOMAIN_FETCH_QUEUE.take();
+                } catch (InterruptedException e) {
                     continue;
                 }
+
                 try {
                     updateDnsAndGet(info);
                     if (count.compareAndSet(100, 0)) {
@@ -83,8 +88,6 @@ public class DnsPreFetchUtils {
                     } else {
                         count.incrementAndGet();
                     }
-                } catch (Throwable e) {
-                    logger.warn("DNS更新异常 {}", e.toString());
                 } finally {
                     DOMAIN_FETCH_QUEUE.offer(info);
                 }
@@ -94,16 +97,25 @@ public class DnsPreFetchUtils {
         updateDnsThread.setName("DnsInfoUpdateThread");
         updateDnsThread.start();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown.set(true)));
+        ShutdownService.register(updateDnsThread, shutdownHook);
     }
 
     private static InetAddress[] updateDnsAndGet(DnsUpdateInfo updateInfo) {
         if (updateInfo.createTime > System.currentTimeMillis() - UPDATE_REQUIRE_TIME / 2) {
             return DnsCache.getCacheDns(updateInfo.domain);
         }
+        AtomicInteger count = ERROR_DNS_FETCH_COUNT.get(updateInfo.domain);
+        if (null != count && count.get() > 10) {
+            updateInfo.createTime = System.currentTimeMillis();
+            ERROR_DNS_FETCH_COUNT.remove(updateInfo.domain);
+            return null;
+        }
+
         InetAddress[] addresses = queryDns(updateInfo.domain);
         if (null != addresses && addresses.length > 0) {
             updateInfo.createTime = System.currentTimeMillis();
+        } else {
+            updateInfo.createTime += 1000;//
         }
         return addresses;
     }
@@ -143,6 +155,7 @@ public class DnsPreFetchUtils {
             logger.error("Can't get dns info of [{}]", host);
         } catch (Throwable ignore) {
             logger.warn("DNS 信息获取异常 {}", ignore.toString());
+            ERROR_DNS_FETCH_COUNT.computeIfAbsent(host, h -> new AtomicInteger(0)).incrementAndGet();
         }
         return null;
     }

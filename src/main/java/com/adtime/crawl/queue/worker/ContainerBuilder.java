@@ -21,12 +21,14 @@ public abstract class ContainerBuilder<T> {
 
     private ParallelService parallelService;
 
+    private Timer timer = new Timer("ContainerBuilder-ParallelService-Thread");
+
     public ContainerBuilder(ParallelService parallelService) {
         this.parallelService = parallelService;
 
         init();
 
-        new Timer("ContainerBuilder-ParallelService-Thread").schedule(new TimerTask() {
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
 
@@ -65,5 +67,13 @@ public abstract class ContainerBuilder<T> {
 
     public Map<String, Container<T>> getContainerMap() {
         return containerMap;
+    }
+
+    public void stop() {
+        this.timer.cancel();
+        for (Map.Entry<String, Container<T>> entry : containerMap.entrySet()) {
+            logger.info("关闭http容器:{}", entry.getKey());
+            entry.getValue().shutdown();
+        }
     }
 }

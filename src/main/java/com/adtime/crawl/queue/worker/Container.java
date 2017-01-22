@@ -78,7 +78,8 @@ public class Container<T> {
                     }
                 });
             }
-            daemon = null;
+            //强制停止正在执行的任务
+            poolExecutor.shutdownNow();
         };
 
         startDaemon();
