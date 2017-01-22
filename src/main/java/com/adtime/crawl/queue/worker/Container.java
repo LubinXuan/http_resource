@@ -56,13 +56,10 @@ public class Container<T> {
                     continue;
                 }
 
-                T t = worker.getNextTask();
-                if (null == t) {
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(200);
-                    } catch (Throwable ignore) {
-
-                    }
+                T t;
+                try {
+                    t = worker.getNextTask();
+                } catch (InterruptedException e) {
                     continue;
                 }
                 updateActive(true);

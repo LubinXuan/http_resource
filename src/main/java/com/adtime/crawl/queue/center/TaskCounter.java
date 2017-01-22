@@ -133,7 +133,7 @@ public abstract class TaskCounter<P, T extends Identity<P>> {
         return toQueue(seedTask.getQueue(), seedTask.getParallelKey(), seedTask, false);
     }
 
-    public abstract T getNextTaskFromQueue(String queueName);
+    public abstract T getNextTaskFromQueue(String queueName) throws InterruptedException;
 
     protected BlockingQueue<T> getQueue(String queueName) {
         if (null == queueName || queueName.trim().length() < 1) {

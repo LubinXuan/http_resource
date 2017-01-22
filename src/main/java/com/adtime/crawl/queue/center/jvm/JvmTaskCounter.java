@@ -51,16 +51,9 @@ public class JvmTaskCounter<P, T extends Identity<P>> extends TaskCounter<P, T> 
     }
 
     @Override
-    public T getNextTaskFromQueue(String queueName) {
-        T t = null;
-        try {
-            t = getQueue(queueName).take();
-        } catch (InterruptedException e) {
-            logger.warn("从队列获取任务发生异常:{}", e);
-        }
-        if (null != t) {
-            updateStatus(t);
-        }
+    public T getNextTaskFromQueue(String queueName) throws InterruptedException {
+        T t = getQueue(queueName).take();
+        updateStatus(t);
         return t;
     }
 

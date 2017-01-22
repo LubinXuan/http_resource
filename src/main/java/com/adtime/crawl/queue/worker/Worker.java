@@ -12,7 +12,7 @@ public abstract class Worker<T> {
      *
      * @return 任务实体
      */
-    public abstract T getNextTask();
+    public abstract T getNextTask() throws InterruptedException;
 
     /**
      * 执行任务
