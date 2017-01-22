@@ -66,9 +66,9 @@ public class DnsPreFetchUtils {
             }
         });
 
-        ShutdownHook shutdownHook = new ShutdownHook();
 
         Thread updateDnsThread = new Thread(() -> {
+            ShutdownHook shutdownHook = new ShutdownHook();
             while (!shutdownHook.isShutdown()) {
                 DnsUpdateInfo info;
                 try {
@@ -96,8 +96,6 @@ public class DnsPreFetchUtils {
 
         updateDnsThread.setName("DnsInfoUpdateThread");
         updateDnsThread.start();
-
-        ShutdownService.register(updateDnsThread, shutdownHook);
     }
 
     private static InetAddress[] updateDnsAndGet(DnsUpdateInfo updateInfo) {

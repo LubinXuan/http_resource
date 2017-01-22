@@ -26,6 +26,10 @@ public class ShutdownHook {
     }
 
     public boolean isShutdown() {
+        if (null == this.thread) {
+            this.thread = Thread.currentThread();
+            ShutdownService.register(this);
+        }
         return shutdown;
     }
 }

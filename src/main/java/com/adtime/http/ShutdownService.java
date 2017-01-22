@@ -21,9 +21,7 @@ public class ShutdownService {
         }));
     }
 
-    public static void register(Thread thread, ShutdownHook hook) {
-        if (hook.setThread(thread)) {
-            HOOK_LIST.add(hook);
-        }
+    public static void register(ShutdownHook hook) {
+        HOOK_LIST.add(hook);
     }
 }
