@@ -47,10 +47,11 @@ public class Container<T> {
                     synchronized (resNotify) {
                         try {
                             resNotify.wait();
-                        } catch (InterruptedException e) {
-                            continue;
+                        } catch (InterruptedException ignored) {
+
                         }
                     }
+                    continue;
                 }
 
                 T t;
