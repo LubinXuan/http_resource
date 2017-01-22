@@ -9,15 +9,6 @@ public class ShutdownHook {
 
     private Thread thread;
 
-    boolean setThread(Thread thread) {
-        if (null == this.thread) {
-            this.thread = thread;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     void shutdown() {
         this.shutdown = true;
         if (null != thread) {
