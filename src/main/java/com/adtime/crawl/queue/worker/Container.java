@@ -3,12 +3,8 @@ package com.adtime.crawl.queue.worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -37,23 +33,24 @@ public class Container<T> {
 
     private boolean shutdown = false;
 
+    private final Object resNotify = new Object();
+
     public Container(int threadSize, String key, Worker<T> worker) {
         this.threadSize = threadSize;
         this.key = key;
         this.poolExecutor = Executors.newCachedThreadPool(new NamedThreadFactory(this.key));
+
         this.runnable = () -> {
             while (!shutdown) {
-
                 if (activeCount.get() >= threadSize) {
-
                     logger.debug("{} thread pool is full", key);
-
-                    try {
-                        TimeUnit.SECONDS.sleep(1);
-                    } catch (Throwable ignore) {
-
+                    synchronized (resNotify) {
+                        try {
+                            resNotify.wait();
+                        } catch (InterruptedException e) {
+                            continue;
+                        }
                     }
-                    continue;
                 }
 
                 T t;
@@ -70,6 +67,9 @@ public class Container<T> {
                         logger.error("任务处理异常!!  --  {}", e.toString());
                         worker.handlerThrowable(t, e);
                     } finally {
+                        synchronized (resNotify) {
+                            resNotify.notify();
+                        }
                         updateActive(false);
                         worker.onFinal(t);
                     }
@@ -91,7 +91,7 @@ public class Container<T> {
     }
 
 
-    public void updateActive(boolean active) {
+    private void updateActive(boolean active) {
         if (active) {
             activeCount.incrementAndGet();
         } else {
