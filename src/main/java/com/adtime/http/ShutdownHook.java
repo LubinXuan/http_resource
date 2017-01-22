@@ -25,7 +25,7 @@ public class ShutdownHook {
 
     private Thread thread;
 
-    void shutdown() {
+    private void shutdown() {
         this.shutdown = true;
         if (null != thread) {
             this.thread.interrupt();
