@@ -1,16 +1,17 @@
 package com.adtime.http.resource;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -35,6 +36,16 @@ public class ConnectionAbortUtils {
     private static final Set<ConnectionAbort> CONNECTION_ABORT_SET = new ConcurrentHashSet<>();
 
     private static final Set<Predicate<Result>> PREDICATE_SET = new ConcurrentHashSet<>();
+
+    private static final Queue<InputStream> INPUT_STREAMS = new LinkedBlockingQueue<>();
+
+    static void addInputStream(InputStream is) {
+        INPUT_STREAMS.add(is);
+    }
+
+    static void removeInputStream(InputStream is) {
+        INPUT_STREAMS.remove(is);
+    }
 
     public static void register(ConnectionAbort connectionAbort) {
         CONNECTION_ABORT_SET.add(connectionAbort);
@@ -75,6 +86,17 @@ public class ConnectionAbortUtils {
                 //更新上次网络故障时间
                 lastInActive = System.currentTimeMillis();
                 CONNECTION_ABORT_SET.forEach(ConnectionAbort::onAbort);
+                while (true) {
+                    InputStream is = INPUT_STREAMS.poll();
+                    if (null == is) {
+                        break;
+                    }
+                    try {
+                        IOUtils.closeQuietly(is);
+                    } catch (Exception ignore) {
+                        logger.warn("关闭流发生异常", ignore);
+                    }
+                }
             }
         }
 

@@ -228,7 +228,7 @@ public class HttpUrlConnectionResource extends WebResource {
             }
         }
 
-        if (null != contentCharset) {
+        if (null == charSet && null != contentCharset) {
             charSet = contentCharset;
         }
 

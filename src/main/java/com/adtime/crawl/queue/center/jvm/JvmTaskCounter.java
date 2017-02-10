@@ -3,6 +3,7 @@ package com.adtime.crawl.queue.center.jvm;
 import com.adtime.crawl.queue.center.Identity;
 import com.adtime.crawl.queue.center.ParallelService;
 import com.adtime.crawl.queue.center.TaskCounter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,6 +118,26 @@ public class JvmTaskCounter<P, T extends Identity<P>> extends TaskCounter<P, T> 
 
     public Collection<DNode> nodeList() {
         return Collections.unmodifiableCollection(DOMAIN_COUNTER.values());
+    }
+
+    public String parallelInfo(String domain) {
+        if (StringUtils.equals("all", domain) || StringUtils.equals("run", domain)) {
+            boolean running = StringUtils.equals("run", domain);
+            Collection<DNode> dNodeCollection = nodeList();
+            StringBuilder stringBuilder = new StringBuilder();
+            for (DNode dNode : dNodeCollection) {
+                if (running && dNode.getRunning() < 1) {
+                    continue;
+                }
+                if (stringBuilder.length() > 0) {
+                    stringBuilder.append("\r\n");
+                }
+                stringBuilder.append(dNode);
+            }
+            return stringBuilder.toString();
+        } else {
+            return node(domain).toString();
+        }
     }
 
     @Override

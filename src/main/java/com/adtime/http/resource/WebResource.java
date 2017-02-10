@@ -157,9 +157,7 @@ public abstract class WebResource {
 
             int redirect = 0;
             Result result;
-
             String _requestUrl = requestUrl;
-
             while (true) {
 
                 request.setHttpExecStartTime(System.currentTimeMillis());
@@ -181,7 +179,6 @@ public abstract class WebResource {
                     break;
                 }
             }
-
 
             if (redirect > 0) {
                 result.setRedirectCount(redirect);

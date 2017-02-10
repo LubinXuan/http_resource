@@ -105,8 +105,10 @@ public class EntityReadUtils {
     private static Entity streamAsByte(long contentLength, String charSet, InputStream is, boolean uncompress, boolean checkInflaterInputStream, boolean checkBodySize) throws IOException {
 
         if (is == null) {
-            return new Entity(false, "Http InputStream is null!!");
+            return new Entity(false, "Http addInputStream is null!!");
         }
+
+
 
         if (checkBodySize && contentLength > MAX_PAGE_SIZE) {
             return new Entity(false, "流大小:[" + contentLength(contentLength, 0) + "] max than [" + MAX_PAGE_SIZE + "] as a download Stream");
@@ -116,7 +118,7 @@ public class EntityReadUtils {
 
         ByteArrayBuffer byteArrayBuffer = null;
         try {
-
+            ConnectionAbortUtils.addInputStream(is);
             int contentLengthCurrent = 0;
             String warningMsg = null;
             boolean bodyTruncatedWarning = false;
@@ -203,6 +205,7 @@ public class EntityReadUtils {
             }
             return getEntity(charSet, contentLengthCurrent, bytes, warningMsg, bodyTruncatedWarning);
         } finally {
+            ConnectionAbortUtils.removeInputStream(is);
             IOUtils.closeQuietly(is);
         }
     }

@@ -201,7 +201,7 @@ public class HttpUnitResource extends WebResource {
             }
         }
 
-        if (null != contentCharset) {
+        if (null == charSet && null != contentCharset) {
             charSet = contentCharset;
         }
 
