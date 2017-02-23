@@ -1,6 +1,5 @@
 package com.adtime.http.resource.dns;
 
-import com.adtime.http.ShutdownHook;
 import com.adtime.http.resource.ConnectionAbortUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.ConcurrentHashSet;
