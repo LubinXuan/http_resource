@@ -11,8 +11,7 @@ import sun.net.util.IPAddressUtil;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -66,17 +65,12 @@ public class DnsPreFetchUtils {
         });
 
 
-        Thread updateDnsThread = new Thread(() -> {
-            ShutdownHook shutdownHook = new ShutdownHook();
-            while (!shutdownHook.isShutdown()) {
-                DnsUpdateInfo info;
-                try {
-                    info = DOMAIN_FETCH_QUEUE.take();
-                } catch (InterruptedException e) {
-                    continue;
-                }
-
-                try {
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                Iterator<DnsUpdateInfo> iterator = DOMAIN_FETCH_QUEUE.iterator();
+                for (; iterator.hasNext(); ) {
+                    DnsUpdateInfo info = iterator.next();
                     updateDnsAndGet(info);
                     if (count.compareAndSet(100, 0)) {
                         try {
@@ -87,14 +81,11 @@ public class DnsPreFetchUtils {
                     } else {
                         count.incrementAndGet();
                     }
-                } finally {
-                    DOMAIN_FETCH_QUEUE.offer(info);
+
                 }
             }
-        });
-
-        updateDnsThread.setName("DnsInfoUpdateThread");
-        updateDnsThread.start();
+        };
+        new Timer("DnsUpdateTimer").schedule(timerTask, 60000, 60000);
     }
 
     private static InetAddress[] updateDnsAndGet(DnsUpdateInfo updateInfo) {
