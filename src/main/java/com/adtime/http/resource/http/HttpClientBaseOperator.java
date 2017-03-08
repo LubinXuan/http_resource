@@ -159,7 +159,7 @@ public abstract class HttpClientBaseOperator extends WebResource {
         Result result = new Result(url, "", true, response.getStatusLine().getStatusCode());
         Header header = response.getFirstHeader("Location");
         if (header != null) {
-            String movedToUrl = URLCanonicalizer.mergePathUrl(url, header.getValue());
+            String movedToUrl = URLCanonicalizer.resolveRedirect(url, header.getValue());
             result.setMoveToUrl(movedToUrl);
         }
         header = null;

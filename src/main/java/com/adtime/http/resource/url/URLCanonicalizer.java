@@ -135,6 +135,14 @@ public class URLCanonicalizer {
         }
     }
 
+    public static String resolveRedirect(String url, String newUrl) {
+        if (newUrl.startsWith("//")) {
+            return (url.startsWith("http://") ? "http:" : "https:") + newUrl;
+        } else {
+            return mergePathUrl(url, newUrl);
+        }
+    }
+
     public static String getCanonicalURL(String href, String context) {
         return getCanonicalURL(href, context, null);
     }

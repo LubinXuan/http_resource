@@ -256,7 +256,7 @@ public class HttpUrlConnectionResource extends WebResource {
         Result result = new Result(url, "", true, con.getResponseCode());
         String reLocation = con.getHeaderField("Location");
         if (reLocation != null) {
-            String movedToUrl = URLCanonicalizer.mergePathUrl(url, reLocation);
+            String movedToUrl = URLCanonicalizer.resolveRedirect(url, reLocation);
             result.setMoveToUrl(movedToUrl);
         }
         return result;

@@ -4,6 +4,7 @@ import com.adtime.http.resource.*;
 import com.adtime.http.resource.extend.DynamicProxyHttpRoutePlanner;
 import com.adtime.http.resource.extend.DynamicProxySelector;
 import com.adtime.http.resource.http.htmlunit.HttpWebConnectionWrap;
+import com.adtime.http.resource.url.URLCanonicalizer;
 import com.adtime.http.resource.url.URLInetAddress;
 import com.adtime.http.resource.util.HttpUtil;
 import com.gargoylesoftware.htmlunit.*;
@@ -167,7 +168,7 @@ public class HttpUnitResource extends WebResource {
 
             if (HttpUtil.isRedirect(sts)) {
                 result = new Result(url, page.getWebResponse().getContentAsString(), true, sts);
-                result.setMoveToUrl(page.getWebResponse().getResponseHeaderValue("location"));
+                result.setMoveToUrl(URLCanonicalizer.resolveRedirect(url, page.getWebResponse().getResponseHeaderValue("location")));
             } else {
                 if (Request.Method.HEAD.equals(request.getMethod())) {
                     result = new Result(url, sts, "").withHeader(headerMap);
