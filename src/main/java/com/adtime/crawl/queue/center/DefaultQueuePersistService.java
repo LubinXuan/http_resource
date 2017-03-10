@@ -2,10 +2,12 @@ package com.adtime.crawl.queue.center;
 
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -33,8 +35,7 @@ public class DefaultQueuePersistService<P, T extends Identity<P>> implements Que
 
     public DefaultQueuePersistService(String storeName, Function<String, T> tFunction) {
         this.storeName = storeName;
-        storeFile = new File(storeName);
-
+        this.storeFile = new File(storeName);
         try {
             List<String> saveDataList = FileUtils.readLines(storeFile, Charset.defaultCharset());
             for (String task : saveDataList) {
@@ -50,12 +51,25 @@ public class DefaultQueuePersistService<P, T extends Identity<P>> implements Que
         } catch (Exception e) {
             logger.error("无法从本地文件恢复任务！！！", e);
         }
+        this.deleteErrorFile();
         new Timer("FileStore" + storeName).schedule(new TimerTask() {
             @Override
             public void run() {
                 saveFile();
             }
         }, 10000, 10000);
+    }
+
+    private void deleteErrorFile() {
+        if (this.storeFile.getParentFile().exists()) {
+            File[] files = this.storeFile.getParentFile().listFiles(file -> file.getName().startsWith(storeName) && !StringUtils.equals(file.getName(), storeName));
+            if (null != files) {
+                for (File file : files) {
+                    logger.warn("删除异常文件:{}", file.getAbsolutePath());
+                    FileUtils.deleteQuietly(file);
+                }
+            }
+        }
     }
 
     protected void saveFile() {
