@@ -68,7 +68,13 @@ public class DefaultQueuePersistService<P, T extends Identity<P>> implements Que
                 for (T seedTask : seedTaskList) {
                     builder.append(JSON.toJSONString(seedTask)).append("\n");
                 }
-                FileUtils.write(tmp, builder.toString(), Charset.defaultCharset());
+                try {
+                    FileUtils.write(tmp, builder.toString(), Charset.defaultCharset());
+                } catch (IOException e) {
+                    logger.error("任务文件持久化失败--临时文件无法生成", e);
+                    FileUtils.forceDelete(tmp);
+                    return;
+                }
                 logger.warn("任务序列化临时文件生成完毕");
                 FileUtils.deleteQuietly(storeFile);
                 FileUtils.moveFile(tmp, storeFile);
