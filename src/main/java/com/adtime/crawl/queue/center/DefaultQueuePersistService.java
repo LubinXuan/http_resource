@@ -34,8 +34,8 @@ public class DefaultQueuePersistService<P, T extends Identity<P>> implements Que
     private final String storeName;
 
     public DefaultQueuePersistService(String storeName, Function<String, T> tFunction) {
-        this.storeName = storeName;
         this.storeFile = new File(storeName);
+        this.storeName = this.storeFile.getName();
         try {
             List<String> saveDataList = FileUtils.readLines(storeFile, Charset.defaultCharset());
             for (String task : saveDataList) {
