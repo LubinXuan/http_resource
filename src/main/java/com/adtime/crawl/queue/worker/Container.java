@@ -125,6 +125,9 @@ public class Container<T> {
         if (!shutdown) {
             logger.debug("容器:{} 关闭", key);
             shutdown = true;
+            if (null != this.daemon) {
+                this.daemon.interrupt();
+            }
         }
     }
 }
