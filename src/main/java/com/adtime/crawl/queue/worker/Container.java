@@ -65,7 +65,7 @@ public class Container<T> {
                     try {
                         worker.startWork(t);
                     } catch (Throwable e) {
-                        if (!(e instanceof IgnoreRuntimeException)) {
+                        if (!(e instanceof IgnoreCrawlerWorkerRuntimeException)) {
                             logger.error("任务处理异常!!  --  {}", e.toString());
                         }
                         worker.handlerThrowable(t, e);
