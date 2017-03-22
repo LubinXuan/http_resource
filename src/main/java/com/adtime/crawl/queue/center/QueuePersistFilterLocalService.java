@@ -8,7 +8,7 @@ import java.util.function.Function;
  */
 public class QueuePersistFilterLocalService<P, T extends Identity<P>> implements QueuePersistService<P, T>, QueueFilterService<P> {
 
-    private final DefaultQueueFilterService<P> filterService = new DefaultQueueFilterService<>();
+    private DefaultQueueFilterService<P> filterService = new DefaultQueueFilterService<>();
 
     private final DefaultQueuePersistService<P, T> persistService;
 
@@ -26,7 +26,6 @@ public class QueuePersistFilterLocalService<P, T extends Identity<P>> implements
     public List<T> listQueueTask() {
         return persistService.listQueueTask();
     }
-
 
     @Override
     public void deleteTask(P id) {
@@ -56,5 +55,9 @@ public class QueuePersistFilterLocalService<P, T extends Identity<P>> implements
     @Override
     public void close() {
         persistService.close();
+    }
+
+    public void setFilterService(DefaultQueueFilterService<P> filterService) {
+        this.filterService = filterService;
     }
 }
