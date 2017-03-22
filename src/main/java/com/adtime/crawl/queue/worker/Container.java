@@ -65,7 +65,9 @@ public class Container<T> {
                     try {
                         worker.startWork(t);
                     } catch (Throwable e) {
-                        logger.error("任务处理异常!!  --  {}", e.toString());
+                        if (!(e instanceof IgnoreRuntimeException)) {
+                            logger.error("任务处理异常!!  --  {}", e.toString());
+                        }
                         worker.handlerThrowable(t, e);
                     } finally {
                         synchronized (resNotify) {
