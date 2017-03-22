@@ -8,7 +8,7 @@ import java.util.function.Function;
  */
 public class QueuePersistFilterLocalService<P, T extends Identity<P>> implements QueuePersistService<P, T>, QueueFilterService<P> {
 
-    private DefaultQueueFilterService<P> filterService = new DefaultQueueFilterService<>();
+    private QueueFilterService<P> filterService = new DefaultQueueFilterService<>();
 
     private final DefaultQueuePersistService<P, T> persistService;
 
