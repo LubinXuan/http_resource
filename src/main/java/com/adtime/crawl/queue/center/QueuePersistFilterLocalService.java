@@ -57,7 +57,7 @@ public class QueuePersistFilterLocalService<P, T extends Identity<P>> implements
         persistService.close();
     }
 
-    public void setFilterService(DefaultQueueFilterService<P> filterService) {
+    public void setFilterService(QueueFilterService<P> filterService) {
         this.filterService = filterService;
     }
 }
