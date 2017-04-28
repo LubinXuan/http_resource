@@ -9,5 +9,5 @@ import com.adtime.http.resource.Result;
 public interface ResponseCallback {
     void success(Request request, Result result);
 
-    void failure(Request request, Result result,Throwable throwable);
+    void failure(Request request, Throwable throwable);
 }

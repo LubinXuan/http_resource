@@ -27,7 +27,7 @@ public class ConnectionManager {
     public SocketChannel connect(String ip, int port) throws IOException, InterruptedException {
         ImmutableTriple<Integer, AtomicInteger, BlockingQueue<SocketChannel>> triple = this.channelMap.computeIfAbsent(ip + ":" + port, s -> new ImmutableTriple<>(maxConnectionPerHost, new AtomicInteger(0), new LinkedBlockingQueue<>()));
         SocketChannel channel = triple.getRight().poll();
-        if (null == channel) {
+        if (null == channel || channel.isOpen()) {
             synchronized (triple) {
                 if (triple.getLeft() > triple.getMiddle().get()) {
                     channel = SocketChannel.open();
@@ -41,5 +41,9 @@ public class ConnectionManager {
         } else {
             return channel;
         }
+    }
+
+    public void close(SocketChannel channel) throws IOException {
+        channel.close();
     }
 }
